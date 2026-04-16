@@ -1736,6 +1736,14 @@ const app = {
   // ===== CHARACTERS LIST =====
   renderCharacters() {
     const chars = this.state.characters;
+    // Shared backup row: Import is always available; Export only when chars exist
+    const backupRow = `
+      <div style="display:flex;gap:8px;margin-top:16px">
+        ${chars.length > 0 ? `<button class="btn btn-secondary btn-small" style="flex:1" onclick="app.exportCharacters()">&#128190; Export Backup</button>` : ''}
+        <button class="btn btn-secondary btn-small" style="flex:1" onclick="app.importCharactersPrompt()">&#128194; Import Backup</button>
+      </div>
+      <input type="file" id="charImportInput" accept="application/json,.json" style="display:none" onchange="app.importCharactersFromFile(event)">`;
+
     if (chars.length === 0) {
       return `
         <div class="characters-list">
@@ -1744,6 +1752,7 @@ const app = {
             <p>No adventurers yet.<br>Begin your journey!</p>
             <button class="btn btn-primary btn-block" onclick="app.startCreation()">Create New Character</button>
           </div>
+          ${backupRow}
         </div>`;
     }
 
@@ -1763,6 +1772,7 @@ const app = {
         </div>`;
     });
     html += `<button class="btn btn-primary btn-block" style="margin-top:16px" onclick="app.startCreation()">Create New Character</button>`;
+    html += backupRow;
     html += '</div>';
     return html;
   },
@@ -1785,6 +1795,161 @@ const app = {
     if (this.state.selectedCharacterId === id) this.state.selectedCharacterId = null;
     this.render();
     this.toast('Character deleted');
+  },
+
+  // ===== CHARACTER BACKUP (Export / Import) =====
+  // Exports all characters in the current state as a downloadable JSON file.
+  // Filename includes ISO date for easy sorting; contains a small envelope with
+  // `schemaVersion` and `exportedAt` so future imports can upgrade if needed.
+  exportCharacters() {
+    const chars = this.state.characters || [];
+    if (chars.length === 0) { this.toast('No characters to export'); return; }
+    const payload = {
+      app: 'nimble-companion',
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      characters: chars
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `nimble-backup-${date}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this.toast(`Exported ${chars.length} character${chars.length === 1 ? '' : 's'}`);
+  },
+
+  // Opens the native file picker (via the hidden #charImportInput)
+  importCharactersPrompt() {
+    const inp = document.getElementById('charImportInput');
+    if (inp) { inp.value = ''; inp.click(); }
+  },
+
+  // Reads the selected file, parses JSON, and launches the merge/replace modal
+  importCharactersFromFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let data;
+      try {
+        data = JSON.parse(e.target.result);
+      } catch (err) {
+        this.toast('Invalid JSON file');
+        return;
+      }
+      // Accept either our envelope format or a bare characters array
+      let imported = null;
+      if (Array.isArray(data)) imported = data;
+      else if (data && Array.isArray(data.characters)) imported = data.characters;
+      if (!imported || imported.length === 0) {
+        this.toast('No characters found in this file');
+        return;
+      }
+      // Basic validation: each entry must have id + name + className
+      const valid = imported.filter(c => c && c.id && c.name && c.className);
+      if (valid.length === 0) {
+        this.toast('No valid characters in this file');
+        return;
+      }
+      this._pendingImport = valid;
+      this.renderImportModal();
+    };
+    reader.onerror = () => this.toast('Could not read file');
+    reader.readAsText(file);
+  },
+
+  // Modal shown after a valid import: lets the user choose merge/replace and
+  // resolves conflicts when the same character id already exists locally.
+  renderImportModal() {
+    const incoming = this._pendingImport || [];
+    const existing = this.state.characters || [];
+    const existingIds = new Set(existing.map(c => c.id));
+    const conflicts = incoming.filter(c => existingIds.has(c.id));
+    const newOnes = incoming.filter(c => !existingIds.has(c.id));
+
+    let html = `<h3>&#128194; Import Characters</h3>
+      <div style="font-size:0.8rem;color:var(--ink-light);margin-bottom:10px">
+        Found <strong>${incoming.length}</strong> character${incoming.length === 1 ? '' : 's'} in the backup.
+      </div>`;
+
+    if (newOnes.length > 0) {
+      html += `<div style="margin-bottom:10px">
+        <div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin-bottom:4px">${newOnes.length} new — will be added</div>
+        <ul style="font-size:0.75rem;margin:0;padding-left:20px;color:var(--ink)">
+          ${newOnes.map(c => `<li>${this.esc(c.name)} (${this.esc(c.className || '')} L${c.level || 1})</li>`).join('')}
+        </ul>
+      </div>`;
+    }
+
+    if (conflicts.length > 0) {
+      html += `<div style="margin-bottom:10px;padding:8px;background:var(--parchment-dark);border-radius:6px">
+        <div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin-bottom:6px">${conflicts.length} already exist${conflicts.length === 1 ? 's' : ''} — choose what to do:</div>
+        <ul style="font-size:0.7rem;margin:0 0 8px 0;padding-left:20px;color:var(--ink)">
+          ${conflicts.map(c => `<li>${this.esc(c.name)} (${this.esc(c.className || '')} L${c.level || 1})</li>`).join('')}
+        </ul>
+        <div style="font-size:0.7rem;color:var(--ink-light)">
+          <strong>Replace:</strong> overwrite the local version with the one from the file.<br>
+          <strong>Keep Both:</strong> import as a new copy (the file version gets a new id).<br>
+          <strong>Skip:</strong> ignore conflicts, only add brand-new characters.
+        </div>
+      </div>`;
+    }
+
+    html += `<div class="modal-buttons" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">
+      <button class="btn btn-secondary" onclick="app._pendingImport=null; app.closeModal()">Cancel</button>`;
+    if (conflicts.length > 0) {
+      html += `<button class="btn btn-secondary" onclick="app.confirmImport('skip')">Skip conflicts</button>
+        <button class="btn btn-secondary" onclick="app.confirmImport('keepBoth')">Keep Both</button>
+        <button class="btn btn-primary" onclick="app.confirmImport('replace')">Replace</button>`;
+    } else {
+      html += `<button class="btn btn-primary" style="flex:1" onclick="app.confirmImport('skip')">Import ${newOnes.length}</button>`;
+    }
+    html += `</div>`;
+
+    this.showModal(html);
+  },
+
+  confirmImport(conflictStrategy) {
+    const incoming = this._pendingImport || [];
+    if (incoming.length === 0) return;
+    const existing = [...(this.state.characters || [])];
+    const existingById = new Map(existing.map(c => [c.id, c]));
+    let added = 0, replaced = 0, skipped = 0;
+
+    incoming.forEach(ch => {
+      const clash = existingById.get(ch.id);
+      if (!clash) {
+        existing.push(ch);
+        added++;
+      } else if (conflictStrategy === 'replace') {
+        const idx = existing.findIndex(c => c.id === ch.id);
+        if (idx >= 0) existing[idx] = ch;
+        replaced++;
+      } else if (conflictStrategy === 'keepBoth') {
+        const copy = { ...ch, id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5), name: ch.name + ' (imported)' };
+        existing.push(copy);
+        added++;
+      } else {
+        skipped++;
+      }
+    });
+
+    this.state.characters = existing;
+    this.save();
+    this._pendingImport = null;
+    this.closeModal();
+    this.render();
+    const parts = [];
+    if (added) parts.push(`${added} added`);
+    if (replaced) parts.push(`${replaced} replaced`);
+    if (skipped) parts.push(`${skipped} skipped`);
+    this.toast(`Import complete: ${parts.join(', ') || 'nothing to do'}`);
   },
 
   // ===== CHARACTER SHEET =====
