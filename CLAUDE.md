@@ -3,6 +3,13 @@
 ## What This Is
 A Progressive Web App (PWA) companion for the **Nimble TTRPG** system. It runs entirely in the browser, can be added to iPhone home screen like a native app, works offline, and stores all data in localStorage. The user (Diego) has zero programming experience — explain things simply when asked.
 
+## Deployment
+- **Live URL**: https://diego2797.github.io/nimble-app/
+- **GitHub repo**: https://github.com/Diego2797/nimble-app (Diego2797 is the GitHub user)
+- **Hosting**: GitHub Pages (free tier), source = `main` branch, path = `/`
+- **Update workflow**: `git add <files> && git commit -m "msg" && git push` — Pages rebuilds automatically in ~30-60s
+- **CLI tool**: `gh` (GitHub CLI, installed via Homebrew) is authenticated with Diego's account and should be used for any repo/Pages management (`gh api /repos/Diego2797/nimble-app/pages` to check build status)
+
 ## Project Vision & Goals
 
 ### Short-Term Goal
@@ -18,10 +25,11 @@ Pitch this app to the **creators of Nimble TTRPG** for potential official partne
 To move from "Diego's personal prototype" to "shareable with the playgroup" and eventually "pitchable to Nimble creators":
 
 **Multi-user / Shareability (Playgroup Stage)**
-- [ ] Multi-character data that syncs across devices OR easy export/import of characters as JSON (so Diego can share the app URL and each friend's phone holds their own data)
-- [ ] Cloud sync option (optional backup, so a lost phone doesn't kill the character) — could use a free tier (Firebase, Supabase, etc.) or keep it local-first with manual JSON export
-- [ ] Multiple characters per device with clear selector (already works for Diego's testing, but needs polish)
-- [ ] Onboarding / first-run help so a non-technical friend can install the PWA and start playing in under 5 minutes
+- [x] ~~Easy export/import of characters as JSON~~ — **DONE**: Export/Import Backup buttons in Characters tab (see Backup/Restore section below)
+- [ ] Cloud sync option (optional backup, so a lost phone doesn't kill the character) — considered Firebase/Supabase but deferred; user decided to defer to after playgroup testing. Export/import JSON is the current manual workaround.
+- [x] ~~App deployed publicly~~ — **DONE**: Live at https://diego2797.github.io/nimble-app/
+- [x] Multiple characters per device with clear selector (works)
+- [ ] Onboarding / first-run help so a non-technical friend can install the PWA and start playing in under 5 minutes (PWA install polish is the next priority Diego chose)
 
 **Polish (Pitch-Ready Stage)**
 - [ ] All 13 classes bug-free end-to-end (priority 5 classes listed below must work flawlessly)
@@ -325,26 +333,49 @@ app.state = {
   skillBonuses: { Arcana: 2, Perception: 1, ... },
   hp: 9, maxHp: 9,
   tempHp: 0,
-  armor: 0,
+  armor: 0,                          // Legacy/manual armor (used when no equipped gear; calculateArmor falls back to this)
+  armorMod: 0,                       // Manual modifier on top of auto-calc (e.g., Fearless -1)
+  hitDiceMaxMod: 0,                  // Additive mod to max hit dice (Survivalist +1, Fiendish Boon -1)
   initiative: 0,
   wounds: 0,
   mana: 7, maxMana: 7,
-  hitDice: 'd6',
-  speed: 6,              // IN SPACES (not feet!)
+  hitDice: 'd6',                     // Die size as string
+  currentHitDice: 4,                 // Current hit dice available (auto-set when missing)
+  speed: 6,                          // IN SPACES (not feet!)
   height: "5'8\"", weight: '130 lbs',
   motivation: 'Seeking lost arcane knowledge',
-  image: null,            // base64 data URI
+  image: null,                       // base64 data URI
   abilities: [{ name: 'Elemental Spellcasting', description: '...' }, ...],
-  spells: [],
-  inventory: [{ name: 'Staff', slots: 1 }, ...],
-  homebrewItems: [],
+  spells: [],                        // Mix of tiered spells, cantrips, utility (isUtility: true)
+  inventory: [
+    // New shape (categorized, April 2026):
+    { name: "Adventurer's Garb", slots: 1, category: 'armor', formula: { base: 2, statMod: 'DEX' }, equipped: true },
+    { name: 'Sickle', slots: 1, category: 'weapon', damage: '1d4+DEX', damageType: 'Slashing', properties: ['Vicious'], equipped: true },
+    { name: 'Shovel', slots: 1, category: 'other' }
+  ],
+  homebrew: [],
   notes: '',
   languages: ['Common', 'Elvish'],
   gold: 10,
   subclass: null,                    // Set at level 3 during level-up (e.g., 'Wild Heart', 'Pact of the Red Dragon')
-  chosenAbilities: {},               // Tracks which abilities were picked: { 'Thrill of the Hunt': ['Grease Trap', 'Incendiary Shot'] }
-  songweaverSchool: null,            // Extra school chosen by Songweaver (e.g., 'fire')
-  stormshifterSchool: null,          // Extra school chosen by Stormshifter Sky & Storm subclass
+  chosenAbilities: {},               // Tracks which abilities were picked: { 'thrillOfTheHuntAbilities': ['Grease Trap', 'Incendiary Shot'] }
+  songweaverSchool: null,            // Extra school chosen by Songweaver at creation (e.g., 'fire')
+  stormshifterSchool: null,          // Extra school chosen by Stormshifter Sky & Storm subclass (e.g., 'ice' | 'radiant')
+  fiendishBoonStat: null,            // Shadowmancer's Fiendish Boon: chosen stat for +1 / -1 max hit dice
+}
+```
+
+### App state shape (non-persistent fields)
+```javascript
+app.state = {
+  currentView: 'characters',          // characters | sheet | creation | combat | dice | rules
+  selectedCharacterId: null,
+  characters: [],                     // PERSISTED to localStorage under 'nimble_characters'
+  editMode: false,                    // Gates sheet editing UI (not persisted)
+  creation: null,                     // Transient creation state (see startCreation)
+  combat: { actions: [false,false,false], reactions: {}, conditions: {}, inFirstRound, firstRoundLockedActions },
+  dice: { selectedDie, numDice, advantages, disadvantages, history },
+  rulesSearch: ''
 }
 ```
 
@@ -380,12 +411,40 @@ app.autoLoadSpells(ch)                  // Auto-load all accessible spells for c
 app.levelUp()                           // Opens interactive level-up modal
 app.renderLevelUpModal()                // Re-renders modal content (called after state changes)
 app.confirmLevelUp()                    // Applies all level-up changes to character
-app.categorizeFeature(f, i, classData, ch) // Classifies a feature into subclass/statIncrease/abilityChoice/auto
+app.categorizeFeature(f, i, ch)         // Classifies a feature into subclass/statIncrease/abilityChoice/utilitySpellChoice/utilityAll/utilityAllPickSchool/auto. Needs `ch` for dynamic school resolution.
 app.toggleLevelUpAbility(fi, name)      // Toggle ability selection in level-up picker
 app.setLevelUpSubclass(name)            // Set subclass choice in level-up
 app.setLevelUpStat(stat)                // Set stat increase choice in level-up
+app.setLevelUpStormshifterSchool(s)     // Set Sky & Storm extra school (ice/radiant)
+app.toggleUtilitySchoolPick(fi, s, n)   // Mage Elemental Mastery style: pick schools to learn all utility from
 app.toggleManualHP()                    // Toggle between digital and manual HP dice input
 app.setManualHP(index, value)           // Set manual HP die value (index 0 or 1)
+
+// Equipment & Armor System
+app.calculateArmor(ch)                  // Returns { total, breakdown, isAuto }. Handles equipped armor formula, shield bonus, Zephyr Iron Defense, armorMod
+app.getCharacterAttacks(ch)             // Returns array of equipped weapons + unarmed strike with resolved damage display
+app.enrichInventoryItem(name, eq)       // Matches name against EQUIPMENT presets, returns categorized item
+app.toggleEquipped(i)                   // Equip/unequip item by inventory index (auto-unequips others of same category for armor/shield)
+app.addItemModal(editIdx)               // Open add/edit item modal with category picker
+app.renderAddItemModal()                // Re-render the add item modal (called after state changes)
+app._applyItemPreset(idxStr)            // Apply a preset from the preset dropdown (index-based)
+app._saveItemFromDraft()                // Save from modal state
+
+// Edit Mode
+app.toggleEditMode()                    // Toggle state.editMode which gates add/remove UI on sheet
+
+// Backup / Restore
+app.exportCharacters()                  // Download all characters as nimble-backup-YYYY-MM-DD.json
+app.importCharactersPrompt()            // Open hidden file picker for JSON import
+app.importCharactersFromFile(event)     // Handler for file input onchange
+app.renderImportModal()                 // Conflict resolution modal (replace/keepBoth/skip)
+app.confirmImport(strategy)             // Apply the import with chosen strategy
+
+// Subclass Swap (Story Transition)
+app.changeSubclassModal()               // Opens Story Transition modal (if eligible)
+app.selectSubclassForSwap(index)        // Pick an option from step 1
+app.confirmSubclassSwap()               // Applies the swap (handles blocksClassSpecific, grantsClassSpecific, removesClassAbilities)
+app._computeSubclassDiff(ch, oldName, newSub) // Computes { abilitiesToRemove, abilitiesToAdd, lostSchools, gainedSchools, classSpecificLost, classSpecificGained }
 ```
 
 ### Save Indicator Normalization (in renderSheet)
@@ -462,6 +521,116 @@ The app auto-adds a retrain button next to "+ Add Ability" on the character shee
 ### Class visibility in character creation
 Hexbinder and Artificer are filtered out of the class picker via a `HIDDEN_CLASSES` array in `renderStepClass()`. Their data remains intact in gamedata.js for future use.
 
+## Equipment System (added April 2026)
+
+### Data model (gamedata.js EQUIPMENT)
+```javascript
+EQUIPMENT: {
+  weapons: {
+    melee: [
+      { name: "Dagger", damage: "1d4+DEX", damageType: "Piercing", statUsed: "DEX", properties: ["Light", "Thrown 4"], cost: "3 gp" },
+      // ...
+    ],
+    ranged: [ /* similar */ ]
+  },
+  armor: {
+    cloth:   [{ name: "Adventurer's Garb", formula: { base: 2, statMod: "DEX" }, cost: "10 gp", requirements: "None" }, ...],
+    leather: [{ name: "Cheap Hides", formula: { base: 3, statMod: "DEX" }, ... }, ...],
+    mail:    [{ name: "Rusty Mail", formula: { base: 6, statMod: "DEX", statMax: 2 }, ... }, ...],  // statMax caps the bonus
+    plate:   [{ name: "Rusty Plate", formula: { base: 10 }, ... }, ...]  // flat, no stat mod
+  },
+  shields: [{ name: "Wooden Buckler", shieldArmor: 2, cost: "5 gp", requirements: "None" }, ...]
+}
+```
+
+### Inventory item shape
+```javascript
+{
+  name: "Adventurer's Garb",
+  slots: 1,
+  category: 'weapon' | 'armor' | 'shield' | 'other',
+  equipped: true,  // only meaningful for weapon/armor/shield
+  // Weapon fields:
+  damage: "1d4+DEX",       // format: "NdX+STAT" — stat resolved at render time
+  damageType: "Slashing",
+  properties: ["Light", "Thrown 4"],
+  // Armor fields:
+  formula: { base: 2, statMod: 'DEX', statMax: 2 },  // statMax optional
+  // Shield fields:
+  shieldArmor: 2
+}
+```
+
+### Armor auto-calc (calculateArmor)
+- **Legacy fallback**: if no categorized armor/shield equipped AND no Zephyr Iron Defense, returns `ch.armor` as manual value (backward compat).
+- **Auto mode triggers when**: any equipped armor, equipped shield, OR Zephyr with Iron Defense ability.
+- **Formula**: `equippedArmor (applies formula with stat+max)` + `equippedShield.shieldArmor` + `ch.armorMod`
+- **Zephyr Iron Defense** (L1): while unarmored, armor = STR+DEX (overrides default DEX).
+- **Zephyr Iron Defense (2)** (L13): while unarmored, armor is doubled.
+- **armorMod** is where background bonuses (Fearless -1) and manual +/- live. `adjustArmor` writes to `armorMod` when auto-calc is active, else to `ch.armor` (legacy path).
+
+### Attacks display (getCharacterAttacks)
+- Iterates equipped weapons, parses `"NdX+STAT"` damage, resolves to actual value (e.g., Pip DEX 2 + Sickle "1d4+DEX" → "1d4+2 (DEX)").
+- Always appends **Unarmed Strike** (1d4+STR bludgeoning). Zephyr's Swift Fists adds a "no Rushed Attack disadvantage" note.
+- Shown in Combat tab as "🏹 Attacks" section.
+
+### Starting gear flow (creation)
+- **"Use class defaults"** mode: iterates `classData.startingGear` (array of strings), runs `enrichInventoryItem` on each. First weapon/armor/shield are auto-equipped.
+- **"50gp to buy"** mode: Step 5 shows weapon/armor/shield dropdowns from presets + manual other items list. Saved into `cr.customGear = { weapon, armor, shield }`.
+
+### Add Item modal
+- `addItemModal` opens; `_itemDraft` holds the in-progress item.
+- Preset dropdowns are **index-based** (not JSON-encoded values — avoids HTML escaping issues).
+- `_itemPresets = { weapon: [...], armor: [...], shield: [...] }` is rebuilt on every render.
+- Category-specific fields appear conditionally.
+
+## Edit Mode System
+
+`state.editMode` is a boolean that gates editing UI on the character sheet. Button in sheet header "✎ Edit Character" / "✎ Done Editing" (gold when active).
+
+**Gated behind edit mode** (hidden when not editing):
+- +/- buttons on stats, Max HP, Armor, Initiative, skills
+- `+ Add Ability / Spell / Homebrew / Item / Language`
+- `×` remove buttons on spells, inventory items, languages, homebrew
+- Inventory add row + language add row
+- Delete Character button
+
+**Always visible** (gameplay features, not editing):
+- Gameplay +/- on current HP, Temp HP, Mana, Wounds, Hit Dice
+- Tap-to-adjust gold
+- Equip/Unequip buttons on inventory (gameplay action, not editing)
+- Retrain button (Supplicate / Serve / etc. — class feature)
+- Level Up, Combat, Story Transition buttons
+
+## Backup / Restore (JSON export/import)
+
+### Export
+- `exportCharacters()` builds envelope: `{ app: 'nimble-companion', schemaVersion: 1, exportedAt, characters: [...] }`
+- Triggers browser download as `nimble-backup-YYYY-MM-DD.json`
+- Toasts count of exported characters.
+
+### Import
+- `importCharactersPrompt()` → opens hidden `<input type="file" id="charImportInput">`
+- `importCharactersFromFile(event)` reads the file, parses JSON. Accepts envelope format OR a bare characters array.
+- Validates each entry has id + name + className. Stores as `_pendingImport`.
+- Opens `renderImportModal` with conflict summary.
+- Conflict resolution: **Replace** (overwrite local), **Keep Both** (duplicate with new id + "(imported)" suffix), **Skip** (only add new ones).
+- `confirmImport(strategy)` applies and toasts what happened.
+
+### UI location
+- Both buttons are in the Characters tab list view, below "Create New Character": **💾 Export Backup** / **📁 Import Backup**.
+- Export hidden when no characters exist; Import always available.
+
+## Service Worker
+
+- **File**: `sw.js`
+- **Version**: `v6` (bump CACHE_NAME to force old clients to purge cache on `activate`)
+- **Strategy**: stale-while-revalidate (was cache-first in v5, which caused "deployed but phones still show old version" issues)
+  - Serves cached response instantly (fast, offline)
+  - Simultaneously fetches fresh, updates cache for next visit
+  - Max lag: 1 visit behind latest
+- **Cached assets**: `./`, `./index.html`, `./gamedata.js`, `./manifest.json` (reference/ not cached — larger, not needed offline)
+
 ## Subclass Swap System (Story Transitions)
 
 Nimble RAW allows players to swap subclasses mid-campaign ONLY for story-based subclasses, triggered by narrative events like losing a patron, breaking an oath, or forming an extraordinary bond with a beast. Swapping between standard subclasses (e.g., Red Dragon ↔ Abyssal Depths) is **not** RAW-legal — the L3 subclass choice is otherwise permanent. The rule quote from `reference/classes.md`:
@@ -514,14 +683,29 @@ Never allowed: Standard ↔ Standard (e.g., Red Dragon → Abyssal). If a player
 - `ch.subclass` field
 - Abilities granted by old subclass → removed
 - Abilities granted by new subclass (up to current level) → added
+- Base class abilities listed in new subclass's `removesClassAbilities` → removed (e.g., Reaver strips Pilfered Power because Hollow One replaces it)
+- Base class abilities stripped by the old subclass but NOT by the new one → **restored** from `classData.levels` (most recent definition ≤ char level)
 - Spells from schools the old subclass granted but new one doesn't → removed (e.g., Abyssal → Reaver loses ice school)
 - New schools from new subclass → auto-loaded via `autoLoadSpells` (e.g., Red Dragon adds fire cantrips + tier-appropriate fire spells)
-- Class-specific spells if new subclass has `blocksClassSpecific: true` → removed (e.g., Reaver loses Shadow Blast)
+- Class-specific spells listed in new subclass's `blocksClassSpecific` → removed (e.g., Reaver blocks only `['Shadow Blast']`)
+- Class-specific cantrips granted by old subclass but NOT the new one → removed (e.g., Bonescythe removed when reverting from Reaver)
+- Class-specific cantrips granted by new subclass → loaded via `autoLoadSpells` (respects `requiresSubclass` on spells)
 
 ### Special flags on subclasses
 
 Subclasses in gamedata can have:
-- **`blocksClassSpecific: true`** — prevents `autoLoadSpells` from adding class-specific spells. Currently only Reaver has this (Shadowmancer loses Shadow Blast when they become Reaver).
+- **`blocksClassSpecific: ['SpellName', ...]`** (preferred) — array of specific class-specific spell names to block. E.g., Reaver: `['Shadow Blast']` (blocks Shadow Blast but keeps Summon Shadow).
+- **`blocksClassSpecific: true`** (legacy) — blocks ALL class-specific spells. Kept for backward compat, not recommended.
+- **`grantsClassSpecific: ['SpellName', ...]`** — subclass-granted class-specific spells. E.g., Reaver: `['Bonescythe']`. Each referenced spell must exist in `GAME_DATA.SPELLS.classSpecific.spells` with matching `class` + `requiresSubclass` field.
+- **`removesClassAbilities: ['Ability Name', ...]`** — base class abilities this subclass explicitly strips. E.g., Reaver: `['Pilfered Power']` (replaced by Shadow Exploit). The ability is removed during swap and restored if reverting.
+
+### Class-specific spell shape
+```javascript
+{ name: "Bonescythe", tier: 0, actions: 1, reach: "2 spaces", damage: "2d12+DEX Slashing/Necrotic",
+  description: "...", class: "Shadowmancer",
+  requiresSubclass: "Reaver"  // Only loaded when char's subclass matches
+}
+```
 
 ### Story-based subclass data shape
 
@@ -572,6 +756,13 @@ The app is being tested with a real campaign group. These 5 classes MUST work co
 5. **Zephyr** — Focus, Momentum, no mana
 
 When making changes, **always verify these 5 classes are not broken**. Cross-reference `reference/classes.md` for any data corrections.
+
+**Audit status (April 2026 Session 2)**: All 5 classes cross-referenced against `reference/classes.md` via agent-assisted audit. Critical issues found and fixed:
+- The Cheat: ✅ clean (0 critical, 2 minor cosmetic)
+- Shadowmancer: ✅ fixed (removed duplicate Pilfered Power from L1)
+- Shepherd: ✅ fixed (armor prof + starting gear were wrong)
+- Stormshifter: ✅ clean (0 critical, 3 minor)
+- Zephyr: ✅ clean (0 critical, 2 minor)
 
 ## Features Not Yet Implemented
 
@@ -644,16 +835,60 @@ All 10 items from the April 2026 Shepherd playtest session have been implemented
 - All sections collapsed by default for a clean, scannable interface.
 - Search bar should search across all sections.
 
+### ✅ Completed (April 2026 Session 2)
+
+Major work done in the deploy session. Kept here as context so future Claude instances don't re-do it:
+
+- [x] **All 11 core classes have retrain features** (Wrath & Ruin, Trade Secrets, Rigorous Training, Remember the Wild, Study!, Serve Selflessly, Serve, Perform!, Be Wild, Focus + pre-existing Supplicate) — all declared with `retrainFeature` + `retrainArrays` in gamedata.
+- [x] **Shepherd's Serve moved from L2 to L5** (correct per reference — triggers when Sacred Graces are picked).
+- [x] **Background bonuses system** — structured `bonuses` field on backgrounds. Applied in `saveCharacter()`. Covers: Raised by Goblins (+Goblin language), Wild One (+1 Naturecraft), Survivalist (+1 hitDiceMaxMod), Fearless (+1 initiative, -1 armor), Back Out of Retirement (-1 maxWounds — handled by `getBonusWounds` regex extension).
+- [x] **Hexbinder and Artificer hidden** from character creation UI via `HIDDEN_CLASSES` array in `renderStepClass`. Data stays in gamedata.
+- [x] **Edit Character mode** — toggle button in sheet header. Gates all `+ Add Ability/Spell/Homebrew/Item/Language` and `× remove` buttons + Delete Character button behind `state.editMode`. Retrain buttons stay visible always (gameplay feature).
+- [x] **Combat actions cleanup** — removed D&D-only actions (Dash, Disengage, Dodge, Hide, Interact, Use an Object). Now only Nimble's 5 heroic actions (Attack, Move, Cast Spell, Assess, Free Actions) and 4 reactions (Defend, Interpose, Opportunity Attack, Help). Data moved to `GAME_DATA.COMBAT_ACTIONS` and `GAME_DATA.REACTIONS`.
+- [x] **Combat tab shows Attacks section** (equipped weapons + Unarmed Strike with damage calculated from character's stats) AND collapsible Heroic Actions reference.
+- [x] **Reactions consume 1 action automatically** (per Nimble §14) — `toggleReaction` on spends/frees 1 action slot.
+- [x] **Equipment overhaul** — `EQUIPMENT` data in gamedata rewritten with proper Nimble format (weapons with `damage: "1d6+STR"`, armor with `formula: { base, statMod, statMax }`, shields with `shieldArmor`). 4 armor categories (cloth/leather/mail/plate), 16 melee + 7 ranged weapons, 4 shields.
+- [x] **Inventory items categorized** — each item has `category: 'weapon' | 'armor' | 'shield' | 'other'` plus category-specific fields and an `equipped` flag.
+- [x] **Armor auto-calc** — `calculateArmor(ch)` returns `{ total, breakdown, isAuto }`. Respects unarmored = DEX default, equipped armor formula + statMax caps, equipped shield, Zephyr Iron Defense (STR+DEX while unarmored, doubled at L13), `armorMod` modifier for Fearless -1 and manual adjusts. Falls back to legacy `ch.armor` for chars without equipped gear.
+- [x] **Character attacks** — `getCharacterAttacks(ch)` returns array of equipped weapons + unarmed strike with damage display that resolves stats (e.g., "1d4+2 (DEX)"). Zephyr Swift Fists gets "no Rushed Attack" note.
+- [x] **Starting gear enrichment + auto-equip** — `enrichInventoryItem(name, eq)` matches item names against EQUIPMENT presets (handles pluralization, number prefixes, parens). First weapon/armor/shield auto-equipped in `saveCharacter`.
+- [x] **Add Item modal** — `addItemModal` / `renderAddItemModal` with category picker + preset dropdown (index-based to avoid JSON encoding issues) + category-specific fields (damage/type/properties for weapons, base/stat/max for armor, shieldArmor for shields).
+- [x] **Custom starting gear in creation** — Step 5 Equipment has weapon/armor/shield preset dropdowns when "50gp to buy" mode is selected.
+- [x] **Songweaver school picker** — in Step 6 Details of creation. Stores in `ch.songweaverSchool`. Validation in `creationNext` (can't pass step 6 without choosing).
+- [x] **Stormshifter Sky & Storm school picker** — in level-up modal when Circle of Sky & Storm subclass is chosen at L3. Stores in `ch.stormshifterSchool`. Blocks level-up confirm until chosen. Saves via `stormshifterSchool` in `updateChar`.
+- [x] **Utility spell features audit** — extended `categorizeFeature` to handle dynamic school patterns:
+  - "from each spell school you know" / "the spell schools you know" → resolves to character's accessible schools via `getCharacterSchools(ch)`
+  - "from 1/a/a 2nd/a 3rd spell school you know" → new `utilityAllPickSchool` type (Mage Elemental Mastery). Player picks a school, auto-learns all utility spells from it.
+  - `categorizeFeature` now takes `ch` as 3rd param (passed from `levelUp` as projected char at new level).
+  - All 16 utility-granting features across 13 classes correctly categorized (no more `auto` fallthrough).
+- [x] **Audit of 5 priority classes done** — cross-referenced gamedata against reference/classes.md. Critical fixes applied:
+  - Shepherd `armorProficiency`: "Cloth, Leather" → "Mail, Shields"
+  - Shepherd `startingGear`: was Songweaver-style gear → correct ["Rusty Mail", "Mace", "Wooden Buckler", "Bell"]
+  - Shadowmancer L1 had duplicate "Pilfered Power" → removed (it's only L2 per reference)
+- [x] **Reaver (Shadowmancer story-based subclass) spell handling** — nuanced swap:
+  - `blocksClassSpecific: true` → `blocksClassSpecific: ['Shadow Blast']` (array of specific names, not boolean)
+  - New field: `grantsClassSpecific: ['Bonescythe']` — subclass-granted class-specific cantrips
+  - New field: `removesClassAbilities: ['Pilfered Power']` — base class abilities this subclass strips
+  - **Bonescythe** added to `classSpecific.spells` with `requiresSubclass: 'Reaver'` (only loads when Reaver is active)
+  - `autoLoadSpells`, `_computeSubclassDiff`, `confirmSubclassSwap` all updated to handle array-based blocking + grants + class-ability stripping
+  - On revert from Reaver → standard: Pilfered Power is restored by looking up its definition in `classData.levels` (most recent definition ≤ char's level)
+  - Story Transition modal diff now shows specific gained/lost spells instead of generic "blocks class-specific" message
+- [x] **GitHub Pages deploy** — live at https://diego2797.github.io/nimble-app/
+- [x] **Character Export/Import (JSON backup)** — buttons in Characters tab. File format: `{ app, schemaVersion, exportedAt, characters }`. Import modal handles conflicts (replace/keepBoth/skip). See Backup/Restore section.
+- [x] **Service worker smart cache** — `sw.js` bumped to `v6` + switched from cache-first to **stale-while-revalidate**. Prevents "deployed but still see old version" issues in future.
+
 ### High Priority (Pre-Existing)
-- **Songweaver school choice** in character creation (Wind + pick 1 other) — data field `ch.songweaverSchool` exists but no UI to set it
-- **Stormshifter Sky & Storm school choice** — data field `ch.stormshifterSchool` exists but no UI to set it
+
+- **PWA install polish** (next task Diego chose): better icon for home screen, splash screen, auto install prompt on first visit. Current manifest icon is a generic sword that looks bad on home screen.
+- **Desktop UI layout** (biggest remaining item): currently mobile-first 360-428px. Need media queries for >= 900px with side-by-side layout (character sheet left, combat/dice/rules panel right), possibly sidebar nav instead of bottom nav.
+- **Cloud sync (deferred)** — Diego considered but deferred until after playgroup testing. Export/Import JSON is the current manual workaround. If implemented later, Firebase is the recommended backend (generous free tier, Google OAuth built-in, Firestore fits JSON character data).
+- **Storage Persistence API** — iOS Safari evicts PWA data after 7 days of no use. Adding `navigator.storage.persist()` mitigates this. ~15 min work, never prioritized.
 
 ### Medium Priority
-- **Homebrew Item form**: fields for name, description, effects, weaknesses
-- **Character sharing**: export/import character as JSON (also needed for playgroup goal)
+- **Homebrew Item form**: fields for name, description, effects, weaknesses (currently just name + generic)
 - **Initiative calculation**: factor in ancestry bonuses (e.g., Elf +1 Speed / advantage on initiative)
 - **Starting gold**: varies by class, currently hardcoded to 10
-- **Equipment slot capacity**: should come from class/STR, currently hardcoded to 9
+- **Equipment slot capacity**: should come from class/STR, currently hardcoded based on 9+STR in reference
 
 ### Nice-to-Haves
 - Dice roll animation
@@ -685,6 +920,31 @@ All 10 items from the April 2026 Shepherd playtest session have been implemented
 - [x] INT-based bonus languages: language picker in Details step during creation
 - [x] Hit Dice now a trackable resource on character sheet with +/- buttons (current/max)
 - [x] Starting HP bug: was adding STR to class startingHP — fixed to use flat class value per reference rules
+
+### Bugs Fixed (April 2026 Session 2 — deploy session)
+- [x] Shepherd's Serve at wrong level (L2 → L5 to match Sacred Graces pick)
+- [x] Raised by Goblins didn't grant Goblin language (backgrounds now have structured `bonuses` field)
+- [x] Wild One / Survivalist / Fearless didn't apply their stat bonuses (same fix)
+- [x] Back Out of Retirement's "-1 max Wounds" wasn't subtracted (`getBonusWounds` regex extended to capture negatives)
+- [x] Rules Reference had D&D-only combat actions (Dash/Disengage/Dodge/Hide/Interact) — removed; now only Nimble's 5
+- [x] Combat tab Reactions section was empty — added `REACTIONS` to gamedata
+- [x] Combat tab had no quick-access for weapon attacks — added Attacks section with equipped weapons + unarmed strike
+- [x] EQUIPMENT data in gamedata was D&D-flavored (wrong armor values, wrong damage format) — rewrote with Nimble format
+- [x] Armor didn't auto-calculate from equipped items — added `calculateArmor` with Zephyr Iron Defense support
+- [x] Starting gear items were just names with no category/stats — added `enrichInventoryItem` that matches against EQUIPMENT presets
+- [x] Reactions didn't consume an action per Nimble §14 — `toggleReaction` now spends/frees 1 action slot
+- [x] Add Item modal preset dropdowns didn't work due to JSON double-encoding in HTML attributes — switched to index-based lookup via `_itemPresets`
+- [x] Songweaver couldn't pick extra school at creation — added picker in Step 6 Details
+- [x] Stormshifter Sky & Storm subclass couldn't pick extra school (Ice/Radiant) — added picker in level-up modal
+- [x] Utility spell features with "from each spell school you know" / "from 1 spell school you know" fell through to `auto` (no picker) — extended `categorizeFeature` with dynamic school resolution + new `utilityAllPickSchool` type
+- [x] Shepherd had wrong armor proficiency (Cloth/Leather → Mail/Shields) and wrong starting gear (Songweaver-like → Rusty Mail/Mace/Buckler/Bell)
+- [x] Shadowmancer L1 had duplicate Pilfered Power (is L2-only per reference) — removed
+- [x] Reaver subclass lost BOTH Shadow Blast AND Summon Shadow — fixed: `blocksClassSpecific` is now array `['Shadow Blast']`; Summon Shadow kept
+- [x] Reaver didn't gain Bonescythe — added as class-specific cantrip with `requiresSubclass: 'Reaver'`; subclass declares `grantsClassSpecific: ['Bonescythe']`
+- [x] Reaver didn't strip Pilfered Power — added `removesClassAbilities: ['Pilfered Power']` field; reverting restores the ability from `classData.levels`
+- [x] Sheet showed Add/Remove buttons at all times — gated behind `editMode` toggle in sheet header
+- [x] Service worker cache-first strategy blocked deploys — switched to stale-while-revalidate in sw.js v6
+- [x] Hexbinder/Artificer visible in character creation — now filtered via `HIDDEN_CLASSES` array (they're expansion-book classes, not core)
 
 ## Aesthetic Guidelines
 - **Fantasy old book / worn parchment** look
