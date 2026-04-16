@@ -1,0 +1,12 @@
+# macOS system files
+.DS_Store
+
+# Editor/IDE settings
+.vscode/
+.idea/
+
+# OS thumbnails
+Thumbs.db
+
+# Claude Code local settings (keep launch.json for preview server, but not local settings)
+.claude/settings.local.json
