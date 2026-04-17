@@ -16,6 +16,46 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+<!-- Firebase SDK (loaded as ES modules from Google CDN).
+     Exposes a handful of helpers via window.firebaseSync so the main (non-module)
+     <script> below can use them. Dispatches 'firebase-ready' when initialized so the
+     app knows when it can wire up auth. If this script fails (offline, CDN blocked),
+     the app falls back to local-only mode and still works. -->
+<script type="module">
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
+    const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } =
+      await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
+    const { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp } =
+      await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB509GZ41Ue7c0U0NXtzhSxUyDJpp7Rb04",
+      authDomain: "nimble-companion.firebaseapp.com",
+      projectId: "nimble-companion",
+      storageBucket: "nimble-companion.firebasestorage.app",
+      messagingSenderId: "1089252770378",
+      appId: "1:1089252770378:web:fc9a820743a8e985229cb3"
+    };
+
+    const fbApp = initializeApp(firebaseConfig);
+    const auth = getAuth(fbApp);
+    const db = getFirestore(fbApp);
+    const googleProvider = new GoogleAuthProvider();
+
+    window.firebaseSync = {
+      auth, db, googleProvider,
+      signInWithPopup, signOut, onAuthStateChanged,
+      doc, setDoc, getDoc, onSnapshot, serverTimestamp
+    };
+    window.dispatchEvent(new Event('firebase-ready'));
+  } catch (err) {
+    console.warn('Firebase SDK failed to load — running in local-only mode.', err);
+    window.firebaseSync = null;
+    window.dispatchEvent(new Event('firebase-failed'));
+  }
+</script>
 <style>
 /* ============================================================
    CSS RESET & ROOT
@@ -1775,6 +1815,9 @@ const app = {
     } catch (e) {
       console.warn('Save failed:', e);
     }
+    // Also schedule a push to the cloud if the user is logged in.
+    // Debounced so rapid HP/mana/skill clicks don't spam Firestore.
+    this.scheduleCloudPush();
   },
 
   load() {
@@ -1877,6 +1920,10 @@ const app = {
   // ===== CHARACTERS LIST =====
   renderCharacters() {
     const chars = this.state.characters;
+
+    // ---- Cloud sync header (login button or signed-in badge) ----
+    const syncHeader = this.renderSyncHeader();
+
     // Shared backup row: Import is always available; Export only when chars exist
     const backupRow = `
       <div style="display:flex;gap:8px;margin-top:16px">
@@ -1888,6 +1935,7 @@ const app = {
     if (chars.length === 0) {
       return `
         <div class="characters-list">
+          ${syncHeader}
           <div class="empty-state">
             <div class="icon">&#128214;</div>
             <p>No adventurers yet.<br>Begin your journey!</p>
@@ -1898,6 +1946,7 @@ const app = {
     }
 
     let html = '<div class="characters-list">';
+    html += syncHeader;
     chars.forEach(ch => {
       const avatar = ch.image
         ? `<div class="char-avatar"><img src="${ch.image}" alt="${ch.name}"></div>`
@@ -6694,10 +6743,225 @@ const app = {
     return div.innerHTML;
   },
 
+  // ==========================================================================
+  // CLOUD SYNC (Firebase Auth + Firestore)
+  // ==========================================================================
+  // Runtime state (not persisted):
+  //   user: { uid, displayName, photoURL, email } | null
+  //   syncStatus: 'idle' | 'syncing' | 'synced' | 'error' | 'offline'
+  //   _cloudUnsub: function to detach the Firestore listener
+  //   _pushTimer: debounce timer handle
+  //   _applyingCloud: true while we're writing a cloud snapshot into local state
+  //                   (prevents the resulting save() from pushing back → loop)
+  user: null,
+  syncStatus: 'idle',
+
+  initFirebaseSync() {
+    const fb = window.firebaseSync;
+    if (!fb) return;
+    // React to Google sign-in / sign-out
+    fb.onAuthStateChanged(fb.auth, (fbUser) => {
+      if (fbUser) {
+        this.user = {
+          uid: fbUser.uid,
+          displayName: fbUser.displayName || fbUser.email || 'Player',
+          photoURL: fbUser.photoURL || null,
+          email: fbUser.email || null
+        };
+        this.subscribeToCloud();
+      } else {
+        this.user = null;
+        this.syncStatus = 'idle';
+        if (this._cloudUnsub) { try { this._cloudUnsub(); } catch (_) {} this._cloudUnsub = null; }
+      }
+      this.render();
+    });
+  },
+
+  async signIn() {
+    const fb = window.firebaseSync;
+    if (!fb) { this.toast('Cloud sync unavailable (offline?)'); return; }
+    try {
+      this.syncStatus = 'syncing';
+      this.render();
+      await fb.signInWithPopup(fb.auth, fb.googleProvider);
+      // onAuthStateChanged will take over from here
+    } catch (err) {
+      console.warn('Sign-in failed:', err);
+      this.syncStatus = 'error';
+      this.toast('Sign-in cancelled or blocked');
+      this.render();
+    }
+  },
+
+  async signOutCloud() {
+    const fb = window.firebaseSync;
+    if (!fb) return;
+    if (!confirm('Sign out of cloud sync? Your characters stay on this device.')) return;
+    try {
+      await fb.signOut(fb.auth);
+    } catch (err) {
+      console.warn('Sign-out failed:', err);
+    }
+  },
+
+  // Attach a real-time listener on users/{uid}. When the cloud document changes
+  // (from another device), merge it into local state.
+  // First-read: if cloud exists, adopt cloud. If not, push local as seed.
+  subscribeToCloud() {
+    const fb = window.firebaseSync;
+    if (!fb || !this.user) return;
+    if (this._cloudUnsub) { try { this._cloudUnsub(); } catch (_) {} this._cloudUnsub = null; }
+
+    const ref = fb.doc(fb.db, 'users', this.user.uid);
+    this.syncStatus = 'syncing';
+    this.render();
+
+    this._firstSnapshot = true;
+    this._cloudUnsub = fb.onSnapshot(ref, (snap) => {
+      // Ignore snapshots that are echoes of our own pending writes
+      if (snap.metadata && snap.metadata.hasPendingWrites) return;
+
+      if (!snap.exists()) {
+        // Cloud doc doesn't exist yet → push local state as initial seed
+        this._firstSnapshot = false;
+        this.pushToCloud();
+        return;
+      }
+
+      const data = snap.data();
+      const remote = Array.isArray(data.characters) ? data.characters : [];
+
+      // On first read: decide who wins (cloud vs local). Simple rule:
+      // - If local is empty, adopt cloud
+      // - If cloud is empty, push local
+      // - Otherwise prefer cloud (keeps all devices consistent on login)
+      if (this._firstSnapshot) {
+        this._firstSnapshot = false;
+        if (this.state.characters.length === 0 && remote.length > 0) {
+          this._adoptFromCloud(remote);
+        } else if (this.state.characters.length > 0 && remote.length === 0) {
+          this.pushToCloud();
+        } else {
+          this._adoptFromCloud(remote);
+        }
+      } else {
+        // Subsequent updates from another device → always adopt
+        this._adoptFromCloud(remote);
+      }
+      this.syncStatus = 'synced';
+      this.render();
+    }, (err) => {
+      console.warn('Cloud listener error:', err);
+      this.syncStatus = 'error';
+      this.render();
+    });
+  },
+
+  // Write a cloud snapshot into local state without triggering a push back
+  _adoptFromCloud(remoteChars) {
+    this._applyingCloud = true;
+    try {
+      this.state.characters = remoteChars;
+      // If the currently selected char was deleted remotely, deselect
+      if (this.state.selectedCharacterId && !remoteChars.find(c => c.id === this.state.selectedCharacterId)) {
+        this.state.selectedCharacterId = null;
+      }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state.characters)); } catch (_) {}
+    } finally {
+      this._applyingCloud = false;
+    }
+  },
+
+  // Debounced push: any number of rapid save() calls collapses into one write 800ms later.
+  scheduleCloudPush() {
+    if (this._applyingCloud) return;     // never push while adopting from cloud
+    if (!this.user || !window.firebaseSync) return;
+    if (this._pushTimer) clearTimeout(this._pushTimer);
+    this.syncStatus = 'syncing';
+    this._pushTimer = setTimeout(() => {
+      this._pushTimer = null;
+      this.pushToCloud();
+    }, 800);
+  },
+
+  async pushToCloud() {
+    const fb = window.firebaseSync;
+    if (!fb || !this.user) return;
+    try {
+      const ref = fb.doc(fb.db, 'users', this.user.uid);
+      await fb.setDoc(ref, {
+        schemaVersion: 1,
+        characters: this.state.characters,
+        updatedAt: fb.serverTimestamp()
+      });
+      this.syncStatus = 'synced';
+      this.render();
+    } catch (err) {
+      console.warn('Cloud push failed:', err);
+      this.syncStatus = 'error';
+      this.render();
+    }
+  },
+
+  // Renders the Cloud Sync panel at the top of the Characters tab.
+  // Two states: logged out (Sign in button) vs logged in (user badge + status pill).
+  renderSyncHeader() {
+    const fb = window.firebaseSync;
+    if (!fb) {
+      // SDK failed to load — show a small offline note rather than a dead button
+      return `<div style="padding:8px 12px;margin-bottom:10px;background:var(--parchment-dark);border-radius:8px;font-size:0.7rem;color:var(--ink-light);text-align:center">&#9888; Cloud sync unavailable (offline?)</div>`;
+    }
+    if (!this.user) {
+      return `
+        <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:8px">
+          <div style="flex:1;font-size:0.75rem;color:var(--ink-light);line-height:1.3">
+            <div style="font-weight:bold;color:var(--burgundy);margin-bottom:2px">&#9729; Cloud Sync</div>
+            Sign in with Google to sync characters across your devices.
+          </div>
+          <button class="btn btn-small" style="background:var(--gold);color:var(--ink);border:none;padding:6px 12px;font-weight:bold;white-space:nowrap" onclick="app.signIn()">Sign in</button>
+        </div>`;
+    }
+    // Signed in: show avatar + name + status pill + sign-out
+    const statusMap = {
+      idle:    { label: 'Ready',    color: 'var(--ink-light)' },
+      syncing: { label: 'Syncing…', color: 'var(--gold)' },
+      synced:  { label: '✓ Synced', color: '#2e7d32' },
+      error:   { label: '⚠ Error',  color: 'var(--burgundy)' },
+      offline: { label: 'Offline',  color: 'var(--ink-light)' }
+    };
+    const status = statusMap[this.syncStatus] || statusMap.idle;
+    const avatar = this.user.photoURL
+      ? `<img src="${this.user.photoURL}" width="32" height="32" style="border-radius:50%;flex:none" referrerpolicy="no-referrer" alt="">`
+      : `<div style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:bold;flex:none">${this.esc((this.user.displayName || '?').charAt(0).toUpperCase())}</div>`;
+    return `
+      <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:8px">
+        ${avatar}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.8rem;font-weight:bold;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${this.esc(this.user.displayName)}</div>
+          <div style="font-size:0.65rem;color:${status.color}">${status.label}</div>
+        </div>
+        <button class="btn btn-small btn-secondary" style="padding:4px 10px;font-size:0.7rem;white-space:nowrap" onclick="app.signOutCloud()">Sign out</button>
+      </div>`;
+  },
+
   // ---- INIT ----
   init() {
     this.load();
     this.navigate('characters');
+
+    // Wire up Firebase when the SDK module finishes loading.
+    // The module script dispatches 'firebase-ready' (or 'firebase-failed' on error).
+    if (window.firebaseSync) {
+      // Already loaded (e.g., cached)
+      this.initFirebaseSync();
+    } else {
+      window.addEventListener('firebase-ready', () => this.initFirebaseSync(), { once: true });
+      window.addEventListener('firebase-failed', () => {
+        this.syncStatus = 'offline';
+        this.render();
+      }, { once: true });
+    }
 
     // Register service worker with auto-update detection.
     // iOS PWAs in particular are aggressive about serving cached SWs and never checking
