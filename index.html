@@ -485,6 +485,8 @@ h3 { font-size: 1.1rem; }
   font-weight: bold;
 }
 .adjust-row .adj-apply { background: var(--success); color: var(--parchment); }
+.adjust-row .adj-minus { background: var(--burgundy); color: var(--parchment); min-width: 36px; font-size: 1rem; }
+.adjust-row .adj-plus { background: var(--success); color: var(--parchment); min-width: 36px; font-size: 1rem; }
 .adjust-row .adj-cancel { background: var(--parchment-dark); color: var(--ink); border: 1px solid var(--parchment-edge); }
 
 /* Wounds */
@@ -2030,8 +2032,9 @@ const app = {
       </div>
       <div class="tracker-row adjust-row" id="adjust-hp" style="display:none">
         <span class="tracker-label"></span>
-        <input type="number" id="adj-hp-val" placeholder="-7 or +5" inputmode="numeric" onkeydown="if(event.key==='Enter')app.applyAdjust('hp')">
-        <button class="adj-apply" onclick="app.applyAdjust('hp')">Apply</button>
+        <input type="number" id="adj-hp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('hp',1)">
+        <button class="adj-minus" onclick="app.applyAdjust('hp',-1)">&minus;</button>
+        <button class="adj-plus" onclick="app.applyAdjust('hp',1)">&plus;</button>
         <button class="adj-cancel" onclick="app.hideAdjust('hp')">&#10005;</button>
       </div>
       ${editMode ? `<div class="tracker-row">
@@ -2052,8 +2055,9 @@ const app = {
       </div>
       <div class="tracker-row adjust-row" id="adjust-tempHp" style="display:none">
         <span class="tracker-label"></span>
-        <input type="number" id="adj-tempHp-val" placeholder="-3 or +5" inputmode="numeric" onkeydown="if(event.key==='Enter')app.applyAdjust('tempHp')">
-        <button class="adj-apply" onclick="app.applyAdjust('tempHp')">Apply</button>
+        <input type="number" id="adj-tempHp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('tempHp',1)">
+        <button class="adj-minus" onclick="app.applyAdjust('tempHp',-1)">&minus;</button>
+        <button class="adj-plus" onclick="app.applyAdjust('tempHp',1)">&plus;</button>
         <button class="adj-cancel" onclick="app.hideAdjust('tempHp')">&#10005;</button>
       </div>`;
 
@@ -2107,8 +2111,9 @@ const app = {
         </div>
         <div class="tracker-row adjust-row" id="adjust-mana" style="display:none">
           <span class="tracker-label"></span>
-          <input type="number" id="adj-mana-val" placeholder="-3 or +5" inputmode="numeric" onkeydown="if(event.key==='Enter')app.applyAdjust('mana')">
-          <button class="adj-apply" onclick="app.applyAdjust('mana')">Apply</button>
+          <input type="number" id="adj-mana-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('mana',1)">
+          <button class="adj-minus" onclick="app.applyAdjust('mana',-1)">&minus;</button>
+          <button class="adj-plus" onclick="app.applyAdjust('mana',1)">&plus;</button>
           <button class="adj-cancel" onclick="app.hideAdjust('mana')">&#10005;</button>
         </div>`;
     }
@@ -2125,8 +2130,9 @@ const app = {
       </div>
       <div class="tracker-row adjust-row" id="adjust-hitDice" style="display:none">
         <span class="tracker-label"></span>
-        <input type="number" id="adj-hitDice-val" placeholder="-1 or +2" inputmode="numeric" onkeydown="if(event.key==='Enter')app.applyAdjust('hitDice')">
-        <button class="adj-apply" onclick="app.applyAdjust('hitDice')">Apply</button>
+        <input type="number" id="adj-hitDice-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('hitDice',1)">
+        <button class="adj-minus" onclick="app.applyAdjust('hitDice',-1)">&minus;</button>
+        <button class="adj-plus" onclick="app.applyAdjust('hitDice',1)">&plus;</button>
         <button class="adj-cancel" onclick="app.hideAdjust('hitDice')">&#10005;</button>
       </div>`;
 
@@ -2309,8 +2315,9 @@ const app = {
     html += `<div class="slot-counter">Slots: ${usedSlots} / ${maxSlots}</div>`;
     html += `<div class="gold-display" style="margin-bottom:8px">&#9798; Gold: <span class="tappable" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;color:var(--gold);font-weight:bold" onclick="app.showAdjust('gold')">${ch.gold ?? 0}</span></div>
     <div class="adjust-row" id="adjust-gold" style="display:none;margin-bottom:8px">
-      <input type="number" id="adj-gold-val" placeholder="-10 or +25" inputmode="numeric" onkeydown="if(event.key==='Enter')app.applyAdjust('gold')">
-      <button class="adj-apply" onclick="app.applyAdjust('gold')">Apply</button>
+      <input type="number" id="adj-gold-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('gold',1)">
+      <button class="adj-minus" onclick="app.applyAdjust('gold',-1)">&minus;</button>
+      <button class="adj-plus" onclick="app.applyAdjust('gold',1)">&plus;</button>
       <button class="adj-cancel" onclick="app.hideAdjust('gold')">&#10005;</button>
     </div>`;
     items.forEach((it, i) => {
@@ -2501,11 +2508,14 @@ const app = {
     if (row) row.style.display = 'none';
   },
 
-  applyAdjust(field) {
+  applyAdjust(field, sign) {
     const input = document.getElementById('adj-' + field + '-val');
     if (!input) return;
-    const delta = parseInt(input.value, 10);
-    if (isNaN(delta) || delta === 0) { this.hideAdjust(field); return; }
+    const raw = parseInt(input.value, 10);
+    if (isNaN(raw) || raw === 0) { this.hideAdjust(field); return; }
+    // sign is +1 (button "+") or -1 (button "−"). Use absolute value so typed "-5" still behaves.
+    const direction = sign || 1;
+    const delta = Math.abs(raw) * direction;
     const handlers = {
       hp: (d) => this.adjustHP(d),
       tempHp: (d) => this.adjustTempHP(d),
@@ -5160,8 +5170,9 @@ const app = {
         <span class="tracker-value tappable" onclick="app.showAdjust('combatHp')">${cHp} / ${cMaxHp}</span>
       </div>
       <div class="tracker-row adjust-row" id="adjust-combatHp" style="display:none;justify-content:center">
-        <input type="number" id="adj-combatHp-val" placeholder="-7 or +5" inputmode="numeric" onkeydown="if(event.key==='Enter')app.applyAdjust('combatHp')">
-        <button class="adj-apply" onclick="app.applyAdjust('combatHp')">Apply</button>
+        <input type="number" id="adj-combatHp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('combatHp',1)">
+        <button class="adj-minus" onclick="app.applyAdjust('combatHp',-1)">&minus;</button>
+        <button class="adj-plus" onclick="app.applyAdjust('combatHp',1)">&plus;</button>
         <button class="adj-cancel" onclick="app.hideAdjust('combatHp')">&#10005;</button>
       </div>
       <div class="tracker-row" style="justify-content:center">
@@ -5169,8 +5180,9 @@ const app = {
         <span class="tracker-value tappable" onclick="app.showAdjust('combatTempHp')">${ch.tempHp || 0}</span>
       </div>
       <div class="tracker-row adjust-row" id="adjust-combatTempHp" style="display:none;justify-content:center">
-        <input type="number" id="adj-combatTempHp-val" placeholder="-3 or +5" inputmode="numeric" onkeydown="if(event.key==='Enter')app.applyAdjust('combatTempHp')">
-        <button class="adj-apply" onclick="app.applyAdjust('combatTempHp')">Apply</button>
+        <input type="number" id="adj-combatTempHp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('combatTempHp',1)">
+        <button class="adj-minus" onclick="app.applyAdjust('combatTempHp',-1)">&minus;</button>
+        <button class="adj-plus" onclick="app.applyAdjust('combatTempHp',1)">&plus;</button>
         <button class="adj-cancel" onclick="app.hideAdjust('combatTempHp')">&#10005;</button>
       </div>
       <div class="tracker-row" style="justify-content:center"><span class="tracker-label">Wounds${this.getBonusWounds(ch) > 0 ? ` <span style='font-size:0.65rem;color:var(--gold)'>+${this.getBonusWounds(ch)}</span>` : ''}</span><div class="wounds-row">`;
