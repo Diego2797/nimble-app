@@ -6567,10 +6567,36 @@ const app = {
     this.load();
     this.navigate('characters');
 
-    // Register service worker
+    // Register service worker with auto-update detection.
+    // iOS PWAs in particular are aggressive about serving cached SWs and never checking
+    // for updates — without this the installed app can get stuck on an old version forever.
+    // Behavior:
+    //   - On every boot, force registration.update() to ask the browser to check sw.js
+    //   - If a new SW is installing, listen for it to finish and reload the page so the
+    //     user gets the fresh assets immediately (not on the next visit).
+    //   - Guard against reload loops by only reloading if there WAS an old controller
+    //     (i.e., not on the very first install where there's no "old" to replace).
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {
-        // SW not available, app still works
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        // Ask the browser to re-fetch sw.js and compare against the current one
+        try { reg.update(); } catch (_) { /* ignore */ }
+
+        reg.addEventListener('updatefound', () => {
+          const incoming = reg.installing;
+          if (!incoming) return;
+          incoming.addEventListener('statechange', () => {
+            if (incoming.state === 'activated' && navigator.serviceWorker.controller) {
+              // Fresh SW took over a running page — reload so the user sees new content now.
+              // Avoid reloading more than once even if Safari/iOS fires statechange twice.
+              if (!window._nimbleReloadedForSW) {
+                window._nimbleReloadedForSW = true;
+                window.location.reload();
+              }
+            }
+          });
+        });
+      }).catch(() => {
+        // SW not available (unsupported browser, etc.) — app still works online
       });
     }
 
