@@ -1471,6 +1471,138 @@ h3 { font-size: 1.1rem; }
 
 /* Ensure content isn't hidden behind tabs */
 .view-padding-bottom { padding-bottom: 20px; }
+
+/* ============================================================
+   DESKTOP / LANDSCAPE LAYOUT (>= 900px)
+   - Replaces bottom tab bar with a left sidebar
+   - Wider app container centered
+   - Content area has a max-width so lines stay readable
+   - Character list and option grids expand to multiple columns
+   - Adds hover states (mouse-friendly)
+   ============================================================ */
+@media (min-width: 900px) {
+  body { padding: 0; background: var(--leather-dark); }
+
+  #app {
+    max-width: 1100px;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "sidebar header"
+      "sidebar content";
+    overflow: hidden;
+    border-left: 2px solid var(--leather);
+    border-right: 2px solid var(--leather);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .app-header { grid-area: header; font-size: 1.25rem; }
+  .app-content { grid-area: content; }
+
+  /* Sidebar nav (used to be bottom tab bar) */
+  .tab-nav {
+    grid-area: sidebar;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+    border-top: none;
+    border-right: 2px solid var(--leather);
+    padding: 24px 0 var(--safe-bottom) 0;
+    gap: 4px;
+    background: var(--leather-dark);
+  }
+  .tab-nav button {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 14px 24px;
+    font-size: 0.95rem;
+    min-height: 52px;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .tab-nav button .tab-icon { font-size: 1.4rem; }
+  .tab-nav button:hover { background: var(--leather); color: var(--parchment); }
+  .tab-nav button.active {
+    background: var(--leather);
+    color: var(--gold);
+    border-left-color: var(--gold);
+  }
+  .tab-nav button:active { transform: none; }
+
+  /* Content area: keep line length readable.
+     Use :not(.characters-list) so the character grid can opt out and span wider. */
+  .app-content > .view,
+  .app-content > div:not(.characters-list) {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  /* Characters list as a grid on desktop — wider than the default content cap. */
+  .app-content > .characters-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .characters-list .char-card { margin-bottom: 0; }
+  .characters-list .empty-state { grid-column: 1 / -1; }
+  /* Create/Backup buttons span all columns at the bottom */
+  .characters-list > button.btn-block,
+  .characters-list > div[style*="display:flex"] { grid-column: 1 / -1; }
+
+  /* Hover states for clickable cards */
+  .char-card,
+  .option-card,
+  .collapsible-header,
+  .spell-card,
+  .combat-ability-card {
+    transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  }
+  .char-card:hover,
+  .option-card:hover,
+  .collapsible-header:hover,
+  .combat-ability-card:hover {
+    background: var(--parchment-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Option grids (class/ancestry/background pickers) wider on desktop */
+  .option-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+
+  /* Stats grid looks cleaner when slightly wider */
+  .stats-grid { max-width: 560px; margin-left: auto; margin-right: auto; }
+
+  /* Skills in 2-column grid already works; on desktop keep it */
+
+  /* Modals: cap at a readable size and center */
+  #modalOverlay > div,
+  .modal,
+  .modal-card {
+    max-width: 560px !important;
+    margin: 5vh auto !important;
+  }
+
+  /* Install banner: keep it tucked bottom-right rather than full-width */
+  #installBanner {
+    left: auto !important;
+    right: 24px !important;
+    bottom: 24px !important;
+    max-width: 360px;
+  }
+
+  /* Buttons feel better with subtle hover on desktop */
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { filter: brightness(0.95); }
+}
 </style>
 </head>
 <body>
