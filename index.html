@@ -4,11 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nimble">
 <meta name="theme-color" content="#3d2b1f">
 <meta name="description" content="Nimble TTRPG Companion App">
 <title>Nimble Companion</title>
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-apple-touch.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-apple-touch.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <style>
 /* ============================================================
    CSS RESET & ROOT
@@ -6551,6 +6558,119 @@ const app = {
       navigator.serviceWorker.register('sw.js').catch(() => {
         // SW not available, app still works
       });
+    }
+
+    // ---- PWA Install Banner ----
+    this.setupInstallBanner();
+  },
+
+  // Detects if the app is already running as an installed PWA.
+  // Covers iOS (navigator.standalone) and modern browsers (display-mode: standalone).
+  isInstalled() {
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+    if (window.navigator.standalone === true) return true;
+    return false;
+  },
+
+  setupInstallBanner() {
+    // Already installed or user dismissed → do nothing
+    if (this.isInstalled()) return;
+    if (localStorage.getItem('nimble_install_dismissed')) return;
+
+    // Listen for Android/Chrome's beforeinstallprompt so we can trigger it from our button
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      this._deferredInstallPrompt = e;
+      this.renderInstallBanner();
+    });
+
+    // Show banner immediately on iOS (no prompt event exists there)
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    if (isIOS) {
+      // Small delay so it doesn't pop before first paint
+      setTimeout(() => this.renderInstallBanner(), 1500);
+    }
+  },
+
+  renderInstallBanner() {
+    // Don't stack multiple banners
+    if (document.getElementById('installBanner')) return;
+    if (this.isInstalled()) return;
+
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    const hasPrompt = !!this._deferredInstallPrompt;
+
+    const banner = document.createElement('div');
+    banner.id = 'installBanner';
+    banner.style.cssText = [
+      'position:fixed',
+      'left:8px',
+      'right:8px',
+      'bottom:72px',  // above bottom nav
+      'background:var(--leather-dark, #3d2b1f)',
+      'color:var(--parchment, #f4e4c1)',
+      'border:2px solid var(--gold, #c9a84c)',
+      'border-radius:10px',
+      'padding:10px 12px',
+      'z-index:9999',
+      'box-shadow:0 4px 12px rgba(0,0,0,0.3)',
+      'font-size:0.8rem',
+      'display:flex',
+      'align-items:center',
+      'gap:10px'
+    ].join(';');
+
+    const iconHtml = '<img src="icon-192.png" width="40" height="40" style="flex:none;border-radius:8px">';
+    let body = '';
+    if (hasPrompt) {
+      body = `
+        <div style="flex:1">
+          <div style="font-weight:bold;color:var(--gold,#c9a84c)">Install Nimble</div>
+          <div style="font-size:0.7rem;opacity:0.9">Get fast access from your home screen.</div>
+        </div>
+        <button id="installBtnNow"
+          style="background:var(--gold,#c9a84c);color:var(--ink,#3d2b1f);border:none;padding:6px 12px;border-radius:6px;font-weight:bold;cursor:pointer">
+          Install
+        </button>`;
+    } else if (isIOS) {
+      body = `
+        <div style="flex:1;font-size:0.75rem;line-height:1.3">
+          <div style="font-weight:bold;color:var(--gold,#c9a84c);margin-bottom:2px">Install as app</div>
+          Tap <span style="display:inline-block;border:1px solid var(--parchment);padding:0 4px;border-radius:3px">&#x2B06;&#xFE0F;</span> Share, then <strong>Add to Home Screen</strong>.
+        </div>`;
+    } else {
+      // Unknown non-iOS / no install event — don't show banner
+      return;
+    }
+
+    banner.innerHTML = `${iconHtml}${body}
+      <button id="installBannerClose"
+        aria-label="Dismiss"
+        style="background:transparent;border:none;color:var(--parchment,#f4e4c1);font-size:1.2rem;cursor:pointer;padding:4px 8px;line-height:1">&times;</button>`;
+    document.body.appendChild(banner);
+
+    document.getElementById('installBannerClose').onclick = () => {
+      localStorage.setItem('nimble_install_dismissed', '1');
+      banner.remove();
+    };
+
+    const installBtn = document.getElementById('installBtnNow');
+    if (installBtn) {
+      installBtn.onclick = async () => {
+        const prompt = this._deferredInstallPrompt;
+        if (!prompt) { banner.remove(); return; }
+        prompt.prompt();
+        try {
+          const choice = await prompt.userChoice;
+          if (choice && choice.outcome === 'accepted') {
+            localStorage.setItem('nimble_install_dismissed', '1');
+          }
+        } catch (_) { /* ignore */ }
+        this._deferredInstallPrompt = null;
+        banner.remove();
+      };
     }
   },
 };

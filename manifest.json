@@ -3,15 +3,30 @@
   "short_name": "Nimble",
   "description": "Nimble TTRPG Character Sheet & Companion App",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#3d2b1f",
   "theme_color": "#3d2b1f",
   "orientation": "portrait",
+  "categories": ["games", "utilities", "entertainment"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%233d2b1f'/><text x='96' y='130' font-size='120' text-anchor='middle' fill='%23c9a84c'>⚔</text></svg>",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
