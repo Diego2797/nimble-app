@@ -1244,6 +1244,78 @@ h3 { font-size: 1.1rem; }
 .rule-item p { font-size: 0.8rem; color: var(--ink-light); line-height: 1.4; }
 
 /* ============================================================
+   GM TOOLS (Fase 0 — sub-nav, monster rows)
+   ============================================================ */
+.gm-view { padding: 16px; }
+
+.gm-subnav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--parchment-edge);
+}
+.gm-subnav::-webkit-scrollbar { display: none; }
+.gm-subnav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  min-width: 72px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-light);
+  font-size: 0.7rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.gm-subnav-btn .gm-subnav-icon { font-size: 1.15rem; line-height: 1; }
+.gm-subnav-btn:hover { color: var(--ink); }
+.gm-subnav-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.gm-subview { min-height: 200px; }
+
+.monster-row {
+  padding: 8px 10px;
+  background: var(--parchment);
+  border: 1px solid var(--parchment-edge);
+  border-radius: 5px;
+  margin-bottom: 4px;
+}
+.monster-row strong { color: var(--burgundy); font-family: Georgia, serif; }
+
+/* Combat tracker participants (Fase 3) */
+.combat-participant {
+  padding: 10px 12px;
+  background: var(--parchment);
+  border: 1px solid var(--parchment-edge);
+  border-radius: 6px;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+.combat-participant.current {
+  border-color: var(--gold);
+  border-width: 2px;
+  background: linear-gradient(to right, rgba(201, 168, 76, 0.15), var(--parchment));
+  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.25);
+}
+.combat-participant.dead {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+.combat-participant.dead.current { opacity: 0.55; text-decoration: none; }
+
+/* ============================================================
    CHARACTER CREATION
    ============================================================ */
 .creation-view { padding: 16px; }
@@ -1673,18 +1745,26 @@ h3 { font-size: 1.1rem; }
       <span class="tab-icon">&#128220;</span>
       <span>Rules</span>
     </button>
+    <button data-tab="gm" onclick="app.navigate('gm')">
+      <span class="tab-icon">&#128081;</span>
+      <span>GM</span>
+    </button>
   </nav>
 </div>
 
 <input type="file" id="imageUpload" class="hidden-input" accept="image/*">
 
 <script src="gamedata.js"></script>
+<script src="gmdata.js"></script>
 <script>
 /* =============================================================
    NIMBLE TTRPG COMPANION APP
    ============================================================= */
 
 const STORAGE_KEY = 'nimble_characters';
+const CAMPAIGNS_KEY = 'nimble_campaigns';
+const ACTIVE_COMBAT_KEY = 'nimble_active_combat';
+const JOINED_SESSION_KEY = 'nimble_joined_session';   // Fase 3.5: player-side session subscription
 
 const app = {
   state: {
@@ -1708,6 +1788,17 @@ const app = {
       history: [],
     },
     rulesSearch: '',
+    // ---- GM MODE (Fase 0 scaffolding) ----
+    campaigns: [],            // array of campaign objects (see docs below)
+    selectedCampaignId: null, // which campaign is open
+    campaignView: 'party',    // inside a campaign: 'party' | 'npcs' | 'encounters' | 'notes'
+    gmView: 'campaigns',      // sub-nav: 'campaigns' | 'bestiary' | 'encounters' | 'combat'
+    editingEncounterId: null, // Fase 2: when set inside campaignView='encounters', renders editor
+    // Fase 3 — Live Combat Tracker
+    activeCombat: null,       // null OR a combat object (see docs)
+    // Fase 3.5 — Remote Session (player-side, read-only view of GM's combat)
+    joinedSessionId: null,    // sessionId the player has subscribed to (persists per-device)
+    remoteSession: null,      // live snapshot from sessions/{joinedSessionId} — transient
   },
 
   // ---- DATA ACCESS (safe fallback if gamedata.js missing) ----
@@ -1812,6 +1903,12 @@ const app = {
   save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state.characters));
+      localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(this.state.campaigns));
+      if (this.state.activeCombat) {
+        localStorage.setItem(ACTIVE_COMBAT_KEY, JSON.stringify(this.state.activeCombat));
+      } else {
+        localStorage.removeItem(ACTIVE_COMBAT_KEY);
+      }
     } catch (e) {
       console.warn('Save failed:', e);
     }
@@ -1827,6 +1924,34 @@ const app = {
     } catch (e) {
       console.warn('Load failed:', e);
       this.state.characters = [];
+    }
+    try {
+      const data = localStorage.getItem(CAMPAIGNS_KEY);
+      if (data) this.state.campaigns = JSON.parse(data);
+    } catch (e) {
+      console.warn('Campaigns load failed:', e);
+      this.state.campaigns = [];
+    }
+    // Migrate older campaigns: ensure every campaign has all expected fields
+    (this.state.campaigns || []).forEach(c => {
+      if (!Array.isArray(c.playerCharIds)) c.playerCharIds = [];
+      if (!Array.isArray(c.npcs)) c.npcs = [];
+      if (!Array.isArray(c.encounters)) c.encounters = [];
+      if (typeof c.notes !== 'string') c.notes = '';
+    });
+    // Fase 3: restore active combat if present
+    try {
+      const raw = localStorage.getItem(ACTIVE_COMBAT_KEY);
+      if (raw) this.state.activeCombat = JSON.parse(raw);
+    } catch (e) {
+      console.warn('Active combat load failed:', e);
+      this.state.activeCombat = null;
+    }
+    // Fase 3.5: restore player-side session subscription id (the live snapshot comes from Firestore once signed in)
+    try {
+      this.state.joinedSessionId = localStorage.getItem(JOINED_SESSION_KEY) || null;
+    } catch (e) {
+      this.state.joinedSessionId = null;
     }
   },
 
@@ -1871,7 +1996,7 @@ const app = {
       const titles = { combat: 'Combat', dice: 'Dice', rules: 'Rules' };
       header.innerHTML = `<span id="headerTitle">${titles[view]} &middot; ${this.esc(this.getChar().name)}</span>`;
     } else {
-      const titles = { characters: 'Nimble Companion', combat: 'Combat Tracker', dice: 'Dice Roller', rules: 'Rules Reference' };
+      const titles = { characters: 'Nimble Companion', combat: 'Combat Tracker', dice: 'Dice Roller', rules: 'Rules Reference', gm: 'GM Tools' };
       header.innerHTML = `<span id="headerTitle">${titles[view] || 'Nimble'}</span>`;
     }
 
@@ -1905,6 +2030,7 @@ const app = {
       case 'dice': content.innerHTML = this.renderDice(); break;
       case 'rules': content.innerHTML = this.renderRules(); break;
       case 'creation': content.innerHTML = this.renderCreation(); break;
+      case 'gm': content.innerHTML = this.renderGM(); break;
     }
   },
 
@@ -1922,7 +2048,8 @@ const app = {
     const chars = this.state.characters;
 
     // ---- Cloud sync header (login button or signed-in badge) ----
-    const syncHeader = this.renderSyncHeader();
+    // Includes the Fase 3.5 session banner (Join GM Session / connected / view combat)
+    const syncHeader = this.renderSyncHeader() + this.renderSessionBanner();
 
     // Shared backup row: Import is always available; Export only when chars exist
     const backupRow = `
@@ -5995,6 +6122,2018 @@ const app = {
     return html;
   },
 
+  // ===== GM TOOLS (Fase 0 scaffolding) =====
+  // Sub-nav: Campaigns | Bestiary | Encounters | Combat
+  // Only Campaigns + Bestiary are functional in Fase 0. The other tabs show
+  // roadmap placeholders so the user can preview what's coming.
+  renderGM() {
+    const sub = this.state.gmView || 'campaigns';
+    const tab = (id, label, icon) =>
+      `<button class="gm-subnav-btn ${sub === id ? 'active' : ''}" onclick="app.setGMView('${id}')">
+         <span class="gm-subnav-icon">${icon}</span><span>${label}</span>
+       </button>`;
+
+    let body = '';
+    switch (sub) {
+      case 'campaigns':  body = this.renderGMCampaigns();  break;
+      case 'bestiary':   body = this.renderGMBestiary();   break;
+      case 'encounters': body = this.renderGMEncountersTopLevel(); break;
+      case 'combat':     body = this.renderCombatTracker(); break;
+      default: body = this.renderGMCampaigns();
+    }
+
+    return `
+      <div class="gm-view view-padding-bottom">
+        <nav class="gm-subnav">
+          ${tab('campaigns',  'Campaigns',  '&#128218;')}
+          ${tab('bestiary',   'Bestiary',   '&#128029;')}
+          ${tab('encounters', 'Encounters', '&#9876;')}
+          ${tab('combat',     'Combat',     '&#128293;')}
+        </nav>
+        <div class="gm-subview">${body}</div>
+      </div>`;
+  },
+
+  setGMView(sub) {
+    this.state.gmView = sub;
+    // Changing top-level GM tab exits any open campaign
+    if (sub !== 'campaigns') this.state.selectedCampaignId = null;
+    this.render(true);
+  },
+
+  // ---- GM > Campaigns ----
+  renderGMCampaigns() {
+    // If a campaign is selected, render its detail view instead of the list
+    const selected = this.getCampaign();
+    if (selected) return this.renderGMCampaignDetail(selected);
+
+    const campaigns = this.state.campaigns || [];
+    const hasGM = !!window.GM_DATA;
+    const dataStatus = hasGM
+      ? `<div style="font-size:0.7rem;color:var(--ink-light);margin-bottom:10px;">
+           &#10003; Bestiary loaded — ${window.GM_DATA.MONSTERS.length} monsters, ${window.GM_DATA.LEGENDARY_MONSTERS.length} legendary, ${Object.keys(window.GM_DATA.CONDITIONS).length} conditions.
+         </div>`
+      : `<div style="padding:10px;background:var(--parchment-dark);border-radius:8px;margin-bottom:10px;color:var(--burgundy);font-size:0.75rem;">
+           &#9888; GM data failed to load. Check that <code>gmdata.js</code> is present.
+         </div>`;
+
+    if (campaigns.length === 0) {
+      return `
+        ${dataStatus}
+        <div class="empty-state">
+          <div class="icon">&#128218;</div>
+          <p>No campaigns yet.<br>Start your first adventure as GM.</p>
+          <button class="btn btn-primary btn-block" onclick="app.createCampaignModal()">+ Create Campaign</button>
+        </div>
+        <p style="font-size:0.7rem;color:var(--ink-light);margin-top:16px;line-height:1.4">
+          A campaign holds your party, NPCs, encounters, and session notes.
+          Cloud sync keeps it synced across your devices when signed in.
+        </p>`;
+    }
+
+    let html = dataStatus;
+    html += '<div style="display:flex;flex-direction:column;gap:10px">';
+    for (const c of campaigns) {
+      const charCount = (c.playerCharIds || []).length;
+      html += `
+        <div class="char-card" onclick="app.openCampaign('${c.id}')" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
+            <div style="flex:1;min-width:0">
+              <h3 style="margin:0 0 4px 0">${this.esc(c.name)}</h3>
+              <div style="font-size:0.7rem;color:var(--ink-light)">
+                Party Level ${c.partyLevel || 1} &middot; ${charCount} ${charCount === 1 ? 'player' : 'players'}
+              </div>
+              ${c.description ? `<p style="margin:6px 0 0;font-size:0.75rem;color:var(--ink);">${this.esc(c.description)}</p>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }
+    html += '</div>';
+    html += `<button class="btn btn-primary btn-block" style="margin-top:16px" onclick="app.createCampaignModal()">+ Create Campaign</button>`;
+    return html;
+  },
+
+  createCampaignModal() {
+    const inputStyle = 'width:100%;margin-top:4px;padding:8px 10px;font-size:0.9rem;border:1px solid var(--parchment-edge,#c9a84c);border-radius:4px;background:var(--parchment,#f4e4c1);color:var(--ink,#3d2b1f)';
+    this.showModal(`
+      <div class="modal-header"><h2>New Campaign</h2></div>
+      <div class="modal-body">
+        <label style="display:block;margin-bottom:12px">
+          <span style="font-size:0.8rem;color:var(--ink-light)">Name</span>
+          <input id="campaignName" type="text" placeholder="Shadows over Merivale" style="${inputStyle}">
+        </label>
+        <label style="display:block;margin-bottom:12px">
+          <span style="font-size:0.8rem;color:var(--ink-light)">Party Level</span>
+          <input id="campaignLevel" type="number" min="1" max="20" value="1" style="${inputStyle}">
+        </label>
+        <label style="display:block;margin-bottom:12px">
+          <span style="font-size:0.8rem;color:var(--ink-light)">Description (optional)</span>
+          <textarea id="campaignDesc" rows="3" placeholder="A ranger is missing. Something whispers in the woods..." style="${inputStyle};resize:vertical"></textarea>
+        </label>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="app.saveNewCampaign()">Create</button>
+      </div>
+    `);
+  },
+
+  saveNewCampaign() {
+    const name  = (document.getElementById('campaignName')?.value || '').trim();
+    const level = parseInt(document.getElementById('campaignLevel')?.value, 10) || 1;
+    const desc  = (document.getElementById('campaignDesc')?.value || '').trim();
+    if (!name) { this.toast('Campaign needs a name'); return; }
+
+    const campaign = {
+      id: 'camp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      name,
+      partyLevel: Math.max(1, Math.min(20, level)),
+      description: desc,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      playerCharIds: [],   // references to this.state.characters (player sheets you own)
+      npcs: [],            // Fase 1
+      encounters: [],      // Fase 2
+      notes: ''            // Fase 1: session notes
+    };
+    this.state.campaigns.push(campaign);
+    this.save();
+    this.closeModal();
+    this.toast('Campaign created');
+    this.render();
+  },
+
+  // =========================================================
+  //   CAMPAIGN DETAIL VIEW (Fase 1)
+  //   Shows when state.selectedCampaignId is set.
+  //   Sub-views: Party / NPCs / Notes.
+  // =========================================================
+  renderGMCampaignDetail(c) {
+    const cview = this.state.campaignView || 'party';
+    const chars = this.state.characters || [];
+    const linkedCount = (c.playerCharIds || []).filter(id => chars.some(ch => ch.id === id)).length;
+    const npcCount = (c.npcs || []).length;
+
+    const subTab = (id, icon, label, count) => `
+      <button class="gm-subnav-btn ${cview === id ? 'active' : ''}" onclick="app.setCampaignView('${id}')">
+        <span class="gm-subnav-icon">${icon}</span>
+        <span>${label}${count != null ? ` (${count})` : ''}</span>
+      </button>`;
+
+    let body = '';
+    switch (cview) {
+      case 'party':      body = this.renderCampaignParty(c); break;
+      case 'npcs':       body = this.renderCampaignNPCs(c);  break;
+      case 'encounters': body = this.renderCampaignEncounters(c); break;
+      case 'notes':      body = this.renderCampaignNotes(c); break;
+      default:           body = this.renderCampaignParty(c);
+    }
+
+    return `
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+        <button class="btn btn-secondary btn-small" onclick="app.backToCampaignList()">&larr;</button>
+        <div style="flex:1;min-width:0">
+          <h2 style="margin:0;font-size:1.05rem;line-height:1.2">${this.esc(c.name)}</h2>
+          <div style="font-size:0.7rem;color:var(--ink-light)">Party Level ${c.partyLevel || 1}</div>
+        </div>
+        <button class="btn btn-secondary btn-small" onclick="app.shareCampaignModal()" title="Share session code">&#128279;</button>
+        <button class="btn btn-secondary btn-small" onclick="app.editCampaignModal()" title="Edit campaign">&#9998;</button>
+      </div>
+      ${c.description ? `<p style="margin:0 0 12px;font-size:0.75rem;color:var(--ink);font-style:italic">${this.esc(c.description)}</p>` : ''}
+
+      <nav class="gm-subnav" style="margin-top:4px">
+        ${subTab('party',      '&#128107;', 'Party',      linkedCount)}
+        ${subTab('npcs',       '&#127917;', 'NPCs',       npcCount)}
+        ${subTab('encounters', '&#9876;',   'Encounters', (c.encounters || []).length)}
+        ${subTab('notes',      '&#128221;', 'Notes',      null)}
+      </nav>
+
+      <div class="gm-subview">${body}</div>
+
+      <div style="margin-top:28px;padding-top:16px;border-top:1px solid var(--parchment-edge)">
+        <button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.deleteCampaignConfirm()">&#128465; Delete Campaign</button>
+      </div>
+    `;
+  },
+
+  editCampaignModal() {
+    const c = this.getCampaign();
+    if (!c) return;
+    const inputStyle = 'width:100%;margin-top:4px;padding:8px 10px;font-size:0.9rem;border:1px solid var(--parchment-edge,#c9a84c);border-radius:4px;background:var(--parchment,#f4e4c1);color:var(--ink,#3d2b1f)';
+    this.showModal(`
+      <div class="modal-header"><h2>Edit Campaign</h2></div>
+      <div class="modal-body">
+        <label style="display:block;margin-bottom:12px">
+          <span style="font-size:0.8rem;color:var(--ink-light)">Name</span>
+          <input id="editCampName" type="text" value="${this.esc(c.name)}" style="${inputStyle}">
+        </label>
+        <label style="display:block;margin-bottom:12px">
+          <span style="font-size:0.8rem;color:var(--ink-light)">Party Level</span>
+          <input id="editCampLevel" type="number" min="1" max="20" value="${c.partyLevel || 1}" style="${inputStyle}">
+        </label>
+        <label style="display:block;margin-bottom:12px">
+          <span style="font-size:0.8rem;color:var(--ink-light)">Description</span>
+          <textarea id="editCampDesc" rows="3" style="${inputStyle};resize:vertical">${this.esc(c.description || '')}</textarea>
+        </label>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="app.saveCampaignEdit()">Save</button>
+      </div>
+    `);
+  },
+
+  saveCampaignEdit() {
+    const name  = (document.getElementById('editCampName')?.value || '').trim();
+    const level = parseInt(document.getElementById('editCampLevel')?.value, 10) || 1;
+    const desc  = (document.getElementById('editCampDesc')?.value || '').trim();
+    if (!name) { this.toast('Name required'); return; }
+    this.updateCampaign({
+      name,
+      partyLevel: Math.max(1, Math.min(20, level)),
+      description: desc
+    });
+    this.closeModal();
+    this.toast('Saved');
+    this.render();
+  },
+
+  // Fase 3.5 — Share the campaign as a session code so players can subscribe
+  shareCampaignModal() {
+    const c = this.getCampaign();
+    if (!c) return;
+    // We use the campaign id as the sessionId — globally unique already
+    const code = c.id;
+    const signedIn = !!this.user;
+    const hasCombat = !!(this.state.activeCombat && this.state.activeCombat.campaignId === c.id);
+
+    this.showModal(`
+      <div class="modal-header"><h2>Share Session</h2></div>
+      <div class="modal-body">
+        <p style="font-size:0.78rem;color:var(--ink);margin:0 0 10px;line-height:1.4">
+          Give this code to your players. When they paste it into their app (Characters tab → Join GM Session) they'll see the combat in real-time.
+        </p>
+        <div style="padding:12px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);border-radius:6px;margin-bottom:12px">
+          <div style="font-size:0.65rem;color:var(--ink-light);margin-bottom:4px">Session code</div>
+          <div style="font-family:monospace;font-size:0.85rem;word-break:break-all;user-select:all">${this.esc(code)}</div>
+        </div>
+        <button class="btn btn-secondary btn-block" onclick="app.copySessionCode('${this.esc(code)}')">&#128203; Copy Code</button>
+        ${!signedIn
+          ? '<div style="margin-top:12px;padding:8px;background:var(--parchment-dark);border-radius:6px;font-size:0.72rem;color:var(--burgundy)">&#9888; Sign in first so players can actually read the session doc from Firestore.</div>'
+          : `<div style="margin-top:12px;font-size:0.7rem;color:var(--ink-light);line-height:1.4">
+               Status: ${hasCombat ? '<strong style="color:var(--burgundy)">&#9876; Combat in progress — players will see it live</strong>' : 'No active combat yet — start one from the Encounters tab.'}
+             </div>`}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-block" onclick="app.closeModal()">Done</button>
+      </div>
+    `);
+  },
+
+  copySessionCode(code) {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(code).then(() => this.toast('Code copied')).catch(() => this.toast('Copy failed'));
+    } else {
+      this.toast('Clipboard unavailable');
+    }
+  },
+
+  deleteCampaignConfirm() {
+    const c = this.getCampaign();
+    if (!c) return;
+    if (!confirm(`Delete "${c.name}"? This cannot be undone.\n\nLinked player characters and their data stay on your device — only the campaign (NPCs, notes, encounters) is removed.`)) return;
+    this.state.campaigns = this.state.campaigns.filter(x => x.id !== c.id);
+    this.state.selectedCampaignId = null;
+    this.save();
+    this.toast('Campaign deleted');
+    this.render();
+  },
+
+  // ---- CAMPAIGN > Party (linked player characters) ----
+  renderCampaignParty(c) {
+    const chars = this.state.characters || [];
+    const linked = (c.playerCharIds || [])
+      .map(id => chars.find(ch => ch.id === id))
+      .filter(Boolean);
+
+    let html = '';
+    if (linked.length === 0) {
+      html += `
+        <div class="empty-state" style="padding:24px 16px">
+          <div class="icon">&#128107;</div>
+          <p>No player characters linked.<br>Add the adventurers to track them here.</p>
+        </div>`;
+    } else {
+      html += '<div style="display:flex;flex-direction:column;gap:8px">';
+      for (const ch of linked) {
+        const ancestry = ch.ancestry || '—';
+        const cls = ch.className || '—';
+        const lvl = ch.level || 1;
+        const hp = ch.hp ?? '?';
+        const maxHp = ch.maxHp ?? '?';
+        const hpPct = (ch.maxHp > 0) ? Math.max(0, Math.min(100, (ch.hp / ch.maxHp) * 100)) : 0;
+        const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
+        html += `
+          <div class="char-card" style="position:relative">
+            <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <h3 style="margin:0;font-size:0.95rem">${this.esc(ch.name)}</h3>
+                  <span style="font-size:0.65rem;color:var(--ink-light)">Lvl ${lvl}</span>
+                </div>
+                <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">${this.esc(ancestry)} ${this.esc(cls)}</div>
+                <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+                  <div style="flex:1;height:6px;background:var(--parchment-edge);border-radius:3px;overflow:hidden">
+                    <div style="width:${hpPct}%;height:100%;background:${hpColor};transition:width 0.3s"></div>
+                  </div>
+                  <span style="font-size:0.7rem;color:var(--ink-light);white-space:nowrap">${hp} / ${maxHp} HP</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem" onclick="event.stopPropagation();app.unlinkCharacter('${ch.id}')" title="Remove from campaign">&times;</button>
+            </div>
+          </div>`;
+      }
+      html += '</div>';
+    }
+
+    // Add button always
+    html += `<button class="btn btn-primary btn-block" style="margin-top:12px" onclick="app.linkCharactersModal()">+ Add Player Character</button>`;
+
+    // Share-code hint (roadmap)
+    html += `<p style="font-size:0.68rem;color:var(--ink-light);margin-top:14px;line-height:1.4">
+      &#128260; Linking players from their own device (share codes) arrives with live combat push in Fase 3.
+      For now, link characters you have on this device.
+    </p>`;
+
+    return html;
+  },
+
+  linkCharactersModal() {
+    const c = this.getCampaign();
+    if (!c) return;
+    const chars = this.state.characters || [];
+    const alreadyLinked = new Set(c.playerCharIds || []);
+    const available = chars.filter(ch => !alreadyLinked.has(ch.id));
+
+    if (chars.length === 0) {
+      this.showModal(`
+        <div class="modal-header"><h2>No characters on this device</h2></div>
+        <div class="modal-body">
+          <p style="font-size:0.85rem">Create a character first, then add it to the campaign.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary btn-block" onclick="app.closeModal()">OK</button>
+        </div>
+      `);
+      return;
+    }
+    if (available.length === 0) {
+      this.showModal(`
+        <div class="modal-header"><h2>All characters are already linked</h2></div>
+        <div class="modal-body">
+          <p style="font-size:0.85rem">Every character on this device is already part of this campaign.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary btn-block" onclick="app.closeModal()">OK</button>
+        </div>
+      `);
+      return;
+    }
+
+    this._linkSelection = new Set();
+
+    const rows = available.map(ch => `
+      <label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--parchment-edge);border-radius:6px;margin-bottom:6px;cursor:pointer;background:var(--parchment)">
+        <input type="checkbox" value="${ch.id}" onchange="app.toggleLinkSelection('${ch.id}', this.checked)" style="width:18px;height:18px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:bold;font-size:0.85rem">${this.esc(ch.name)}</div>
+          <div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(ch.ancestry || '—')} ${this.esc(ch.className || '—')} &middot; Lvl ${ch.level || 1}</div>
+        </div>
+      </label>`).join('');
+
+    this.showModal(`
+      <div class="modal-header"><h2>Add Player Characters</h2></div>
+      <div class="modal-body">
+        <p style="font-size:0.75rem;color:var(--ink-light);margin:0 0 10px">Pick characters from this device to link to the campaign.</p>
+        ${rows}
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" onclick="app._linkSelection=null;app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="app.confirmLinkCharacters()">Add Selected</button>
+      </div>
+    `);
+  },
+
+  toggleLinkSelection(charId, checked) {
+    if (!this._linkSelection) this._linkSelection = new Set();
+    if (checked) this._linkSelection.add(charId);
+    else this._linkSelection.delete(charId);
+  },
+
+  confirmLinkCharacters() {
+    const c = this.getCampaign();
+    if (!c) return;
+    const ids = Array.from(this._linkSelection || []);
+    if (ids.length === 0) { this.toast('Pick at least one character'); return; }
+    c.playerCharIds = [...(c.playerCharIds || []), ...ids];
+    c.updatedAt = Date.now();
+    this._linkSelection = null;
+    this.save();
+    this.closeModal();
+    this.toast(`Added ${ids.length} ${ids.length === 1 ? 'character' : 'characters'}`);
+    this.render();
+  },
+
+  unlinkCharacter(charId) {
+    const c = this.getCampaign();
+    if (!c) return;
+    if (!confirm('Remove this character from the campaign? (Character data stays intact.)')) return;
+    c.playerCharIds = (c.playerCharIds || []).filter(id => id !== charId);
+    c.updatedAt = Date.now();
+    this.save();
+    this.render();
+  },
+
+  // ---- CAMPAIGN > NPCs (custom stat blocks) ----
+  renderCampaignNPCs(c) {
+    const npcs = c.npcs || [];
+    let html = '';
+
+    if (npcs.length === 0) {
+      html += `
+        <div class="empty-state" style="padding:24px 16px">
+          <div class="icon">&#127917;</div>
+          <p>No NPCs yet.<br>Add a named ally, villain, or quest-giver.</p>
+        </div>`;
+    } else {
+      html += '<div style="display:flex;flex-direction:column;gap:6px">';
+      for (let i = 0; i < npcs.length; i++) {
+        const n = npcs[i];
+        const armor = n.armor ? ` &middot; ${this.esc(n.armor)}` : '';
+        const size = n.size ? ` (${this.esc(n.size)})` : '';
+        html += `
+          <div class="monster-row">
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
+              <div style="flex:1;min-width:0">
+                <strong style="font-size:0.9rem">${this.esc(n.name)}</strong>
+                <span style="font-size:0.7rem;color:var(--ink-light);margin-left:6px">Lvl ${n.level || '—'} &middot; HP ${n.hp || '?'}/${n.maxHp || '?'}${armor}${size}</span>
+              </div>
+              <div style="display:flex;gap:4px">
+                <button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem" onclick="app.npcModal(${i})">&#9998;</button>
+                <button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem;color:var(--burgundy)" onclick="app.deleteNPC(${i})">&times;</button>
+              </div>
+            </div>
+            ${n.trait ? `<div style="font-size:0.72rem;color:var(--ink-light);font-style:italic;margin-top:4px">${this.esc(n.trait)}</div>` : ''}
+            ${n.actions ? `<div style="font-size:0.75rem;margin-top:4px">${this.esc(n.actions)}</div>` : ''}
+            ${n.notes ? `<div style="font-size:0.7rem;color:var(--ink-light);margin-top:6px;padding-top:6px;border-top:1px dashed var(--parchment-edge)"><strong>Notes:</strong> ${this.esc(n.notes)}</div>` : ''}
+          </div>`;
+      }
+      html += '</div>';
+    }
+
+    html += `<button class="btn btn-primary btn-block" style="margin-top:12px" onclick="app.npcModal(null)">+ Add NPC</button>`;
+    return html;
+  },
+
+  npcModal(editIndex) {
+    const c = this.getCampaign();
+    if (!c) return;
+    const existing = (editIndex != null && editIndex >= 0) ? c.npcs[editIndex] : null;
+    this._npcDraft = {
+      editIndex: editIndex == null ? null : editIndex,
+      name:    existing?.name    || '',
+      level:   existing?.level   || '',
+      size:    existing?.size    || '',
+      hp:      existing?.hp      ?? '',
+      maxHp:   existing?.maxHp   ?? '',
+      armor:   existing?.armor   || '',
+      speed:   existing?.speed   ?? 6,
+      trait:   existing?.trait   || '',
+      actions: existing?.actions || '',
+      notes:   existing?.notes   || ''
+    };
+
+    const inputStyle = 'width:100%;margin-top:4px;padding:7px 9px;font-size:0.85rem;border:1px solid var(--parchment-edge,#c9a84c);border-radius:4px;background:var(--parchment,#f4e4c1);color:var(--ink,#3d2b1f)';
+    const d = this._npcDraft;
+    const lbl = (txt) => `<span style="font-size:0.72rem;color:var(--ink-light)">${txt}</span>`;
+
+    this.showModal(`
+      <div class="modal-header"><h2>${existing ? 'Edit NPC' : 'New NPC'}</h2></div>
+      <div class="modal-body">
+        <label style="display:block;margin-bottom:10px">
+          ${lbl('Name')}
+          <input id="npcName" type="text" value="${this.esc(d.name)}" placeholder="Thorn Quickblade" style="${inputStyle}">
+        </label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <label>${lbl('Level')}<input id="npcLevel" type="text" value="${this.esc(d.level)}" placeholder="e.g. 3 or 1/4" style="${inputStyle}"></label>
+          <label>${lbl('Size')}<input id="npcSize" type="text" value="${this.esc(d.size)}" placeholder="small, large…" style="${inputStyle}"></label>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <label>${lbl('HP')}<input id="npcHP" type="number" value="${d.hp}" style="${inputStyle}"></label>
+          <label>${lbl('Max HP')}<input id="npcMaxHP" type="number" value="${d.maxHp}" style="${inputStyle}"></label>
+          <label>${lbl('Speed')}<input id="npcSpeed" type="text" value="${this.esc(String(d.speed))}" placeholder="6 or Fly 10" style="${inputStyle}"></label>
+        </div>
+        <label style="display:block;margin-bottom:10px">
+          ${lbl('Armor (None / M / H)')}
+          <input id="npcArmor" type="text" value="${this.esc(d.armor)}" placeholder="M" style="${inputStyle}">
+        </label>
+        <label style="display:block;margin-bottom:10px">
+          ${lbl('Trait (passive / flavor line)')}
+          <textarea id="npcTrait" rows="2" style="${inputStyle};resize:vertical" placeholder="*Pack Tactics.* Advantage when an ally is adjacent…">${this.esc(d.trait)}</textarea>
+        </label>
+        <label style="display:block;margin-bottom:10px">
+          ${lbl('Actions')}
+          <textarea id="npcActions" rows="3" style="${inputStyle};resize:vertical" placeholder="**Slash.** 1d8+2. OR: **Shoot.** (Range 8) 1d8+2.">${this.esc(d.actions)}</textarea>
+        </label>
+        <label style="display:block;margin-bottom:10px">
+          ${lbl('GM notes (optional)')}
+          <textarea id="npcNotes" rows="2" style="${inputStyle};resize:vertical" placeholder="Personality, secrets, hooks…">${this.esc(d.notes)}</textarea>
+        </label>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" onclick="app._npcDraft=null;app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="app.saveNPC()">${existing ? 'Save' : 'Create'}</button>
+      </div>
+    `);
+  },
+
+  saveNPC() {
+    const c = this.getCampaign();
+    const d = this._npcDraft;
+    if (!c || !d) return;
+    const name = (document.getElementById('npcName')?.value || '').trim();
+    if (!name) { this.toast('NPC needs a name'); return; }
+
+    const hpIn    = parseInt(document.getElementById('npcHP')?.value, 10);
+    const maxHpIn = parseInt(document.getElementById('npcMaxHP')?.value, 10);
+    const maxHp   = isNaN(maxHpIn) ? (isNaN(hpIn) ? 0 : hpIn) : maxHpIn;
+    const hp      = isNaN(hpIn) ? maxHp : hpIn;
+    // Parse level flexibly: "3" → 3, "1/4" → stays as string
+    const rawLvl  = (document.getElementById('npcLevel')?.value || '').trim();
+    const level   = rawLvl.includes('/') ? rawLvl : (parseInt(rawLvl, 10) || rawLvl || '');
+    // Parse speed: numeric if just a number, else string
+    const rawSpd  = (document.getElementById('npcSpeed')?.value || '').trim();
+    const speed   = /^\d+$/.test(rawSpd) ? parseInt(rawSpd, 10) : (rawSpd || 6);
+
+    const npc = {
+      id: d.editIndex != null ? c.npcs[d.editIndex].id : ('npc_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+      name,
+      level,
+      size:    (document.getElementById('npcSize')?.value || '').trim(),
+      hp, maxHp,
+      armor:   (document.getElementById('npcArmor')?.value || '').trim().toUpperCase().replace('NONE', ''),
+      speed,
+      trait:   (document.getElementById('npcTrait')?.value || '').trim(),
+      actions: (document.getElementById('npcActions')?.value || '').trim(),
+      notes:   (document.getElementById('npcNotes')?.value || '').trim()
+    };
+
+    if (d.editIndex != null) c.npcs[d.editIndex] = npc;
+    else (c.npcs ||= []).push(npc);
+    c.updatedAt = Date.now();
+    this._npcDraft = null;
+    this.save();
+    this.closeModal();
+    this.toast(d.editIndex != null ? 'NPC updated' : 'NPC added');
+    this.render();
+  },
+
+  deleteNPC(idx) {
+    const c = this.getCampaign();
+    if (!c) return;
+    if (!confirm('Delete this NPC?')) return;
+    c.npcs.splice(idx, 1);
+    c.updatedAt = Date.now();
+    this.save();
+    this.render();
+  },
+
+  // ---- CAMPAIGN > Encounters (Fase 2) ----
+  // Encounter data model:
+  //   { id, name, description, monsters: [{kind,id,count,name,level,hp}], createdAt, updatedAt }
+  //   kind: 'bestiary' | 'legendary' | 'npc' — id points to GM_DATA.MONSTERS / LEGENDARY_MONSTERS / campaign.npcs
+  //   `name/level/hp` snapshotted on entry for quick render (monster source still looked up live for current data)
+  renderCampaignEncounters(c) {
+    // If editing, show the editor instead
+    if (this.state.editingEncounterId != null) {
+      return this.renderEncounterEditor(c);
+    }
+
+    const encounters = c.encounters || [];
+    let html = '';
+
+    if (encounters.length === 0) {
+      html += `
+        <div class="empty-state" style="padding:24px 16px">
+          <div class="icon">&#9876;</div>
+          <p>No encounters yet.<br>Build your first fight for this party.</p>
+        </div>`;
+    } else {
+      html += '<div style="display:flex;flex-direction:column;gap:6px">';
+      for (const e of encounters) {
+        const totals = this._encounterTotals(e, c);
+        const diff = this._encounterDifficulty(e, c);
+        const color = this._difficultyColor(diff?.tier);
+        const monsterCount = (e.monsters || []).reduce((s, m) => s + (m.count || 1), 0);
+        html += `
+          <div class="monster-row" style="position:relative">
+            <div onclick="app.editEncounter('${e.id}')" style="cursor:pointer">
+              <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
+                <div style="flex:1;min-width:0">
+                  <strong style="font-size:0.9rem">${this.esc(e.name)}</strong>
+                  <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">
+                    ${monsterCount} ${monsterCount === 1 ? 'monster' : 'monsters'} &middot; Total level ${totals.monsters}
+                  </div>
+                  ${e.description ? `<div style="font-size:0.7rem;color:var(--ink);margin-top:4px;font-style:italic">${this.esc(e.description)}</div>` : ''}
+                </div>
+                ${diff ? `<span style="background:${color};color:#fff;font-size:0.65rem;padding:3px 8px;border-radius:10px;white-space:nowrap">${diff.tier}</span>` : ''}
+              </div>
+            </div>
+            <button class="btn btn-primary btn-small" style="margin-top:8px;width:100%;padding:6px;font-size:0.8rem" onclick="event.stopPropagation();app.startCombatFromEncounter('${e.id}')">&#9654; Start Combat</button>
+          </div>`;
+      }
+      html += '</div>';
+    }
+
+    html += `<button class="btn btn-primary btn-block" style="margin-top:12px" onclick="app.createEncounter()">+ Create Encounter</button>`;
+    return html;
+  },
+
+  // -------- difficulty / level helpers --------
+  _partyLevelTotal(c) {
+    const chars = this.state.characters || [];
+    const linked = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
+    if (linked.length === 0) {
+      // Fall back to partyLevel × 4 heroes as a heuristic when no characters linked
+      return (c.partyLevel || 1) * 4;
+    }
+    return linked.reduce((sum, ch) => sum + (ch.level || 1), 0);
+  },
+
+  _partyInfo(c) {
+    const chars = this.state.characters || [];
+    const linked = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
+    const total = this._partyLevelTotal(c);
+    return {
+      size: linked.length || 4,
+      total,
+      fallback: linked.length === 0
+    };
+  },
+
+  _entryLevel(entry, c) {
+    if (!entry) return 0;
+    if (entry.kind === 'bestiary') {
+      const m = (window.GM_DATA?.MONSTERS || []).find(x => x.id === entry.id);
+      return m ? (window.GM_DATA.parseMonsterLevel(m.level) || 0) : 0;
+    }
+    if (entry.kind === 'legendary') {
+      const m = (window.GM_DATA?.LEGENDARY_MONSTERS || []).find(x => x.id === entry.id);
+      return m ? (Number(m.level) || 0) : 0;
+    }
+    if (entry.kind === 'npc') {
+      const n = (c?.npcs || []).find(x => x.id === entry.id);
+      if (!n) return 0;
+      return window.GM_DATA.parseMonsterLevel(n.level) || 0;
+    }
+    return 0;
+  },
+
+  _encounterTotals(encounter, c) {
+    let monsterLevel = 0;
+    let count = 0;
+    for (const entry of (encounter.monsters || [])) {
+      monsterLevel += this._entryLevel(entry, c) * (entry.count || 1);
+      count += (entry.count || 1);
+    }
+    return { monsters: Math.round(monsterLevel * 100) / 100, count, party: this._partyLevelTotal(c) };
+  },
+
+  _encounterDifficulty(encounter, c) {
+    if (!window.GM_DATA?.calcEncounterDifficulty) return null;
+    const { monsters, party } = this._encounterTotals(encounter, c);
+    if (!party) return null;
+    return window.GM_DATA.calcEncounterDifficulty(party, monsters);
+  },
+
+  _difficultyColor(tier) {
+    switch (tier) {
+      case 'Easy':        return '#4a7c3e';
+      case 'Medium':      return '#6b8e23';
+      case 'Hard':        return '#c9a84c';
+      case 'Deadly':      return '#b8621b';
+      case 'Very Deadly': return '#8b1a1a';
+      default:            return 'var(--ink-light)';
+    }
+  },
+
+  // -------- editor state / flow --------
+  createEncounter() {
+    this._encounterDraft = {
+      id: null,
+      name: '',
+      description: '',
+      monsters: []
+    };
+    this._monsterFilter = { search: '', group: '', type: 'bestiary', minLevel: '', maxLevel: '' };
+    this.state.editingEncounterId = '__new__';
+    this.render(true);
+  },
+
+  editEncounter(id) {
+    const c = this.getCampaign();
+    if (!c) return;
+    const e = (c.encounters || []).find(x => x.id === id);
+    if (!e) return;
+    this._encounterDraft = {
+      id: e.id,
+      name: e.name,
+      description: e.description || '',
+      monsters: JSON.parse(JSON.stringify(e.monsters || []))
+    };
+    this._monsterFilter = { search: '', group: '', type: 'bestiary', minLevel: '', maxLevel: '' };
+    this.state.editingEncounterId = id;
+    this.render(true);
+  },
+
+  cancelEncounterEdit() {
+    this._encounterDraft = null;
+    this._monsterFilter = null;
+    this.state.editingEncounterId = null;
+    this.render(true);
+  },
+
+  saveEncounter() {
+    const c = this.getCampaign();
+    const d = this._encounterDraft;
+    if (!c || !d) return;
+    const name = (d.name || '').trim();
+    if (!name) { this.toast('Encounter needs a name'); return; }
+    if (!(d.monsters || []).length) { this.toast('Add at least one monster'); return; }
+
+    const now = Date.now();
+    if (d.id) {
+      // Update in place
+      const e = c.encounters.find(x => x.id === d.id);
+      if (e) {
+        e.name = name;
+        e.description = (d.description || '').trim();
+        e.monsters = d.monsters;
+        e.updatedAt = now;
+      }
+    } else {
+      (c.encounters ||= []).push({
+        id: 'enc_' + now.toString(36) + Math.random().toString(36).slice(2, 6),
+        name,
+        description: (d.description || '').trim(),
+        monsters: d.monsters,
+        createdAt: now,
+        updatedAt: now
+      });
+    }
+    c.updatedAt = now;
+    this._encounterDraft = null;
+    this._monsterFilter = null;
+    this.state.editingEncounterId = null;
+    this.save();
+    this.toast(d.id ? 'Encounter updated' : 'Encounter created');
+    this.render();
+  },
+
+  deleteEncounter() {
+    const c = this.getCampaign();
+    const id = this.state.editingEncounterId;
+    if (!c || !id || id === '__new__') return;
+    if (!confirm('Delete this encounter?')) return;
+    c.encounters = (c.encounters || []).filter(x => x.id !== id);
+    c.updatedAt = Date.now();
+    this._encounterDraft = null;
+    this._monsterFilter = null;
+    this.state.editingEncounterId = null;
+    this.save();
+    this.toast('Encounter deleted');
+    this.render();
+  },
+
+  // -------- editor render --------
+  renderEncounterEditor(c) {
+    const d = this._encounterDraft || { name: '', description: '', monsters: [] };
+    const isNew = !d.id;
+    const totals = this._encounterTotals(d, c);
+    const diff = this._encounterDifficulty(d, c);
+    const diffColor = this._difficultyColor(diff?.tier);
+    const partyInfo = this._partyInfo(c);
+
+    const inputStyle = 'width:100%;padding:7px 9px;font-size:0.85rem;border:1px solid var(--parchment-edge,#c9a84c);border-radius:4px;background:var(--parchment,#f4e4c1);color:var(--ink,#3d2b1f)';
+
+    // Header
+    let html = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <button class="btn btn-secondary btn-small" onclick="app.cancelEncounterEdit()">&larr;</button>
+        <h3 style="margin:0;flex:1;font-size:1rem">${isNew ? 'New Encounter' : 'Edit Encounter'}</h3>
+        ${!isNew ? `<button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.deleteEncounter()" title="Delete">&#128465;</button>` : ''}
+      </div>
+
+      <label style="display:block;margin-bottom:10px">
+        <span style="font-size:0.72rem;color:var(--ink-light)">Name</span>
+        <input id="encName" type="text" value="${this.esc(d.name)}" placeholder="Goblin Ambush"
+               oninput="app._encounterDraft.name=this.value" style="${inputStyle};margin-top:4px">
+      </label>
+      <label style="display:block;margin-bottom:12px">
+        <span style="font-size:0.72rem;color:var(--ink-light)">Description (optional)</span>
+        <textarea rows="2" placeholder="The party rounds a bend in the forest path…"
+                  oninput="app._encounterDraft.description=this.value" style="${inputStyle};margin-top:4px;resize:vertical">${this.esc(d.description)}</textarea>
+      </label>
+    `;
+
+    // Difficulty banner
+    html += `
+      <div style="padding:10px 12px;border-radius:6px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div>
+            <div style="font-size:0.7rem;color:var(--ink-light)">Difficulty</div>
+            <div style="font-size:1.1rem;font-weight:bold;color:${diffColor}">
+              ${diff ? `${diff.tier} (${diff.pct}%)` : '—'}
+            </div>
+          </div>
+          <div style="text-align:right;font-size:0.7rem;color:var(--ink-light);line-height:1.5">
+            Party total: <strong>${totals.party}</strong>${partyInfo.fallback ? ' <span style="color:var(--burgundy)">(est.)</span>' : ''}<br>
+            Monster total: <strong>${totals.monsters}</strong><br>
+            ${totals.count} ${totals.count === 1 ? 'creature' : 'creatures'}
+          </div>
+        </div>
+        ${partyInfo.fallback ? '<div style="font-size:0.65rem;color:var(--burgundy);margin-top:6px">No player characters linked. Using Party Level × 4 as estimate.</div>' : ''}
+      </div>
+    `;
+
+    // Selected monsters list
+    html += '<h4 style="font-size:0.85rem;color:var(--burgundy);margin:0 0 8px">Monsters in this encounter</h4>';
+    if ((d.monsters || []).length === 0) {
+      html += `<div style="padding:14px;text-align:center;background:var(--parchment);border:1px dashed var(--parchment-edge);border-radius:6px;margin-bottom:14px;font-size:0.75rem;color:var(--ink-light)">
+        Use the picker below to add monsters.
+      </div>`;
+    } else {
+      html += '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px">';
+      for (let i = 0; i < d.monsters.length; i++) {
+        const entry = d.monsters[i];
+        const lvl = this._entryLevel(entry, c);
+        const kindLabel = entry.kind === 'legendary' ? '👑 ' : (entry.kind === 'npc' ? '🎭 ' : '');
+        html += `
+          <div class="monster-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <div style="flex:1;min-width:0">
+              <strong style="font-size:0.85rem">${kindLabel}${this.esc(entry.name)}</strong>
+              <span style="font-size:0.7rem;color:var(--ink-light);margin-left:4px">Lvl ${lvl}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <button class="btn btn-secondary btn-small" style="padding:2px 8px;font-size:0.8rem;min-width:26px" onclick="app.adjustEntryCount(${i}, -1)">−</button>
+              <span style="min-width:28px;text-align:center;font-weight:bold;font-size:0.9rem">${entry.count || 1}</span>
+              <button class="btn btn-secondary btn-small" style="padding:2px 8px;font-size:0.8rem;min-width:26px" onclick="app.adjustEntryCount(${i}, 1)">+</button>
+              <button class="btn btn-secondary btn-small" style="padding:2px 8px;font-size:0.7rem;color:var(--burgundy);margin-left:6px" onclick="app.removeEntry(${i})">&times;</button>
+            </div>
+          </div>`;
+      }
+      html += '</div>';
+    }
+
+    // Monster picker
+    html += this._renderMonsterPicker(c);
+
+    // Save button
+    html += `
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-secondary" style="flex:1" onclick="app.cancelEncounterEdit()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="app.saveEncounter()">${isNew ? 'Create' : 'Save'}</button>
+      </div>
+      ${!isNew ? `<button class="btn btn-primary btn-block" style="margin-top:8px;background:var(--gold);color:var(--leather-dark)" onclick="app.startCombatFromEncounter('${d.id}')">&#9654; Start Combat</button>` : ''}`;
+
+    return html;
+  },
+
+  adjustEntryCount(i, delta) {
+    const d = this._encounterDraft;
+    if (!d || !d.monsters[i]) return;
+    d.monsters[i].count = Math.max(1, (d.monsters[i].count || 1) + delta);
+    this.render();
+  },
+
+  removeEntry(i) {
+    const d = this._encounterDraft;
+    if (!d) return;
+    d.monsters.splice(i, 1);
+    this.render();
+  },
+
+  addMonsterToEncounter(kind, id) {
+    const d = this._encounterDraft;
+    const c = this.getCampaign();
+    if (!d || !c) return;
+    // If already present, increment count
+    const existing = d.monsters.find(m => m.kind === kind && m.id === id);
+    if (existing) { existing.count = (existing.count || 1) + 1; this.render(); return; }
+    // Snapshot name for display
+    let name = '';
+    if (kind === 'bestiary') name = (window.GM_DATA.MONSTERS.find(m => m.id === id) || {}).name || '';
+    else if (kind === 'legendary') name = (window.GM_DATA.LEGENDARY_MONSTERS.find(m => m.id === id) || {}).name || '';
+    else if (kind === 'npc') name = (c.npcs.find(n => n.id === id) || {}).name || '';
+    d.monsters.push({ kind, id, count: 1, name });
+    this.render();
+  },
+
+  setMonsterFilter(key, value) {
+    if (!this._monsterFilter) this._monsterFilter = { search: '', group: '', type: 'bestiary', minLevel: '', maxLevel: '' };
+    this._monsterFilter[key] = value;
+    this.render();
+    // Re-focus the search input so typing doesn't lose focus on every keystroke
+    if (key === 'search') {
+      const el = document.getElementById('monsterSearchInput');
+      if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    }
+  },
+
+  _renderMonsterPicker(c) {
+    const f = this._monsterFilter || { search: '', group: '', type: 'bestiary', minLevel: '', maxLevel: '' };
+    const inputStyle = 'padding:6px 8px;font-size:0.8rem;border:1px solid var(--parchment-edge,#c9a84c);border-radius:4px;background:var(--parchment,#f4e4c1);color:var(--ink,#3d2b1f)';
+    const parseLvl = window.GM_DATA?.parseMonsterLevel || (x => +x || 0);
+
+    let results = [];
+    if (f.type === 'bestiary') {
+      results = (window.GM_DATA?.MONSTERS || []).map(m => ({ kind: 'bestiary', id: m.id, name: m.name, level: m.level, group: m.group, hp: m.hp, armor: m.armor, isMinion: m.isMinion }));
+    } else if (f.type === 'legendary') {
+      results = (window.GM_DATA?.LEGENDARY_MONSTERS || []).map(m => ({ kind: 'legendary', id: m.id, name: m.name, level: m.level, group: 'legendary', hp: m.hp, armor: m.armor }));
+    } else if (f.type === 'npc') {
+      results = (c.npcs || []).map(n => ({ kind: 'npc', id: n.id, name: n.name, level: n.level, group: 'npc', hp: n.hp, armor: n.armor }));
+    }
+
+    // Apply filters
+    const search = (f.search || '').toLowerCase().trim();
+    if (search) results = results.filter(r => r.name.toLowerCase().includes(search));
+    if (f.group) results = results.filter(r => r.group === f.group);
+    const minL = f.minLevel !== '' ? parseLvl(f.minLevel) : null;
+    const maxL = f.maxLevel !== '' ? parseLvl(f.maxLevel) : null;
+    if (minL != null) results = results.filter(r => parseLvl(r.level) >= minL);
+    if (maxL != null) results = results.filter(r => parseLvl(r.level) <= maxL);
+
+    const groupOpts = Object.entries(window.GM_DATA?.MONSTER_GROUPS || {}).map(([gid, g]) => `<option value="${gid}" ${f.group === gid ? 'selected' : ''}>${this.esc(g.name)}</option>`).join('');
+
+    let html = `
+      <h4 style="font-size:0.85rem;color:var(--burgundy);margin:18px 0 6px">Add Monsters</h4>
+      <div style="display:flex;gap:4px;margin-bottom:8px">
+        <button class="btn btn-secondary btn-small ${f.type === 'bestiary' ? 'active-tab' : ''}" style="flex:1;font-size:0.7rem;padding:5px;${f.type === 'bestiary' ? 'background:var(--gold);color:var(--ink)' : ''}" onclick="app.setMonsterFilter('type','bestiary')">Bestiary</button>
+        <button class="btn btn-secondary btn-small" style="flex:1;font-size:0.7rem;padding:5px;${f.type === 'legendary' ? 'background:var(--gold);color:var(--ink)' : ''}" onclick="app.setMonsterFilter('type','legendary')">Legendary</button>
+        <button class="btn btn-secondary btn-small" style="flex:1;font-size:0.7rem;padding:5px;${f.type === 'npc' ? 'background:var(--gold);color:var(--ink)' : ''}" onclick="app.setMonsterFilter('type','npc')">NPCs</button>
+      </div>
+      <input id="monsterSearchInput" type="search" placeholder="Search…" value="${this.esc(f.search)}"
+             oninput="app.setMonsterFilter('search', this.value)" style="${inputStyle};width:100%;margin-bottom:6px">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:4px;margin-bottom:8px">
+        ${f.type === 'bestiary' ? `<select onchange="app.setMonsterFilter('group', this.value)" style="${inputStyle}">
+          <option value="">All groups</option>${groupOpts}
+        </select>` : '<span></span>'}
+        <input type="text" placeholder="Min lvl" value="${this.esc(f.minLevel)}"
+               oninput="app.setMonsterFilter('minLevel', this.value)" style="${inputStyle}">
+        <input type="text" placeholder="Max lvl" value="${this.esc(f.maxLevel)}"
+               oninput="app.setMonsterFilter('maxLevel', this.value)" style="${inputStyle}">
+      </div>
+    `;
+
+    if (results.length === 0) {
+      html += `<div style="padding:14px;text-align:center;font-size:0.75rem;color:var(--ink-light)">No matches.</div>`;
+    } else {
+      html += '<div style="max-height:300px;overflow-y:auto;border:1px solid var(--parchment-edge);border-radius:4px;padding:4px">';
+      // Show max 50 rows for performance
+      const shown = results.slice(0, 50);
+      for (const r of shown) {
+        const lvl = r.level == null ? '—' : r.level;
+        const armorBit = r.armor ? ` &middot; ${this.esc(r.armor)}` : '';
+        const hpBit = r.isMinion ? 'minion' : (r.hp || '?');
+        html += `
+          <div onclick="app.addMonsterToEncounter('${r.kind}','${r.id}')"
+               style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid var(--parchment-edge);cursor:pointer">
+            <div style="flex:1;min-width:0">
+              <strong style="font-size:0.8rem">${this.esc(r.name)}</strong>
+              <span style="font-size:0.65rem;color:var(--ink-light);margin-left:6px">Lvl ${lvl} &middot; HP ${hpBit}${armorBit}</span>
+            </div>
+            <span style="color:var(--gold);font-weight:bold;font-size:1.1rem">+</span>
+          </div>`;
+      }
+      html += '</div>';
+      if (results.length > shown.length) {
+        html += `<div style="font-size:0.65rem;color:var(--ink-light);text-align:center;margin-top:4px">Showing ${shown.length} of ${results.length}. Refine filters to see more.</div>`;
+      }
+    }
+
+    return html;
+  },
+
+  // =========================================================
+  //   LIVE COMBAT TRACKER (Fase 3)
+  //   state.activeCombat = {
+  //     id, campaignId, encounterId, encounterName,
+  //     round, turnIndex,
+  //     startedAt,
+  //     participants: [
+  //       { id, kind: 'pc'|'monster'|'legendary'|'npc',
+  //         sourceKind: 'bestiary'|'legendary'|'npc'|'pc',
+  //         sourceId, name, initiative,
+  //         hp, maxHp, armor, speed, size, level,
+  //         conditions: { name: true },
+  //         notes,
+  //         // snapshot of template for quick render during combat:
+  //         trait, actions,
+  //         // minion:
+  //         isMinion, dead,
+  //         // legendary:
+  //         lastStandHp, phase: 'normal'|'bloodied'|'lastStand'|'dead',
+  //         bloodied, inLastStand
+  //       }
+  //     ]
+  //   }
+  // =========================================================
+  startCombatFromEncounter(encounterId) {
+    // Locate encounter across all campaigns so this works from anywhere
+    let c = null, e = null;
+    for (const camp of (this.state.campaigns || [])) {
+      const enc = (camp.encounters || []).find(x => x.id === encounterId);
+      if (enc) { c = camp; e = enc; break; }
+    }
+    if (!c || !e) { this.toast('Encounter not found'); return; }
+
+    if (this.state.activeCombat) {
+      if (!confirm(`A combat is already running (${this.esc(this.state.activeCombat.encounterName || 'Encounter')}). End it and start a new one?`)) return;
+    }
+
+    const chars = this.state.characters || [];
+    const linkedPCs = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
+
+    const participants = [];
+    // Player characters go in first — live HP linked to their sheet
+    for (const ch of linkedPCs) {
+      const dex = ch.stats?.DEX ?? 0;
+      participants.push({
+        id: 'p_' + Math.random().toString(36).slice(2, 9),
+        kind: 'pc',
+        sourceKind: 'pc',
+        sourceId: ch.id,
+        name: ch.name,
+        initiative: this._rollD20() + dex,
+        hp: ch.hp ?? ch.maxHp ?? 0,
+        maxHp: ch.maxHp ?? 0,
+        armor: null, // handled by PC sheet; display-only
+        level: ch.level || 1,
+        conditions: {},
+        notes: ''
+      });
+    }
+
+    // Then monsters from the encounter.monsters array
+    for (const entry of (e.monsters || [])) {
+      const count = Math.max(1, entry.count || 1);
+      if (entry.kind === 'bestiary') {
+        const tpl = (window.GM_DATA?.MONSTERS || []).find(m => m.id === entry.id);
+        if (!tpl) continue;
+        for (let i = 0; i < count; i++) {
+          const inst = this._mkMonsterParticipant(tpl, count > 1 ? (i + 1) : null);
+          participants.push(inst);
+        }
+      } else if (entry.kind === 'legendary') {
+        const tpl = (window.GM_DATA?.LEGENDARY_MONSTERS || []).find(m => m.id === entry.id);
+        if (!tpl) continue;
+        for (let i = 0; i < count; i++) {
+          participants.push(this._mkLegendaryParticipant(tpl, count > 1 ? (i + 1) : null));
+        }
+      } else if (entry.kind === 'npc') {
+        const tpl = (c.npcs || []).find(n => n.id === entry.id);
+        if (!tpl) continue;
+        for (let i = 0; i < count; i++) {
+          participants.push(this._mkNPCParticipant(tpl, count > 1 ? (i + 1) : null));
+        }
+      }
+    }
+
+    // Sort by initiative desc, stable
+    participants.sort((a, b) => (b.initiative || 0) - (a.initiative || 0));
+
+    this.state.activeCombat = {
+      id: 'combat_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      campaignId: c.id,
+      encounterId: e.id,
+      encounterName: e.name,
+      round: 1,
+      turnIndex: 0,
+      startedAt: Date.now(),
+      participants,
+      // Fase 4 — Combat Map. 20×20 grid default (Nimble uses "spaces" = 1 square = 5 ft).
+      // Tokens keyed by participant id with {x, y} in grid coords.
+      map: this._initCombatMap(participants)
+    };
+
+    // Navigate to Combat tab
+    this.state.gmView = 'combat';
+    this.state.selectedCampaignId = null;   // exit the campaign (the combat is self-contained)
+    this.state.editingEncounterId = null;
+    this._encounterDraft = null;
+    this.save();
+    this.render(true);
+    this.toast('Combat started');
+  },
+
+  _rollD20() {
+    return Math.floor(Math.random() * 20) + 1;
+  },
+
+  _mkMonsterParticipant(tpl, seq) {
+    const baseName = tpl.name + (seq ? ' #' + seq : '');
+    const parsedHp = typeof tpl.hp === 'number' ? tpl.hp : parseInt(tpl.hp, 10);
+    const hp = tpl.isMinion ? 1 : (isNaN(parsedHp) ? 0 : parsedHp);
+    return {
+      id: 'p_' + Math.random().toString(36).slice(2, 9),
+      kind: tpl.isMinion ? 'minion' : 'monster',
+      sourceKind: 'bestiary',
+      sourceId: tpl.id,
+      name: baseName,
+      initiative: this._rollD20(),
+      hp, maxHp: hp,
+      armor: tpl.armor || null,
+      level: tpl.level,
+      size: tpl.size,
+      speed: tpl.speed,
+      trait: tpl.trait,
+      actions: tpl.actions,
+      conditions: {},
+      notes: '',
+      isMinion: !!tpl.isMinion,
+      dead: false
+    };
+  },
+
+  _mkLegendaryParticipant(tpl, seq) {
+    const baseName = tpl.name + (seq ? ' #' + seq : '');
+    const hp = tpl.hp || 0;
+    // Try to read lastStand HP from the trait text (pattern "X more damage and"), fallback to 20% of max
+    let lastStandHp = Math.round(hp * 0.2);
+    const ls = (tpl.lastStand || '').match(/(\d+)\s*more\s*damage/i);
+    if (ls) lastStandHp = parseInt(ls[1], 10);
+    return {
+      id: 'p_' + Math.random().toString(36).slice(2, 9),
+      kind: 'legendary',
+      sourceKind: 'legendary',
+      sourceId: tpl.id,
+      name: baseName,
+      initiative: this._rollD20() + 2,   // legendaries act often — nudge up the initiative
+      hp, maxHp: hp,
+      armor: tpl.armor || null,
+      level: tpl.level,
+      size: tpl.size,
+      saves: tpl.saves,
+      trait: tpl.trait,
+      actionsList: tpl.actions || [],
+      bloodiedDesc: tpl.bloodied,
+      lastStandDesc: tpl.lastStand,
+      lastStandHp,
+      phase: 'normal',       // 'normal' | 'bloodied' | 'lastStand' | 'dead'
+      bloodied: false,
+      inLastStand: false,
+      conditions: {},
+      notes: ''
+    };
+  },
+
+  _mkNPCParticipant(npc, seq) {
+    const baseName = npc.name + (seq ? ' #' + seq : '');
+    return {
+      id: 'p_' + Math.random().toString(36).slice(2, 9),
+      kind: 'npc',
+      sourceKind: 'npc',
+      sourceId: npc.id,
+      name: baseName,
+      initiative: this._rollD20(),
+      hp: npc.hp || 0, maxHp: npc.maxHp || npc.hp || 0,
+      armor: npc.armor || null,
+      level: npc.level,
+      size: npc.size,
+      speed: npc.speed,
+      trait: npc.trait,
+      actions: npc.actions,
+      conditions: {},
+      notes: npc.notes || ''
+    };
+  },
+
+  // ---- Fase 4: Combat Map ----
+  // Auto-distribute tokens. PCs line up at the top edge, monsters at the bottom.
+  // Fase 4.5: fog/walls are sparse objects keyed by "x,y" so the Firestore doc stays small.
+  _initCombatMap(participants) {
+    const width = 20, height = 20;
+    const tokens = {};
+    let pcX = 2, monsterX = 2;
+    for (const p of participants) {
+      if (p.kind === 'pc') {
+        tokens[p.id] = { x: Math.min(pcX, width - 1), y: 1 };
+        pcX += 2;
+      } else {
+        tokens[p.id] = { x: Math.min(monsterX, width - 1), y: height - 2 };
+        monsterX += 2;
+      }
+    }
+    return { width, height, tokens, fog: {}, walls: {} };
+  },
+
+  _tokenColor(p) {
+    if (p.kind === 'pc') return '#4a7cc1';
+    if (p.kind === 'legendary') return '#c9a84c';
+    if (p.kind === 'npc') return '#4a7c3e';
+    if (p.kind === 'minion') return '#666';
+    return '#8b1a1a'; // monster default
+  },
+
+  _tokenLabel(p) {
+    // "Bugbear #2" → "B2"; "Aelindra" → "A"; "Grimbeak, the Unyielding" → "G"
+    const seqMatch = p.name.match(/\s+#?(\d+)\s*$/);
+    const seq = seqMatch ? seqMatch[1] : '';
+    const first = (p.name.charAt(0) || '?').toUpperCase();
+    return first + seq;
+  },
+
+  mapSelectToken(pid) {
+    if (this._readOnlyMap) return;                    // players can't select
+    // Selection only makes sense in select paint mode. If GM taps a token while
+    // painting, switch back to select for them automatically.
+    this._mapPaintMode = 'select';
+    if (this._mapSelectedTokenId === pid) {
+      this._mapSelectedTokenId = null;                // tap same token to deselect
+    } else {
+      this._mapSelectedTokenId = pid;
+    }
+    this.render();
+  },
+
+  mapMoveToCell(x, y) {
+    if (this._readOnlyMap) return;
+    const combat = this.state.activeCombat;
+    if (!combat || !this._mapSelectedTokenId) return;
+    combat.map = combat.map || this._initCombatMap(combat.participants || []);
+    combat.map.tokens = combat.map.tokens || {};
+    combat.map.tokens[this._mapSelectedTokenId] = { x, y };
+    this._mapSelectedTokenId = null;
+    this.save();
+    this.render();
+  },
+
+  setCombatViewMode(mode) {
+    this.state.combatViewMode = mode;
+    this.render(true);
+  },
+
+  // Fase 4.5 — Paint mode + fog / walls
+  setMapPaintMode(mode) {
+    if (this._readOnlyMap) return;
+    this._mapPaintMode = mode;
+    // Leaving select mode clears any token selection
+    if (mode !== 'select') this._mapSelectedTokenId = null;
+    this.render();
+  },
+
+  // Central click handler for grid cells — routes to the right action for the current paint mode
+  mapCellClick(x, y) {
+    if (this._readOnlyMap) return;
+    const mode = this._mapPaintMode || 'select';
+    if (mode === 'select' && this._mapSelectedTokenId) return this.mapMoveToCell(x, y);
+    if (mode === 'fog') return this.mapToggleFog(x, y);
+    if (mode === 'wall') return this.mapToggleWall(x, y);
+  },
+
+  _ensureMap() {
+    const combat = this.state.activeCombat;
+    if (!combat) return null;
+    combat.map = combat.map || this._initCombatMap(combat.participants || []);
+    combat.map.fog = combat.map.fog || {};
+    combat.map.walls = combat.map.walls || {};
+    combat.map.tokens = combat.map.tokens || {};
+    return combat.map;
+  },
+
+  mapToggleFog(x, y) {
+    const m = this._ensureMap();
+    if (!m) return;
+    const k = x + ',' + y;
+    if (m.fog[k]) delete m.fog[k];
+    else m.fog[k] = true;
+    this.save();
+    this.render();
+  },
+
+  mapToggleWall(x, y) {
+    const m = this._ensureMap();
+    if (!m) return;
+    const k = x + ',' + y;
+    if (m.walls[k]) delete m.walls[k];
+    else m.walls[k] = true;
+    this.save();
+    this.render();
+  },
+
+  mapClearFog() {
+    const m = this._ensureMap();
+    if (!m) return;
+    if (!confirm('Clear all fog? Players will see the whole map.')) return;
+    m.fog = {};
+    this.save();
+    this.render();
+  },
+
+  mapCoverAllFog() {
+    const m = this._ensureMap();
+    if (!m) return;
+    m.fog = {};
+    for (let y = 0; y < m.height; y++) {
+      for (let x = 0; x < m.width; x++) m.fog[x + ',' + y] = true;
+    }
+    this.save();
+    this.render();
+  },
+
+  mapClearWalls() {
+    const m = this._ensureMap();
+    if (!m) return;
+    if (!confirm('Remove all walls?')) return;
+    m.walls = {};
+    this.save();
+    this.render();
+  },
+
+  // Render the SVG grid + tokens. `readOnly` flag suppresses interactivity (used by player remote viewer).
+  // Fase 4.5: draws walls, fog (translucent for GM, opaque for players) and hides tokens under fog for players.
+  renderCombatMap(combat, readOnly) {
+    this._readOnlyMap = !!readOnly;
+    if (!combat) return '';
+    const map = combat.map || this._initCombatMap(combat.participants || []);
+    const w = map.width || 20, h = map.height || 20;
+    const cell = 20; // px per cell
+    const viewW = w * cell, viewH = h * cell;
+    const fog = map.fog || {};
+    const walls = map.walls || {};
+
+    const paintMode = readOnly ? 'select' : (this._mapPaintMode || 'select');
+    const selectedId = readOnly ? null : this._mapSelectedTokenId;
+    const selectedP = selectedId ? (combat.participants || []).find(p => p.id === selectedId) : null;
+
+    // --- Walls layer (visible to everyone) ---
+    let wallsHtml = '';
+    for (const k of Object.keys(walls)) {
+      const [x, y] = k.split(',').map(Number);
+      wallsHtml += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="#3d2b1f" stroke="#5c3d2e" stroke-width="0.5" style="pointer-events:none"/>`;
+    }
+
+    // --- Grid cells (clickable when paint mode active OR token selected) ---
+    let cellsHtml = '';
+    const cellsClickable = !readOnly && (
+      paintMode === 'fog' || paintMode === 'wall' ||
+      (paintMode === 'select' && selectedP)
+    );
+    if (cellsClickable) {
+      const cursor = (paintMode === 'fog' || paintMode === 'wall') ? 'pointer' : 'crosshair';
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          cellsHtml += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"
+            fill="transparent" style="cursor:${cursor}"
+            onclick="app.mapCellClick(${x}, ${y})"/>`;
+        }
+      }
+    }
+
+    // --- Tokens (hidden for players if on a fogged cell) ---
+    let tokensHtml = '';
+    const turnParticipantId = combat.participants?.[combat.turnIndex]?.id;
+    for (const p of (combat.participants || [])) {
+      const tok = (map.tokens || {})[p.id];
+      if (!tok) continue;
+      const tokCellKey = tok.x + ',' + tok.y;
+      const onFog = !!fog[tokCellKey];
+      // Players: don't render tokens hidden under fog at all
+      if (readOnly && onFog) continue;
+      const cx = tok.x * cell + cell / 2;
+      const cy = tok.y * cell + cell / 2;
+      const r = cell * 0.42;
+      const dead = p.dead || (p.kind === 'legendary' ? p.phase === 'dead' : (!p.isMinion && p.hp <= 0));
+      const color = this._tokenColor(p);
+      const isSelected = p.id === selectedId;
+      const isTurn = p.id === turnParticipantId;
+      const label = this._tokenLabel(p);
+
+      const hpPct = p.maxHp > 0 ? p.hp / p.maxHp : 1;
+      const ringColor = dead ? '#444' : (hpPct < 0.33 ? '#8b1a1a' : (hpPct < 0.66 ? '#c9a84c' : '#4a7c3e'));
+
+      // GM can tap tokens only in Select paint mode. In Fog/Wall modes, cell-rects intercept all clicks.
+      const click = (!readOnly && paintMode === 'select') ? ` style="cursor:pointer" onclick="event.stopPropagation();app.mapSelectToken('${p.id}')"` : ' style="pointer-events:none"';
+
+      tokensHtml += `
+        <g${click}${dead ? ' opacity="0.35"' : ''}>
+          ${isTurn ? `<circle cx="${cx}" cy="${cy}" r="${r + 3}" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-dasharray="2 2"/>` : ''}
+          ${isSelected ? `<circle cx="${cx}" cy="${cy}" r="${r + 2}" fill="none" stroke="#fff" stroke-width="2"/>` : ''}
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="${ringColor}" stroke-width="1.5"/>
+          <text x="${cx}" y="${cy + 3}" text-anchor="middle" font-size="8" fill="white" font-weight="bold" style="pointer-events:none;font-family:Georgia,serif">${this.esc(label)}</text>
+        </g>`;
+    }
+
+    // --- Fog layer (on top of tokens for players; translucent for GM so they see what's underneath) ---
+    const fogOpacity = readOnly ? 0.98 : 0.45;
+    let fogHtml = '';
+    for (const k of Object.keys(fog)) {
+      const [x, y] = k.split(',').map(Number);
+      fogHtml += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="#1a1a1a" opacity="${fogOpacity}" style="pointer-events:none"/>`;
+    }
+
+    // --- Paint toolbar (GM only) ---
+    let toolbarHtml = '';
+    if (!readOnly) {
+      const toolBtn = (id, icon, label) =>
+        `<button onclick="app.setMapPaintMode('${id}')" style="flex:1;padding:5px 6px;font-size:0.7rem;background:${paintMode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${paintMode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
+      const fogCount = Object.keys(fog).length;
+      const wallCount = Object.keys(walls).length;
+      toolbarHtml = `
+        <div style="display:flex;gap:4px;margin-bottom:6px">
+          ${toolBtn('select', '&#128273;', 'Select')}
+          ${toolBtn('fog',    '&#127787;&#65039;', 'Fog')}
+          ${toolBtn('wall',   '&#129521;', 'Wall')}
+        </div>
+        ${(paintMode === 'fog' || paintMode === 'wall')
+          ? `<div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">
+              ${paintMode === 'fog'
+                ? `<button onclick="app.mapCoverAllFog()" class="btn btn-secondary btn-small" style="font-size:0.65rem;padding:4px 8px">Cover all</button>
+                   <button onclick="app.mapClearFog()" class="btn btn-secondary btn-small" style="font-size:0.65rem;padding:4px 8px">Clear fog (${fogCount})</button>`
+                : `<button onclick="app.mapClearWalls()" class="btn btn-secondary btn-small" style="font-size:0.65rem;padding:4px 8px">Clear walls (${wallCount})</button>`}
+            </div>`
+          : ''}
+      `;
+    }
+
+    // --- Legend + selected-token info ---
+    const legend = `
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:0.65rem;color:var(--ink-light);margin-top:6px">
+        <span><span style="color:#4a7cc1">&#9679;</span> PC</span>
+        <span><span style="color:#8b1a1a">&#9679;</span> Monster</span>
+        <span><span style="color:#c9a84c">&#9679;</span> Legendary</span>
+        <span><span style="color:#4a7c3e">&#9679;</span> NPC</span>
+        <span><span style="color:#666">&#9679;</span> Minion</span>
+      </div>`;
+
+    // Mode hint changes with paint mode
+    let hint = '';
+    if (readOnly) {
+      hint = '';
+    } else if (paintMode === 'fog') {
+      hint = `<div style="padding:6px 10px;background:#1a1a1a;color:#f4e4c1;font-size:0.72rem;border-radius:4px;margin-bottom:6px;text-align:center">&#127787;&#65039; Fog mode — tap cells to hide them from players.</div>`;
+    } else if (paintMode === 'wall') {
+      hint = `<div style="padding:6px 10px;background:#3d2b1f;color:#f4e4c1;font-size:0.72rem;border-radius:4px;margin-bottom:6px;text-align:center">&#129521; Wall mode — tap cells to mark obstacles.</div>`;
+    } else if (selectedP) {
+      hint = `<div style="padding:6px 10px;background:var(--gold);color:var(--leather-dark);font-size:0.75rem;border-radius:4px;margin-bottom:6px;text-align:center">
+                Selected: <strong>${this.esc(selectedP.name)}</strong> — tap a cell to move, or tap the token again to deselect.
+              </div>`;
+    } else {
+      hint = `<div style="padding:6px 10px;background:var(--parchment-dark);font-size:0.7rem;color:var(--ink-light);border-radius:4px;margin-bottom:6px;text-align:center">Tap a token to select, then tap a cell to move.</div>`;
+    }
+
+    return `
+      ${toolbarHtml}
+      ${hint}
+      <div style="border:1px solid var(--parchment-edge);background:var(--parchment-dark);border-radius:6px;overflow:hidden">
+        <svg viewBox="0 0 ${viewW} ${viewH}" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;max-height:65vh">
+          <defs>
+            <pattern id="nimbleGrid" width="${cell}" height="${cell}" patternUnits="userSpaceOnUse">
+              <path d="M ${cell} 0 L 0 0 0 ${cell}" fill="none" stroke="#5c3d2e" stroke-width="0.5" opacity="0.35"/>
+            </pattern>
+          </defs>
+          <rect width="${viewW}" height="${viewH}" fill="#f4e4c1"/>
+          <rect width="${viewW}" height="${viewH}" fill="url(#nimbleGrid)"/>
+          ${wallsHtml}
+          ${cellsHtml}
+          ${tokensHtml}
+          ${fogHtml}
+        </svg>
+      </div>
+      ${legend}
+    `;
+  },
+
+  // ---- Combat tracker render ----
+  renderCombatTracker() {
+    const combat = this.state.activeCombat;
+    if (!combat) {
+      return `
+        <div class="empty-state" style="padding:30px 16px">
+          <div class="icon">&#128293;</div>
+          <p>No active combat.<br>Open an encounter and tap &#9654; Start Combat to begin.</p>
+          <button class="btn btn-primary" onclick="app.setGMView('campaigns')">Go to Campaigns</button>
+        </div>`;
+    }
+
+    const campaign = (this.state.campaigns || []).find(c => c.id === combat.campaignId);
+    const viewMode = this.state.combatViewMode || 'list';
+
+    const modeBtn = (id, icon, label) =>
+      `<button onclick="app.setCombatViewMode('${id}')"
+        style="flex:1;padding:6px 8px;font-size:0.78rem;background:${viewMode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${viewMode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
+
+    let html = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="flex:1;min-width:0">
+          <h2 style="margin:0;font-size:1.05rem;line-height:1.2">&#9876; ${this.esc(combat.encounterName)}</h2>
+          <div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(campaign?.name || '—')} &middot; Round ${combat.round}</div>
+        </div>
+        <button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.endCombatConfirm()" title="End combat">End</button>
+      </div>
+
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        ${modeBtn('list', '&#128203;', 'List')}
+        ${modeBtn('map',  '&#128506;&#65039;', 'Map')}
+      </div>
+
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="btn btn-primary" style="flex:1" onclick="app.combatNextTurn()">&#10140; Next Turn</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="app.combatNewRound()">&#8635; New Round</button>
+      </div>
+    `;
+
+    if (viewMode === 'map') {
+      // Compact current-turn strip + map
+      const cur = combat.participants[combat.turnIndex];
+      if (cur) {
+        const hpBit = cur.isMinion ? 'minion' : `${cur.hp}/${cur.maxHp} HP`;
+        html += `
+          <div style="padding:8px 10px;background:var(--parchment);border:1px solid var(--gold);border-radius:5px;margin-bottom:8px;font-size:0.78rem">
+            <strong>Turn:</strong> ${this.esc(cur.name)} &middot; ${hpBit}
+          </div>`;
+      }
+      html += this.renderCombatMap(combat, false);
+    } else {
+      html += '<div style="display:flex;flex-direction:column;gap:6px">';
+      for (let i = 0; i < combat.participants.length; i++) {
+        html += this._renderCombatParticipant(combat.participants[i], i, i === combat.turnIndex);
+      }
+      html += '</div>';
+    }
+
+    return html;
+  },
+
+  _renderCombatParticipant(p, idx, isCurrent) {
+    const isDead = p.dead || (p.hp <= 0 && !p.isMinion && p.phase !== 'lastStand' && p.kind !== 'legendary');
+    const legDead = p.kind === 'legendary' && p.phase === 'dead';
+    const effectivelyDead = isDead || legDead;
+
+    const hpPct = p.maxHp > 0 ? Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100)) : 0;
+    const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
+
+    const kindIcon = { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#127917;', minion: '&#128049;' }[p.kind] || '';
+    const armorBadge = p.armor ? `<span style="background:var(--leather);color:var(--parchment);font-size:0.6rem;padding:2px 5px;border-radius:3px;margin-left:4px">${this.esc(p.armor)}</span>` : '';
+
+    // Phase banners for legendaries
+    let phaseBanner = '';
+    if (p.kind === 'legendary') {
+      if (p.phase === 'lastStand') phaseBanner = '<span style="background:var(--burgundy);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">LAST STAND</span>';
+      else if (p.bloodied) phaseBanner = '<span style="background:#b8621b;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">BLOODIED</span>';
+    }
+
+    // HP row
+    let hpRow = '';
+    if (p.isMinion) {
+      hpRow = p.dead
+        ? '<span style="color:var(--burgundy);font-size:0.75rem;font-weight:bold">DEAD</span>'
+        : `<button class="btn btn-secondary btn-small" style="font-size:0.7rem;padding:3px 10px" onclick="app.combatKillMinion('${p.id}')">Kill minion</button>`;
+    } else {
+      hpRow = `
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <div style="flex:1;height:7px;background:var(--parchment-edge);border-radius:3px;overflow:hidden">
+            <div style="width:${hpPct}%;height:100%;background:${hpColor};transition:width 0.3s"></div>
+          </div>
+          <span style="font-size:0.75rem;font-weight:bold;white-space:nowrap;min-width:60px;text-align:right">${p.hp} / ${p.maxHp}</span>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:6px;align-items:center">
+          <input type="number" id="dmg_${p.id}" placeholder="dmg" inputmode="numeric" min="0"
+                 style="width:56px;padding:4px 6px;font-size:0.75rem;border:1px solid var(--parchment-edge);border-radius:4px;background:var(--parchment);color:var(--ink);text-align:center">
+          <button class="btn btn-secondary btn-small" style="padding:3px 10px;font-size:0.75rem;color:var(--burgundy)" onclick="app.combatApplyHP('${p.id}', -1)">− Dmg</button>
+          <button class="btn btn-secondary btn-small" style="padding:3px 10px;font-size:0.75rem;color:#4a7c3e" onclick="app.combatApplyHP('${p.id}', 1)">+ Heal</button>
+        </div>
+      `;
+    }
+
+    // Conditions
+    const condsList = Object.keys(p.conditions || {}).filter(k => p.conditions[k]);
+    const condsRow = condsList.length
+      ? `<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">${condsList.map(c => `<span style="background:var(--burgundy);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px">${this.esc(c)} <span onclick="event.stopPropagation();app.combatToggleCondition('${p.id}','${c.replace(/'/g, "\\'")}')" style="cursor:pointer;margin-left:3px">&times;</span></span>`).join('')}</div>`
+      : '';
+
+    // Info row (init, level, armor)
+    const infoRow = `
+      <div style="display:flex;gap:6px;align-items:baseline;font-size:0.65rem;color:var(--ink-light);flex-wrap:wrap">
+        <span>Init <strong style="color:var(--gold)">${p.initiative}</strong></span>
+        ${p.level != null ? `<span>Lvl ${p.level}</span>` : ''}
+        ${p.size ? `<span>${this.esc(p.size)}</span>` : ''}
+        ${p.speed ? `<span>Spd ${p.speed}</span>` : ''}
+      </div>`;
+
+    const armorHint = (p.armor === 'M')
+      ? '<div style="font-size:0.6rem;color:var(--ink-light);margin-top:3px;font-style:italic">M armor: ignore damage mods, just the dice.</div>'
+      : (p.armor === 'H')
+      ? '<div style="font-size:0.6rem;color:var(--ink-light);margin-top:3px;font-style:italic">H armor: half the dice (round up).</div>'
+      : '';
+
+    const expanded = this._combatExpanded && this._combatExpanded[p.id];
+
+    return `
+      <div class="combat-participant${isCurrent ? ' current' : ''}${effectivelyDead ? ' dead' : ''}">
+        <div onclick="app.combatToggleExpanded('${p.id}')" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+            <div style="flex:1;min-width:0">
+              <strong style="font-size:0.9rem">${kindIcon} ${this.esc(p.name)}${armorBadge}${phaseBanner}</strong>
+            </div>
+            ${isCurrent ? '<span style="background:var(--gold);color:var(--leather-dark);font-size:0.62rem;padding:2px 8px;border-radius:10px;font-weight:bold">TURN</span>' : ''}
+          </div>
+          ${infoRow}
+        </div>
+        ${hpRow}
+        ${armorHint}
+        ${condsRow}
+        ${expanded ? this._renderCombatExpanded(p) : `
+          <div style="margin-top:6px;text-align:center">
+            <span onclick="app.combatToggleExpanded('${p.id}')" style="font-size:0.65rem;color:var(--ink-light);cursor:pointer">Tap for details &#9662;</span>
+          </div>`}
+      </div>
+    `;
+  },
+
+  _renderCombatExpanded(p) {
+    const gmConds = window.GM_DATA?.CONDITIONS || {};
+    const condKeys = Object.keys(gmConds);
+
+    let html = '<div style="margin-top:10px;padding:10px;background:var(--parchment);border-radius:5px;border:1px solid var(--parchment-edge)">';
+
+    // Stat block
+    if (p.trait) html += `<div style="font-size:0.72rem;font-style:italic;color:var(--ink-light);margin-bottom:6px">${this.esc(p.trait)}</div>`;
+    if (p.actions) html += `<div style="font-size:0.75rem;margin-bottom:8px">${this.esc(p.actions)}</div>`;
+
+    // Legendary actions
+    if (p.actionsList && p.actionsList.length) {
+      html += '<div style="margin-bottom:8px">';
+      html += '<div style="font-size:0.7rem;font-weight:bold;color:var(--burgundy);margin-bottom:4px">Actions</div>';
+      for (const a of p.actionsList) {
+        const usage = a.usage ? ` <span style="font-size:0.6rem;color:var(--ink-light);font-weight:normal">(${this.esc(a.usage)})</span>` : '';
+        html += `<div style="font-size:0.72rem;margin-bottom:4px"><strong>${this.esc(a.name)}.</strong>${usage} ${this.esc(a.description)}</div>`;
+      }
+      html += '</div>';
+    }
+
+    // Legendary phase info
+    if (p.kind === 'legendary') {
+      if (p.bloodiedDesc) html += `<div style="font-size:0.7rem;margin-bottom:6px"><span style="color:#b8621b;font-weight:bold">BLOODIED:</span> ${this.esc(p.bloodiedDesc)}</div>`;
+      if (p.lastStandDesc) html += `<div style="font-size:0.7rem;margin-bottom:6px"><span style="color:var(--burgundy);font-weight:bold">LAST STAND:</span> ${this.esc(p.lastStandDesc)}</div>`;
+      html += `<div style="font-size:0.65rem;color:var(--ink-light);margin-bottom:8px;font-style:italic">Acts after each hero's turn. Advance "Next Turn" after every hero action.</div>`;
+    }
+
+    // Conditions picker
+    html += '<div style="border-top:1px dashed var(--parchment-edge);padding-top:8px;margin-top:8px">';
+    html += '<div style="font-size:0.7rem;font-weight:bold;color:var(--burgundy);margin-bottom:4px">Conditions</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+    for (const name of condKeys) {
+      const active = !!(p.conditions && p.conditions[name]);
+      html += `<button onclick="app.combatToggleCondition('${p.id}','${name.replace(/'/g, "\\'")}')" class="btn btn-secondary btn-small" style="padding:3px 8px;font-size:0.65rem;${active ? 'background:var(--burgundy);color:#fff;border-color:var(--burgundy)' : ''}" title="${this.esc(gmConds[name].description)}">${this.esc(name)}</button>`;
+    }
+    html += '</div></div>';
+
+    // Notes
+    html += `<div style="margin-top:10px">
+      <div style="font-size:0.7rem;font-weight:bold;color:var(--burgundy);margin-bottom:4px">Notes</div>
+      <textarea id="note_${p.id}" rows="2" oninput="app.combatUpdateNotes('${p.id}', this.value)"
+        style="width:100%;padding:6px;font-size:0.75rem;border:1px solid var(--parchment-edge);border-radius:4px;background:var(--parchment);color:var(--ink);resize:vertical;font-family:inherit">${this.esc(p.notes || '')}</textarea>
+    </div>`;
+
+    html += '</div>';
+    return html;
+  },
+
+  combatToggleExpanded(pid) {
+    if (!this._combatExpanded) this._combatExpanded = {};
+    this._combatExpanded[pid] = !this._combatExpanded[pid];
+    this.render();
+  },
+
+  combatApplyHP(pid, sign) {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    const p = combat.participants.find(x => x.id === pid);
+    if (!p) return;
+    const inp = document.getElementById('dmg_' + pid);
+    const val = Math.abs(parseInt(inp?.value, 10) || 0);
+    if (!val) return;
+
+    // Apply the change
+    p.hp = Math.max(0, p.hp + (sign * val));
+    if (sign > 0) p.hp = Math.min(p.maxHp, p.hp);   // heal cap at max
+
+    // Legendary phase transitions on damage
+    if (p.kind === 'legendary' && sign < 0) {
+      if (!p.bloodied && p.hp <= p.maxHp / 2 && p.phase !== 'lastStand') {
+        p.bloodied = true;
+        p.phase = 'bloodied';
+        this.toast(`${p.name} is BLOODIED`);
+      }
+      if (p.hp === 0 && p.phase !== 'lastStand' && !p.inLastStand) {
+        // Enter Last Stand: reset HP to lastStandHp
+        p.inLastStand = true;
+        p.phase = 'lastStand';
+        p.hp = p.lastStandHp || 30;
+        p.maxHp = p.hp;
+        this.toast(`${p.name} enters LAST STAND!`);
+      } else if (p.hp === 0 && p.phase === 'lastStand') {
+        p.phase = 'dead';
+      }
+    }
+
+    // Mirror PC HP back to their sheet (keeps character sheet live)
+    if (p.kind === 'pc') {
+      const ch = this.state.characters.find(x => x.id === p.sourceId);
+      if (ch) { ch.hp = p.hp; ch.maxHp = p.maxHp; }
+    }
+
+    if (inp) inp.value = '';
+    this.save();
+    this.render();
+  },
+
+  combatKillMinion(pid) {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    const p = combat.participants.find(x => x.id === pid);
+    if (!p) return;
+    p.dead = true;
+    p.hp = 0;
+    this.save();
+    this.render();
+  },
+
+  combatToggleCondition(pid, name) {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    const p = combat.participants.find(x => x.id === pid);
+    if (!p) return;
+    p.conditions = p.conditions || {};
+    if (p.conditions[name]) delete p.conditions[name];
+    else p.conditions[name] = true;
+    this.save();
+    this.render();
+  },
+
+  combatUpdateNotes(pid, val) {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    const p = combat.participants.find(x => x.id === pid);
+    if (!p) return;
+    p.notes = val;
+    if (this._combatNotesTimer) clearTimeout(this._combatNotesTimer);
+    this._combatNotesTimer = setTimeout(() => this.save(), 400);
+  },
+
+  combatNextTurn() {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    const n = combat.participants.length;
+    if (!n) return;
+    // Advance, skip over dead non-legendary participants
+    for (let i = 1; i <= n; i++) {
+      const next = (combat.turnIndex + i) % n;
+      const p = combat.participants[next];
+      const isDead = p.kind === 'legendary' ? p.phase === 'dead' : (p.dead || p.hp <= 0);
+      if (!isDead) {
+        // Wrap-around increments the round counter
+        if (next <= combat.turnIndex) combat.round++;
+        combat.turnIndex = next;
+        this.save();
+        this.render();
+        return;
+      }
+    }
+    // All dead → keep as-is, just advance round
+    combat.round++;
+    this.save();
+    this.render();
+  },
+
+  combatNewRound() {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    combat.round++;
+    combat.turnIndex = 0;
+    this.save();
+    this.render();
+  },
+
+  endCombatConfirm() {
+    if (!this.state.activeCombat) return;
+    if (!confirm('End this combat? Turn tracking will be cleared. Character HP changes stay.')) return;
+    this.state.activeCombat = null;
+    this._combatExpanded = {};
+    this.save();
+    this.toast('Combat ended');
+    this.render();
+  },
+
+  // ---- CAMPAIGN > Notes ----
+  renderCampaignNotes(c) {
+    const inputStyle = 'width:100%;padding:10px;font-size:0.85rem;border:1px solid var(--parchment-edge,#c9a84c);border-radius:6px;background:var(--parchment,#f4e4c1);color:var(--ink,#3d2b1f);font-family:inherit;line-height:1.5;resize:vertical;min-height:220px';
+    return `
+      <p style="font-size:0.72rem;color:var(--ink-light);margin:0 0 8px">Session notes, plot threads, secrets. Auto-saves as you type.</p>
+      <textarea id="campaignNotesArea" oninput="app.updateCampaignNotes(this.value)" style="${inputStyle}" placeholder="Session 1 — The party met Finn at the Merivale tavern. He mentioned strange lights in the Elderwild…">${this.esc(c.notes || '')}</textarea>`;
+  },
+
+  updateCampaignNotes(val) {
+    const c = this.getCampaign();
+    if (!c) return;
+    c.notes = val;
+    c.updatedAt = Date.now();
+    // Debounce the save so keystrokes don't spam localStorage / Firestore
+    if (this._notesSaveTimer) clearTimeout(this._notesSaveTimer);
+    this._notesSaveTimer = setTimeout(() => {
+      this._notesSaveTimer = null;
+      this.save();
+    }, 500);
+  },
+
+  openCampaign(id) {
+    this.state.selectedCampaignId = id;
+    this.state.campaignView = 'party';
+    this.render(true);
+  },
+
+  backToCampaignList() {
+    this.state.selectedCampaignId = null;
+    this.render(true);
+  },
+
+  setCampaignView(v) {
+    this.state.campaignView = v;
+    this.render(true);
+  },
+
+  getCampaign() {
+    return this.state.campaigns.find(c => c.id === this.state.selectedCampaignId) || null;
+  },
+
+  updateCampaign(updates) {
+    const c = this.getCampaign();
+    if (!c) return;
+    Object.assign(c, updates, { updatedAt: Date.now() });
+    this.save();
+  },
+
+  // ---- GM > Bestiary (read-only Fase 0 browser) ----
+  renderGMBestiary() {
+    if (!window.GM_DATA) return '<div class="empty-state"><p>GM data not loaded.</p></div>';
+
+    const monsters = window.GM_DATA.MONSTERS;
+    const groups   = window.GM_DATA.MONSTER_GROUPS;
+    const legend   = window.GM_DATA.LEGENDARY_MONSTERS;
+
+    // Group regular monsters by group
+    const byGroup = {};
+    for (const m of monsters) {
+      (byGroup[m.group] ||= []).push(m);
+    }
+
+    const monsterLine = (m) => {
+      const lvl   = m.level == null ? '—' : m.level;
+      const hp    = m.isMinion ? 'minion' : (m.hp || '—');
+      const armor = m.armor ? ` &middot; ${m.armor}` : '';
+      const size  = m.size ? ` (${m.size})` : '';
+      const trait = m.trait ? `<div style="font-size:0.7rem;color:var(--ink-light);font-style:italic;margin-top:2px">${this.esc(m.trait)}</div>` : '';
+      const actions = m.actions ? `<div style="font-size:0.72rem;margin-top:3px">${this.esc(m.actions)}</div>` : '';
+      return `
+        <div class="monster-row">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
+            <strong style="font-size:0.85rem">${this.esc(m.name)}</strong>
+            <span style="font-size:0.7rem;color:var(--ink-light);white-space:nowrap">Lvl ${lvl} &middot; HP ${hp}${armor}${size}</span>
+          </div>
+          ${trait}
+          ${actions}
+        </div>`;
+    };
+
+    let html = '<p style="font-size:0.75rem;color:var(--ink-light);margin:0 0 12px">Tap a group to expand. Full encounter builder comes in Fase 2.</p>';
+
+    // Regular monsters grouped
+    for (const [gid, group] of Object.entries(groups)) {
+      const list = byGroup[gid] || [];
+      if (list.length === 0) continue;
+      html += `
+        <div class="rules-section">
+          <div class="rules-collapsible-header" onclick="app.toggleCollapsible(this)">
+            <h4>${this.esc(group.name)} <span class="rules-count">(${list.length})</span></h4>
+            <span class="collapsible-arrow">&#9660;</span>
+          </div>
+          <div class="rules-collapsible-body">
+            ${group.description ? `<p style="font-size:0.75rem;color:var(--ink-light);font-style:italic;margin:0 0 6px">${this.esc(group.description)}</p>` : ''}
+            ${group.groupTrait ? `<p style="font-size:0.72rem;margin:0 0 8px"><strong>${this.esc(group.groupTrait.name)}</strong> — ${this.esc(group.groupTrait.description)}</p>` : ''}
+            ${list.map(monsterLine).join('')}
+          </div>
+        </div>`;
+    }
+
+    // Legendaries
+    html += `
+      <div class="rules-section">
+        <div class="rules-collapsible-header" onclick="app.toggleCollapsible(this)">
+          <h4>&#128081; Legendary Monsters <span class="rules-count">(${legend.length})</span></h4>
+          <span class="collapsible-arrow">&#9660;</span>
+        </div>
+        <div class="rules-collapsible-body">
+          ${legend.map(m => `
+            <div class="monster-row">
+              <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
+                <strong style="font-size:0.85rem">${this.esc(m.name)}</strong>
+                <span style="font-size:0.7rem;color:var(--ink-light);white-space:nowrap">Lvl ${m.level} &middot; HP ${m.hp}${m.armor ? ` &middot; ${m.armor}` : ''}</span>
+              </div>
+              ${m.creatureType ? `<div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(m.creatureType)}${m.size ? ' &middot; ' + this.esc(m.size) : ''}</div>` : ''}
+              ${m.trait ? `<div style="font-size:0.7rem;font-style:italic;margin-top:2px">${this.esc(m.trait)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+
+    // Conditions reference
+    const conds = window.GM_DATA.CONDITIONS;
+    html += `
+      <div class="rules-section">
+        <div class="rules-collapsible-header" onclick="app.toggleCollapsible(this)">
+          <h4>&#9888; Conditions <span class="rules-count">(${Object.keys(conds).length})</span></h4>
+          <span class="collapsible-arrow">&#9660;</span>
+        </div>
+        <div class="rules-collapsible-body">
+          ${Object.entries(conds).map(([name, c]) => `
+            <div class="rule-item">
+              <h4>${this.esc(name)} <span style="font-size:0.65rem;color:var(--ink-light)">(${this.esc(c.source)})</span></h4>
+              <p>${this.esc(c.description)}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+
+    return html;
+  },
+
+  // Top-level GM > Encounters: flat list across all campaigns, click to jump in.
+  renderGMEncountersTopLevel() {
+    const campaigns = this.state.campaigns || [];
+    const all = [];
+    for (const c of campaigns) {
+      for (const e of (c.encounters || [])) all.push({ e, c });
+    }
+
+    if (all.length === 0) {
+      return `
+        <div class="empty-state" style="padding:30px 16px">
+          <div class="icon">&#9876;</div>
+          <p>No encounters yet.<br>Encounters live inside a campaign — open one and switch to the Encounters tab.</p>
+          ${campaigns.length === 0
+            ? `<button class="btn btn-primary" onclick="app.setGMView('campaigns')">Go to Campaigns</button>`
+            : `<button class="btn btn-primary" onclick="app.setGMView('campaigns')">Open a Campaign</button>`}
+        </div>`;
+    }
+
+    let html = '<p style="font-size:0.7rem;color:var(--ink-light);margin:0 0 10px">All encounters across your campaigns. Click one to edit.</p>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px">';
+    for (const { e, c } of all) {
+      const diff = this._encounterDifficulty(e, c);
+      const color = this._difficultyColor(diff?.tier);
+      const totals = this._encounterTotals(e, c);
+      html += `
+        <div class="monster-row" onclick="app.jumpToEncounter('${c.id}','${e.id}')" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
+            <div style="flex:1;min-width:0">
+              <strong style="font-size:0.9rem">${this.esc(e.name)}</strong>
+              <div style="font-size:0.65rem;color:var(--ink-light);margin-top:2px">${this.esc(c.name)} &middot; ${totals.count} creatures &middot; L${totals.monsters}</div>
+            </div>
+            ${diff ? `<span style="background:${color};color:#fff;font-size:0.65rem;padding:3px 8px;border-radius:10px;white-space:nowrap">${diff.tier}</span>` : ''}
+          </div>
+        </div>`;
+    }
+    html += '</div>';
+    return html;
+  },
+
+  jumpToEncounter(campaignId, encounterId) {
+    this.state.selectedCampaignId = campaignId;
+    this.state.campaignView = 'encounters';
+    this.state.gmView = 'campaigns';
+    this.editEncounter(encounterId);
+  },
+
+  renderGMPlaceholder(title, msg) {
+    return `
+      <div class="empty-state">
+        <div class="icon">&#128736;</div>
+        <h3 style="margin:10px 0 6px">${this.esc(title)}</h3>
+        <p style="font-size:0.78rem;color:var(--ink-light);max-width:360px;margin:0 auto;line-height:1.4">${this.esc(msg)}</p>
+      </div>`;
+  },
+
   // ===== CHARACTER CREATION =====
   startCreation() {
     this.state.creation = {
@@ -6769,10 +8908,14 @@ const app = {
           email: fbUser.email || null
         };
         this.subscribeToCloud();
+        // Fase 3.5: re-attach the remote session listener if the player had joined one
+        if (this.state.joinedSessionId) this.subscribeToRemoteSession();
       } else {
         this.user = null;
         this.syncStatus = 'idle';
         if (this._cloudUnsub) { try { this._cloudUnsub(); } catch (_) {} this._cloudUnsub = null; }
+        if (this._sessionUnsub) { try { this._sessionUnsub(); } catch (_) {} this._sessionUnsub = null; }
+        this.state.remoteSession = null;
       }
       this.render();
     });
@@ -6831,6 +8974,8 @@ const app = {
 
       const data = snap.data();
       const remote = Array.isArray(data.characters) ? data.characters : [];
+      const remoteCampaigns = Array.isArray(data.campaigns) ? data.campaigns : [];
+      const remoteCombat = data.activeCombat || null;
 
       // On first read: decide who wins (cloud vs local). Simple rule:
       // - If local is empty, adopt cloud
@@ -6839,15 +8984,15 @@ const app = {
       if (this._firstSnapshot) {
         this._firstSnapshot = false;
         if (this.state.characters.length === 0 && remote.length > 0) {
-          this._adoptFromCloud(remote);
+          this._adoptFromCloud(remote, remoteCampaigns, remoteCombat);
         } else if (this.state.characters.length > 0 && remote.length === 0) {
           this.pushToCloud();
         } else {
-          this._adoptFromCloud(remote);
+          this._adoptFromCloud(remote, remoteCampaigns, remoteCombat);
         }
       } else {
         // Subsequent updates from another device → always adopt
-        this._adoptFromCloud(remote);
+        this._adoptFromCloud(remote, remoteCampaigns, remoteCombat);
       }
       this.syncStatus = 'synced';
       this.render();
@@ -6859,7 +9004,7 @@ const app = {
   },
 
   // Write a cloud snapshot into local state without triggering a push back
-  _adoptFromCloud(remoteChars) {
+  _adoptFromCloud(remoteChars, remoteCampaigns, remoteCombat) {
     this._applyingCloud = true;
     try {
       this.state.characters = remoteChars;
@@ -6867,7 +9012,22 @@ const app = {
       if (this.state.selectedCharacterId && !remoteChars.find(c => c.id === this.state.selectedCharacterId)) {
         this.state.selectedCharacterId = null;
       }
+      if (Array.isArray(remoteCampaigns)) {
+        this.state.campaigns = remoteCampaigns;
+        if (this.state.selectedCampaignId && !remoteCampaigns.find(c => c.id === this.state.selectedCampaignId)) {
+          this.state.selectedCampaignId = null;
+        }
+      }
+      // Fase 3: activeCombat may be null (explicitly ended elsewhere) or a full object
+      if (remoteCombat !== undefined) {
+        this.state.activeCombat = remoteCombat || null;
+      }
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state.characters)); } catch (_) {}
+      try { localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(this.state.campaigns)); } catch (_) {}
+      try {
+        if (this.state.activeCombat) localStorage.setItem(ACTIVE_COMBAT_KEY, JSON.stringify(this.state.activeCombat));
+        else localStorage.removeItem(ACTIVE_COMBAT_KEY);
+      } catch (_) {}
     } finally {
       this._applyingCloud = false;
     }
@@ -6893,6 +9053,8 @@ const app = {
       await fb.setDoc(ref, {
         schemaVersion: 1,
         characters: this.state.characters,
+        campaigns: this.state.campaigns || [],
+        activeCombat: this.state.activeCombat || null,
         updatedAt: fb.serverTimestamp()
       });
       this.syncStatus = 'synced';
@@ -6902,6 +9064,226 @@ const app = {
       this.syncStatus = 'error';
       this.render();
     }
+    // Fase 3.5: also push session doc (separate collection, players subscribe by sessionId)
+    this.pushSessionIfNeeded();
+  },
+
+  // Fase 3.5 — Push combat state to the public session doc so subscribed players see it.
+  // Writes to sessions/{campaignId}. Requires Firestore rules that allow:
+  //   - read by any authenticated user
+  //   - write only by the GM (request.auth.uid == gmUid)
+  // See CLAUDE.md → Cloud Sync System for the rules snippet.
+  async pushSessionIfNeeded() {
+    const fb = window.firebaseSync;
+    if (!fb || !this.user) return;
+    const combat = this.state.activeCombat;
+    // Find the campaign that owns the active combat. On combat-end we also
+    // need to write one "cleared" state, so we track the last-pushed campaign.
+    let campaign = null;
+    if (combat) campaign = (this.state.campaigns || []).find(c => c.id === combat.campaignId);
+    if (!campaign && this._lastPushedSessionCampId) {
+      campaign = (this.state.campaigns || []).find(c => c.id === this._lastPushedSessionCampId);
+    }
+    if (!campaign) return;
+
+    const prevCampId = this._lastPushedSessionCampId;
+    this._lastPushedSessionCampId = campaign.id;
+    // Once the session was cleared, stop tracking it so we don't keep pushing empty docs
+    if (!combat && prevCampId === campaign.id) this._lastPushedSessionCampId = null;
+
+    try {
+      const ref = fb.doc(fb.db, 'sessions', campaign.id);
+      await fb.setDoc(ref, {
+        schemaVersion: 1,
+        gmUid: this.user.uid,
+        gmDisplayName: this.user.displayName || 'GM',
+        campaignName: campaign.name,
+        partyLevel: campaign.partyLevel || 1,
+        activeCombat: combat || null,
+        updatedAt: fb.serverTimestamp()
+      });
+    } catch (err) {
+      console.warn('Session push failed:', err);
+    }
+  },
+
+  // Fase 3.5 — Player-side: join a GM session by code, subscribe, leave.
+  joinSessionPrompt() {
+    if (!window.firebaseSync) { this.toast('Cloud sync unavailable'); return; }
+    if (!this.user) { this.toast('Sign in first to join a session'); return; }
+    const code = prompt('Paste the GM session code:');
+    if (!code) return;
+    this.joinSession(code.trim());
+  },
+
+  joinSession(sessionId) {
+    if (!sessionId) return;
+    this.state.joinedSessionId = sessionId;
+    try { localStorage.setItem(JOINED_SESSION_KEY, sessionId); } catch (_) {}
+    this.subscribeToRemoteSession();
+    this.toast('Joined — waiting for GM updates…');
+    this.render();
+  },
+
+  leaveSession() {
+    if (!confirm('Leave this GM session?')) return;
+    if (this._sessionUnsub) { try { this._sessionUnsub(); } catch (_) {} this._sessionUnsub = null; }
+    this.state.joinedSessionId = null;
+    this.state.remoteSession = null;
+    try { localStorage.removeItem(JOINED_SESSION_KEY); } catch (_) {}
+    this.toast('Left session');
+    this.render();
+  },
+
+  subscribeToRemoteSession() {
+    const fb = window.firebaseSync;
+    if (!fb || !this.user || !this.state.joinedSessionId) return;
+    if (this._sessionUnsub) { try { this._sessionUnsub(); } catch (_) {} this._sessionUnsub = null; }
+    const ref = fb.doc(fb.db, 'sessions', this.state.joinedSessionId);
+    this._sessionUnsub = fb.onSnapshot(ref, (snap) => {
+      this.state.remoteSession = snap.exists() ? snap.data() : null;
+      this.render();
+    }, (err) => {
+      console.warn('Session subscribe failed:', err);
+      this.state.remoteSession = null;
+      this.render();
+    });
+  },
+
+  // Banner rendered on the Characters tab beneath the cloud-sync header.
+  // 3 states: not-joined (offer to join), joined-no-combat (waiting), joined-combat-active (view button).
+  renderSessionBanner() {
+    const fb = window.firebaseSync;
+    if (!fb) return '';
+    if (!this.user) return '';   // Sign-in is the prerequisite; sync header already nudges
+    if (!this.state.joinedSessionId) {
+      return `
+        <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:8px">
+          <div style="flex:1;font-size:0.72rem;color:var(--ink-light);line-height:1.3">
+            <strong style="color:var(--burgundy)">&#128256; Join a GM Session</strong><br>
+            Paste your GM's code to see live combat on this device.
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="app.joinSessionPrompt()">Join</button>
+        </div>`;
+    }
+    const rs = this.state.remoteSession;
+    if (!rs) {
+      // Subscribed but no data yet (or session doc doesn't exist)
+      return `
+        <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);border-radius:8px">
+          <div style="flex:1;font-size:0.72rem;color:var(--ink-light);line-height:1.3">
+            &#128196; Joined session <code style="font-size:0.65rem">${this.esc(this.state.joinedSessionId)}</code><br>
+            <span style="color:var(--burgundy)">Waiting for GM data…</span>
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="app.leaveSession()">Leave</button>
+        </div>`;
+    }
+    const combatActive = !!rs.activeCombat;
+    return `
+      <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--gold);border-radius:8px">
+        <div style="flex:1;min-width:0;font-size:0.72rem;line-height:1.3">
+          <strong style="color:var(--burgundy)">&#127922; ${this.esc(rs.campaignName || 'GM Session')}</strong>
+          <div style="font-size:0.65rem;color:var(--ink-light);margin-top:2px">
+            GM: ${this.esc(rs.gmDisplayName || '—')} &middot; Party Lvl ${rs.partyLevel || 1}
+            ${combatActive ? ' &middot; <span style="color:var(--burgundy);font-weight:bold">&#9876; Combat active</span>' : ' &middot; idle'}
+          </div>
+        </div>
+        ${combatActive ? `<button class="btn btn-primary btn-small" style="padding:5px 10px" onclick="app.openRemoteCombatViewer()">View</button>` : ''}
+        <button class="btn btn-secondary btn-small" style="padding:5px 8px;font-size:0.7rem" onclick="app.leaveSession()" title="Leave">&times;</button>
+      </div>`;
+  },
+
+  openRemoteCombatViewer() {
+    const rs = this.state.remoteSession;
+    if (!rs || !rs.activeCombat) { this.toast('No active combat'); return; }
+    this._remoteViewerMode = this._remoteViewerMode || 'list';
+    this._renderRemoteCombatViewer();
+  },
+
+  setRemoteViewerMode(mode) {
+    this._remoteViewerMode = mode;
+    this._renderRemoteCombatViewer();
+  },
+
+  _renderRemoteCombatViewer() {
+    const rs = this.state.remoteSession;
+    if (!rs || !rs.activeCombat) { this.closeModal(); return; }
+    const combat = rs.activeCombat;
+    const viewMode = this._remoteViewerMode || 'list';
+
+    const modeBtn = (id, icon, label) =>
+      `<button onclick="app.setRemoteViewerMode('${id}')"
+        style="flex:1;padding:5px;font-size:0.72rem;background:${viewMode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${viewMode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
+
+    let body = '';
+    if (viewMode === 'map') {
+      const cur = combat.participants?.[combat.turnIndex];
+      if (cur) {
+        body += `<div style="padding:6px 10px;background:var(--parchment);border:1px solid var(--gold);border-radius:5px;margin-bottom:8px;font-size:0.75rem">
+          <strong>Turn:</strong> ${this.esc(cur.name)}
+        </div>`;
+      }
+      body += this.renderCombatMap(combat, true);
+    } else {
+      body = this._renderRemoteParticipantList(combat);
+    }
+
+    this.showModal(`
+      <div class="modal-header">
+        <h2>&#9876; ${this.esc(combat.encounterName || 'Combat')}</h2>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:0.7rem;color:var(--ink-light);margin-bottom:8px">
+          Round ${combat.round} &middot; <span style="color:var(--burgundy);font-style:italic">Live (read-only)</span>
+        </div>
+        <div style="display:flex;gap:5px;margin-bottom:10px">
+          ${modeBtn('list', '&#128203;', 'List')}
+          ${modeBtn('map',  '&#128506;&#65039;', 'Map')}
+        </div>
+        ${body}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-block" onclick="app.closeModal()">Close</button>
+      </div>
+    `);
+  },
+
+  _renderRemoteParticipantList(combat) {
+    // Build a compact read-only participant list
+    const participantRows = (combat.participants || []).map((p, idx) => {
+      const isCurrent = idx === combat.turnIndex;
+      const kindIcon = { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#127917;', minion: '&#128049;' }[p.kind] || '';
+      const hpPct = p.maxHp > 0 ? Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100)) : 0;
+      const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
+      const dead = p.dead || (p.kind === 'legendary' ? p.phase === 'dead' : (!p.isMinion && p.hp <= 0));
+      let phaseBadge = '';
+      if (p.kind === 'legendary') {
+        if (p.phase === 'lastStand') phaseBadge = '<span style="background:var(--burgundy);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">LAST STAND</span>';
+        else if (p.bloodied) phaseBadge = '<span style="background:#b8621b;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">BLOODIED</span>';
+      }
+      const conds = Object.keys(p.conditions || {}).filter(k => p.conditions[k]);
+      const condsRow = conds.length ? `<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">${conds.map(c => `<span style="background:var(--burgundy);color:#fff;font-size:0.55rem;padding:1px 5px;border-radius:6px">${this.esc(c)}</span>`).join('')}</div>` : '';
+      const hpLine = p.isMinion
+        ? `<div style="font-size:0.7rem;color:${p.dead ? 'var(--burgundy)' : 'var(--ink-light)'}">${p.dead ? 'DEAD' : 'minion'}</div>`
+        : `<div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+             <div style="flex:1;height:5px;background:var(--parchment-edge);border-radius:3px;overflow:hidden">
+               <div style="width:${hpPct}%;height:100%;background:${hpColor}"></div>
+             </div>
+             <span style="font-size:0.7rem;white-space:nowrap">${p.hp}/${p.maxHp}</span>
+           </div>`;
+      return `
+        <div class="combat-participant${isCurrent ? ' current' : ''}${dead ? ' dead' : ''}" style="padding:8px 10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+            <strong style="font-size:0.85rem">${kindIcon} ${this.esc(p.name)}${phaseBadge}</strong>
+            ${isCurrent ? '<span style="background:var(--gold);color:var(--leather-dark);font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:bold">TURN</span>' : ''}
+          </div>
+          <div style="font-size:0.65rem;color:var(--ink-light);margin-top:2px">Init ${p.initiative}${p.level != null ? ` &middot; Lvl ${p.level}` : ''}${p.armor ? ' &middot; ' + this.esc(p.armor) : ''}</div>
+          ${hpLine}
+          ${condsRow}
+        </div>`;
+    }).join('');
+
+    return `<div style="display:flex;flex-direction:column;gap:5px">${participantRows}</div>`;
   },
 
   // Renders the Cloud Sync panel at the top of the Characters tab.
