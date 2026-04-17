@@ -2006,6 +2006,20 @@ const app = {
       </div>
       <div class="sheet-body view-padding-bottom">`;
 
+    // Adventuring Motivation — flavor text shown under the header.
+    // Always visible if set. In edit mode, shown as a textarea even if empty so the user can add/update it.
+    if (editMode) {
+      html += `<div class="section-title">&#127774; Adventuring Motivation</div>
+        <textarea class="notes-area" style="min-height:50px"
+          oninput="app.updateChar({motivation:this.value})"
+          placeholder="Why does your character adventure?">${this.esc(ch.motivation || '')}</textarea>`;
+    } else if (ch.motivation && ch.motivation.trim()) {
+      html += `<div style="margin:12px 0 8px 0;padding:10px 14px;border-left:3px solid var(--gold);background:rgba(201,168,76,0.08);border-radius:0 6px 6px 0">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--burgundy);margin-bottom:4px">&#127774; Adventuring Motivation</div>
+        <div style="font-style:italic;color:var(--ink);font-size:0.85rem;line-height:1.4">${this.esc(ch.motivation)}</div>
+      </div>`;
+    }
+
     // Stats
     html += '<div class="section-title">&#9876; Attributes</div>';
     html += '<div class="stats-grid">';
