@@ -4,7 +4,7 @@
 //   - Simultaneously fetches fresh from network, updates cache for next time
 //   - Next visit always sees the latest version (or a version <= 1 visit behind)
 // Bump CACHE_NAME to force all clients to wipe old caches immediately.
-const CACHE_NAME = 'nimble-companion-v26';
+const CACHE_NAME = 'nimble-companion-v27';
 const ASSETS = [
   './',
   './index.html',

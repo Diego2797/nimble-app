@@ -10,7 +10,7 @@ A Progressive Web App (PWA) companion for the **Nimble TTRPG** system. It runs e
 - **Update workflow**: `git add <files> && git commit -m "msg" && git push` — Pages rebuilds automatically in ~30-60s
 - **CLI tool**: `gh` (GitHub CLI, installed via Homebrew) is authenticated with Diego's account and should be used for any repo/Pages management (`gh api /repos/Diego2797/nimble-app/pages` to check build status)
 - **Firebase project**: `nimble-companion` (owned by `difemoce27@gmail.com`). Firestore enabled (Standard edition), Google Auth enabled. `diego2797.github.io` is in the authorized domains list. The web apiKey is embedded in index.html (it's public — security comes from the rules).
-- **Firestore security rules** (Fase 3.5 update — Diego must paste into Firebase console → Firestore → Rules tab):
+- **Firestore security rules** (Session 5 update — Diego must paste into Firebase console → Firestore → Rules tab):
   ```
   rules_version = '2';
   service cloud.firestore {
@@ -24,6 +24,12 @@ A Progressive Web App (PWA) companion for the **Nimble TTRPG** system. It runs e
         allow read: if request.auth != null;
         allow create: if request.auth != null && request.resource.data.gmUid == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.gmUid == request.auth.uid;
+      }
+      // Player-move subcollection (Session 5): each signed-in user writes ONLY their own doc.
+      // GM subscribes to the collection to apply moves to their activeCombat.map.
+      match /sessions/{sessionId}/playerMoves/{userId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && userId == request.auth.uid;
       }
     }
   }

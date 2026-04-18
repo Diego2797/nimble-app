@@ -27,7 +27,7 @@
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
     const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } =
       await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
-    const { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp } =
+    const { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp, collection } =
       await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js");
 
     const firebaseConfig = {
@@ -47,7 +47,7 @@
     window.firebaseSync = {
       auth, db, googleProvider,
       signInWithPopup, signOut, onAuthStateChanged,
-      doc, setDoc, getDoc, onSnapshot, serverTimestamp
+      doc, setDoc, getDoc, onSnapshot, serverTimestamp, collection
     };
     window.dispatchEvent(new Event('firebase-ready'));
   } catch (err) {
@@ -5353,6 +5353,9 @@ const app = {
     const m = document.getElementById('modalOverlay');
     if (m) m.remove();
     document.body.style.overflow = '';
+    // Clear any flags that track an open modal so live re-renders don't reopen it
+    this._remoteViewerOpen = false;
+    this._remotePlayerSelectedPid = null;
   },
 
   addAbilityModal() {
@@ -7577,6 +7580,7 @@ const app = {
       if (e.map.width) initialMap.width = e.map.width;
       if (e.map.height) initialMap.height = e.map.height;
       if (e.map.gridType) initialMap.gridType = e.map.gridType;
+      if (e.map.lightRadius !== undefined) initialMap.lightRadius = e.map.lightRadius;
     }
 
     this.state.activeCombat = {
@@ -7601,6 +7605,8 @@ const app = {
     this.state.editingEncounterId = null;
     this._encounterDraft = null;
     this.save();
+    // GM subscribes to player-initiated moves so the map updates live when a player taps
+    this.subscribeToPlayerMoves();
     this.render(true);
     this.toast('Combat started');
   },
@@ -7901,6 +7907,7 @@ const app = {
       width: mp.map.width,
       height: mp.map.height,
       gridType: mp.map.gridType || 'square',
+      lightRadius: mp.map.lightRadius || 0,
       tokens: { ...mp.map.tokens },
       fog: { ...mp.map.fog },
       walls: { ...mp.map.walls }
@@ -8034,6 +8041,55 @@ const app = {
     combat.map.tokens = combat.map.tokens || {};
     combat.map.tokens[this._mapSelectedTokenId] = { x, y };
     this._mapSelectedTokenId = null;
+    // Auto-reveal fog around heroes based on the GM-set illumination radius
+    this._revealFogAroundHeroes(combat);
+    this.save();
+    this.render();
+  },
+
+  // Grid distance: Chebyshev for square, hex-axial for hex.
+  // Returns the minimum number of cells a creature would traverse to reach (x2,y2) from (x1,y1).
+  _gridDistance(x1, y1, x2, y2, isHex) {
+    if (!isHex) return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
+    // Offset (odd-r, pointy-top) → axial conversion
+    const toAxial = (col, row) => ({ q: col - ((row - (row & 1)) >> 1), r: row });
+    const a = toAxial(x1, y1), b = toAxial(x2, y2);
+    return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
+  },
+
+  // Clears fog within `map.lightRadius` spaces of every hero (PC + ally NPC) token.
+  // Called after any token move (GM or player). No-op if lightRadius <= 0 (fog stays manual).
+  _revealFogAroundHeroes(combat) {
+    if (!combat?.map) return;
+    const R = combat.map.lightRadius || 0;
+    if (R <= 0) return;
+    const isHex = combat.map.gridType === 'hex';
+    const w = combat.map.width || 20, h = combat.map.height || 20;
+    const fog = combat.map.fog || {};
+
+    for (const p of (combat.participants || [])) {
+      if (!this._isHeroSide(p)) continue;
+      if (p.dead || p.hp <= 0) continue;
+      const tok = combat.map.tokens?.[p.id];
+      if (!tok) continue;
+      // Bounding box for efficiency
+      for (let y = Math.max(0, tok.y - R); y <= Math.min(h - 1, tok.y + R); y++) {
+        for (let x = Math.max(0, tok.x - R); x <= Math.min(w - 1, tok.x + R); x++) {
+          if (this._gridDistance(tok.x, tok.y, x, y, isHex) <= R) {
+            delete fog[x + ',' + y];
+          }
+        }
+      }
+    }
+    combat.map.fog = fog;
+  },
+
+  setLightRadius(val) {
+    const combat = this.state.activeCombat;
+    if (!combat || !combat.map) return;
+    const n = parseInt(val, 10);
+    combat.map.lightRadius = isNaN(n) ? 0 : Math.max(0, Math.min(20, n));
+    this._revealFogAroundHeroes(combat);
     this.save();
     this.render();
   },
@@ -8164,10 +8220,14 @@ const app = {
     const walls = map.walls || {};
 
     const paintMode = readOnly ? 'select' : (prep ? (this._mapPrep?.paintMode || 'select') : (this._mapPaintMode || 'select'));
-    const selectedId = readOnly ? null : (prep ? this._mapPrep?.selectedTokenId : this._mapSelectedTokenId);
+    // In readOnly mode, players can move their own PC token.
+    const playerOwnTokenId = readOnly ? this._getPlayerOwnTokenId(combat) : null;
+    const selectedId = prep
+      ? (this._mapPrep?.selectedTokenId || null)
+      : (readOnly ? (this._remotePlayerSelectedPid || null) : (this._mapSelectedTokenId || null));
     const selectedP = selectedId ? (combat.participants || []).find(p => p.id === selectedId) : null;
-    const cellHandler = prep ? 'app.mapPrepCellClick' : 'app.mapCellClick';
-    const tokenHandler = prep ? 'app.mapPrepSelectToken' : 'app.mapSelectToken';
+    const cellHandler = prep ? 'app.mapPrepCellClick' : (readOnly ? 'app.playerRemoteCellClick' : 'app.mapCellClick');
+    const tokenHandler = prep ? 'app.mapPrepSelectToken' : (readOnly ? 'app.playerRemoteSelectToken' : 'app.mapSelectToken');
 
     // --- Walls layer (visible to everyone) ---
     let wallsHtml = '';
@@ -8176,14 +8236,14 @@ const app = {
       wallsHtml += `<path d="${cellPath(x, y)}" fill="#3d2b1f" stroke="#5c3d2e" stroke-width="0.5" style="pointer-events:none"/>`;
     }
 
-    // --- Grid cells (clickable when paint mode active OR token selected) ---
+    // --- Grid cells (clickable when paint mode active OR token selected OR player has own token selected) ---
     let cellsHtml = '';
-    const cellsClickable = !readOnly && (
+    const cellsClickable = (!readOnly && (
       paintMode === 'fog' || paintMode === 'wall' ||
       (paintMode === 'select' && selectedP)
-    );
+    )) || (readOnly && selectedP);
     if (cellsClickable) {
-      const cursor = (paintMode === 'fog' || paintMode === 'wall') ? 'pointer' : 'crosshair';
+      const cursor = (!readOnly && (paintMode === 'fog' || paintMode === 'wall')) ? 'pointer' : 'crosshair';
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
           cellsHtml += `<path d="${cellPath(x, y)}" fill="transparent" style="cursor:${cursor}" onclick="${cellHandler}(${x}, ${y})"/>`;
@@ -8223,15 +8283,39 @@ const app = {
         ringColor = '#b8621b';
       } else ringColor = '#3d2b1f';
 
-      // GM can tap tokens only in Select paint mode. In Fog/Wall modes, cell-rects intercept all clicks.
-      const click = (!readOnly && paintMode === 'select') ? ` style="cursor:pointer" onclick="event.stopPropagation();${tokenHandler}('${p.id}')"` : ' style="pointer-events:none"';
+      // Click routing:
+      //   - GM select mode: any token clickable
+      //   - GM fog/wall mode: tokens non-interactive, cells intercept
+      //   - Player (readOnly): ONLY the player's own PC token is clickable (so they can move themselves)
+      const canClickToken = (!readOnly && paintMode === 'select') || (readOnly && p.id === playerOwnTokenId);
+      const click = canClickToken ? ` style="cursor:pointer" onclick="event.stopPropagation();${tokenHandler}('${p.id}')"` : ' style="pointer-events:none"';
+
+      // Use the character image if available (PC or ally NPC linked to a local character).
+      // Falls back to letter. Image clipped to a circle via inline SVG <clipPath>.
+      let charImg = null;
+      if (p.kind === 'pc') {
+        const ch = (this.state.characters || []).find(c => c.id === p.sourceId);
+        charImg = ch?.image || null;
+      }
+
+      let tokenInner;
+      if (charImg) {
+        const clipId = 'tokclip_' + p.id;
+        tokenInner = `
+          <defs><clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
+          <image href="${charImg}" x="${cx - r}" y="${cy - r}" width="${r * 2}" height="${r * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ringColor}" stroke-width="1.5"/>`;
+      } else {
+        tokenInner = `
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="${ringColor}" stroke-width="1.5"/>
+          <text x="${cx}" y="${cy + 3}" text-anchor="middle" font-size="8" fill="white" font-weight="bold" style="pointer-events:none;font-family:Georgia,serif">${this.esc(label)}</text>`;
+      }
 
       tokensHtml += `
         <g${click}${dead ? ' opacity="0.35"' : ''}>
           ${isTurn ? `<circle cx="${cx}" cy="${cy}" r="${r + 3}" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-dasharray="2 2"/>` : ''}
           ${isSelected ? `<circle cx="${cx}" cy="${cy}" r="${r + 2}" fill="none" stroke="#fff" stroke-width="2"/>` : ''}
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="${ringColor}" stroke-width="1.5"/>
-          <text x="${cx}" y="${cy + 3}" text-anchor="middle" font-size="8" fill="white" font-weight="bold" style="pointer-events:none;font-family:Georgia,serif">${this.esc(label)}</text>
+          ${tokenInner}
         </g>`;
     }
 
@@ -8250,12 +8334,22 @@ const app = {
         `<button onclick="app.setMapPaintMode('${id}')" style="flex:1;padding:5px 6px;font-size:0.7rem;background:${paintMode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${paintMode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
       const fogCount = Object.keys(fog).length;
       const wallCount = Object.keys(walls).length;
+      const lightR = (map.lightRadius || 0);
+      const lightLabel = lightR === 0
+        ? 'Off'
+        : (lightR <= 2 ? 'Dark' : lightR <= 5 ? 'Dim' : lightR <= 10 ? 'Bright' : 'Daylight');
       toolbarHtml = `
         <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center">
           ${toolBtn('select', '&#128273;', 'Select')}
           ${toolBtn('fog',    '&#127787;&#65039;', 'Fog')}
           ${toolBtn('wall',   '&#129521;', 'Wall')}
           <button onclick="app.mapToggleGridType()" class="btn btn-secondary btn-small" style="font-size:0.65rem;padding:4px 6px" title="Toggle grid type">${isHex ? '&#11042;' : '&#9633;'}</button>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;padding:4px 6px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);border-radius:4px">
+          <span style="font-size:0.7rem">&#128161; Illumination:</span>
+          <button onclick="app.setLightRadius(${lightR - 1})" class="btn btn-secondary btn-small" style="font-size:0.7rem;padding:2px 8px;min-width:26px" title="Decrease radius">&minus;</button>
+          <span style="font-size:0.75rem;font-weight:bold;color:var(--gold);min-width:60px;text-align:center">${lightR} sp &middot; ${lightLabel}</span>
+          <button onclick="app.setLightRadius(${lightR + 1})" class="btn btn-secondary btn-small" style="font-size:0.7rem;padding:2px 8px;min-width:26px" title="Increase radius">&plus;</button>
         </div>
         ${(paintMode === 'fog' || paintMode === 'wall')
           ? `<div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">
@@ -8815,6 +8909,7 @@ const app = {
     if (!confirm('End this combat? Turn tracking will be cleared. Character HP changes stay.')) return;
     this.state.activeCombat = null;
     this._combatExpanded = {};
+    this.unsubscribeFromPlayerMoves();
     this.save();
     this.toast('Combat ended');
     this.render();
@@ -9846,11 +9941,14 @@ const app = {
         this.subscribeToCloud();
         // Fase 3.5: re-attach the remote session listener if the player had joined one
         if (this.state.joinedSessionId) this.subscribeToRemoteSession();
+        // Session 5: GM side — if a combat is already active on reload/reopen, re-subscribe to player moves
+        if (this.state.activeCombat) this.subscribeToPlayerMoves();
       } else {
         this.user = null;
         this.syncStatus = 'idle';
         if (this._cloudUnsub) { try { this._cloudUnsub(); } catch (_) {} this._cloudUnsub = null; }
         if (this._sessionUnsub) { try { this._sessionUnsub(); } catch (_) {} this._sessionUnsub = null; }
+        this.unsubscribeFromPlayerMoves();
         this.state.remoteSession = null;
       }
       this.render();
@@ -10086,6 +10184,8 @@ const app = {
     this._sessionUnsub = fb.onSnapshot(ref, (snap) => {
       this.state.remoteSession = snap.exists() ? snap.data() : null;
       this.render();
+      // Auto-refresh the combat viewer modal if open so players see GM updates live
+      if (this._remoteViewerOpen) this._renderRemoteCombatViewer();
     }, (err) => {
       console.warn('Session subscribe failed:', err);
       this.state.remoteSession = null;
@@ -10140,7 +10240,103 @@ const app = {
     const rs = this.state.remoteSession;
     if (!rs || !rs.activeCombat) { this.toast('No active combat'); return; }
     this._remoteViewerMode = this._remoteViewerMode || 'list';
+    this._remoteViewerOpen = true;
     this._renderRemoteCombatViewer();
+  },
+
+  // Finds the participant ID in the remote combat that corresponds to this device's
+  // current player character. Used to let the player move their own token on the map.
+  _getPlayerOwnTokenId(combat) {
+    const ch = this._getSessionPlayerCharacter(combat);
+    if (!ch) return null;
+    const p = (combat?.participants || []).find(pp => pp.kind === 'pc' && pp.sourceId === ch.id);
+    return p?.id || null;
+  },
+
+  playerRemoteSelectToken(pid) {
+    const combat = this.state.remoteSession?.activeCombat;
+    if (!combat) return;
+    const ownPid = this._getPlayerOwnTokenId(combat);
+    if (pid !== ownPid) return;  // can only select/move own token
+    this._remotePlayerSelectedPid = this._remotePlayerSelectedPid === pid ? null : pid;
+    this._renderRemoteCombatViewer();
+  },
+
+  playerRemoteCellClick(x, y) {
+    if (!this._remotePlayerSelectedPid) return;
+    const combat = this.state.remoteSession?.activeCombat;
+    if (!combat) return;
+    const ownPid = this._getPlayerOwnTokenId(combat);
+    if (this._remotePlayerSelectedPid !== ownPid) return;
+    const ch = this._getSessionPlayerCharacter(combat);
+    if (!ch) return;
+    // Optimistic local update so the mover sees their position instantly.
+    // The GM's subscription listener will then echo it back authoritatively.
+    combat.map = combat.map || {};
+    combat.map.tokens = combat.map.tokens || {};
+    combat.map.tokens[ownPid] = { x, y };
+    this._remotePlayerSelectedPid = null;
+    this.writePlayerMove(ch.id, x, y);
+    this._renderRemoteCombatViewer();
+  },
+
+  async writePlayerMove(charId, x, y) {
+    const fb = window.firebaseSync;
+    const uid = this.user?.uid;
+    const sid = this.state.joinedSessionId;
+    if (!fb || !uid || !sid) return;
+    try {
+      await fb.setDoc(
+        fb.doc(fb.db, 'sessions', sid, 'playerMoves', uid),
+        { charId, x, y, at: fb.serverTimestamp() }
+      );
+    } catch (e) {
+      console.warn('playerMove write failed:', e);
+      this.toast('Move sync failed (rules?)');
+    }
+  },
+
+  // GM-side: subscribe to sessions/{sid}/playerMoves to pick up player-initiated moves.
+  subscribeToPlayerMoves() {
+    const fb = window.firebaseSync;
+    const combat = this.state.activeCombat;
+    if (!fb || !fb.collection || !combat || !this.user) return;
+    if (this._playerMovesUnsub) return;
+    const sid = combat.campaignId;
+    if (!sid) return;
+    const movesCol = fb.collection(fb.db, 'sessions', sid, 'playerMoves');
+    this._playerMovesUnsub = fb.onSnapshot(movesCol, (snap) => {
+      let changed = false;
+      snap.docChanges().forEach(change => {
+        if (change.type === 'removed') return;
+        const data = change.doc.data();
+        if (!data || data.charId == null || data.x == null || data.y == null) return;
+        const c = this.state.activeCombat;
+        if (!c) return;
+        const p = (c.participants || []).find(pp => pp.kind === 'pc' && pp.sourceId === data.charId);
+        if (!p) return;
+        c.map = c.map || {};
+        c.map.tokens = c.map.tokens || {};
+        const prev = c.map.tokens[p.id];
+        if (prev && prev.x === data.x && prev.y === data.y) return;
+        c.map.tokens[p.id] = { x: data.x, y: data.y };
+        changed = true;
+      });
+      if (changed) {
+        this._revealFogAroundHeroes(this.state.activeCombat);
+        this.save();
+        this.render();
+      }
+    }, (err) => {
+      console.warn('playerMoves subscribe failed:', err);
+    });
+  },
+
+  unsubscribeFromPlayerMoves() {
+    if (this._playerMovesUnsub) {
+      try { this._playerMovesUnsub(); } catch (_) {}
+      this._playerMovesUnsub = null;
+    }
   },
 
   setRemoteViewerMode(mode) {
@@ -10174,6 +10370,15 @@ const app = {
         body += `<div style="padding:6px 10px;background:var(--parchment);border:1px solid var(--gold);border-radius:5px;margin-bottom:8px;font-size:0.75rem">
           <strong>Turn:</strong> ${this.esc(turnLabel)}
         </div>`;
+      }
+      // Mini hint if player can move their token
+      const ownPid = this._getPlayerOwnTokenId(combat);
+      if (ownPid) {
+        const selected = this._remotePlayerSelectedPid === ownPid;
+        const msg = selected
+          ? 'Selected your token &mdash; tap a cell to move, or tap the token again to cancel.'
+          : 'Tap your token to move yourself on the map.';
+        body += `<div style="padding:6px 10px;background:${selected ? 'var(--gold)' : 'var(--parchment-dark)'};color:${selected ? 'var(--leather-dark)' : 'var(--ink-light)'};border-radius:5px;margin-bottom:8px;font-size:0.7rem;text-align:center">${msg}</div>`;
       }
       body += this.renderCombatMap(combat, true);
     } else if (viewMode === 'myactions') {
