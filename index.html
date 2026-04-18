@@ -1947,6 +1947,13 @@ const app = {
       console.warn('Active combat load failed:', e);
       this.state.activeCombat = null;
     }
+    // Migrate legacy combats (pre-initiative-rework) to the new turnOrder model
+    if (this.state.activeCombat && !this.state.activeCombat.phase) {
+      const combat = this.state.activeCombat;
+      combat.phase = 'active';
+      combat.turnOrder = this._buildTurnOrder(combat.participants || []);
+      combat.turnIndex = 0;
+    }
     // Fase 3.5: restore player-side session subscription id (the live snapshot comes from Firestore once signed in)
     try {
       this.state.joinedSessionId = localStorage.getItem(JOINED_SESSION_KEY) || null;
@@ -2287,6 +2294,17 @@ const app = {
     if (rawSaves.disadvantaged) saves[rawSaves.disadvantaged] = 'disadvantage';
     // Also support already-normalized format
     ['STR','DEX','INT','WIL'].forEach(s => { if (rawSaves[s]) saves[s] = rawSaves[s]; });
+    // Ancestry statMods that change save indicators on the sheet:
+    //   - disadvantagedSaveNeutral (Celestial): remove the disadvantage entirely
+    //   - neutralSaveAdvantaged (Tiefling): one neutral save (player-chosen, ch.neutralSaveAdv) becomes advantaged
+    const ancestryForSaves = (data.ancestries || []).find(a => a.name === ch.ancestry);
+    const aMods = ancestryForSaves?.statMods || {};
+    if (aMods.disadvantagedSaveNeutral) {
+      ['STR','DEX','INT','WIL'].forEach(s => { if (saves[s] === 'disadvantage') delete saves[s]; });
+    }
+    if (aMods.neutralSaveAdvantaged && ch.neutralSaveAdv && saves[ch.neutralSaveAdv] !== 'disadvantage') {
+      saves[ch.neutralSaveAdv] = 'advantage';
+    }
     const maxSlots = 10 + (stats.STR || 0);
     const editMode = this.state.editMode;
 
@@ -2347,6 +2365,22 @@ const app = {
         </div>`;
     });
     html += '</div>';
+
+    // Tiefling/Infernal Legacy: player chooses which neutral save becomes advantaged.
+    // Shown as a prompt button when unset, or as an info strip + "Change" button once picked.
+    if (aMods.neutralSaveAdvantaged) {
+      if (!ch.neutralSaveAdv) {
+        html += `<div style="margin-top:8px;padding:8px 12px;background:var(--gold);color:var(--leather-dark);border-radius:6px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;font-size:0.78rem;font-weight:bold">&#9888; Pick your boosted save (${this.esc(ch.ancestry)})</div>
+          <button class="btn btn-small" style="background:var(--leather-dark);color:var(--parchment);font-weight:bold" onclick="app.neutralSavePickerModal()">Pick Save</button>
+        </div>`;
+      } else {
+        html += `<div style="margin-top:6px;padding:6px 10px;background:var(--parchment);border:1px dashed var(--gold);border-radius:6px;display:flex;align-items:center;gap:8px;font-size:0.72rem;color:var(--ink-light)">
+          <span style="flex:1">${this.esc(ch.ancestry)}: <strong style="color:var(--gold)">${this.esc(ch.neutralSaveAdv)}</strong> save is advantaged</span>
+          <button class="btn btn-secondary btn-small" style="font-size:0.68rem;padding:3px 8px" onclick="app.neutralSavePickerModal()">Change</button>
+        </div>`;
+      }
+    }
 
     // HP, Temp HP, Armor, Initiative
     html += '<div class="section-title">&#10084; Vitals</div>';
@@ -2540,6 +2574,16 @@ const app = {
     if (retrainFeat && abilities.find(a => a.name === retrainFeat.name)) {
       const icon = retrainFeat.icon || '⟳';
       html += `<button class="btn btn-small" style="background:var(--leather-dark);color:var(--parchment)" onclick="app.retrainModal()">${icon} ${this.esc(retrainFeat.name)}</button>`;
+    }
+    // Invoker of Chaos / Control: per-character spell picks are retrainable any time (e.g. during Study!).
+    if (this.hasInvokerPicks(ch)) {
+      const featureName = this._invokerFeatureName(ch);
+      const hasPicks = ch.invokerPicks && ch.invokerPicks.cantrip && ch.invokerPicks.tiered;
+      const label = hasPicks ? `Change ${featureName} Picks` : `Pick ${featureName} Spells`;
+      const btnStyle = hasPicks
+        ? 'background:var(--leather-dark);color:var(--parchment)'
+        : 'background:var(--gold);color:var(--leather-dark);font-weight:bold';
+      html += `<button class="btn btn-small" style="${btnStyle}" onclick="app.invokerPicksModal()">&#10024; ${this.esc(label)}</button>`;
     }
     html += `</div>`;
 
@@ -2853,6 +2897,7 @@ const app = {
       gold: (d) => this.adjustGold(d),
       combatHp: (d) => this.adjustHP(d),
       combatTempHp: (d) => this.adjustTempHP(d),
+      combatMana: (d) => this.adjustMana(d),
     };
     if (handlers[field]) handlers[field](delta);
   },
@@ -2912,7 +2957,10 @@ const app = {
     'Mage': {
       baseSchools: ['fire', 'ice', 'lightning'],
       tierLevels: {0:1, 1:2, 2:4, 3:6, 4:8, 5:10, 6:12, 7:14, 8:16, 9:18},
-      subclassSchools: { 'Invoker of Chaos': ['wind'], 'Invoker of Control': ['necrotic'] }
+      subclassSchools: {}
+      // NOTE: Invoker of Chaos (Tempest Mage L7) and Invoker of Control (At Any Cost L7) grant
+      // ONLY 1 cantrip + 1 tiered spell from Wind / Necrotic respectively, not the whole school.
+      // Handled via ch.invokerPicks — see _invokerPickSchool / autoLoadSpells / invokerPicksModal.
     },
     'Oathsworn': {
       baseSchools: ['radiant'],
@@ -3054,11 +3102,14 @@ const app = {
     const stats = ch.stats || {};
     const dex = stats.DEX || 0;
     const str = stats.STR || 0;
+    const intStat = stats.INT || 0;
     const inv = ch.inventory || [];
     const equippedArmor = inv.find(it => it.equipped && it.category === 'armor');
     const equippedShield = inv.find(it => it.equipped && it.category === 'shield');
     const zephyrIronDef = ch.className === 'Zephyr' && (ch.abilities || []).some(a => a.name === 'Iron Defense');
-    const hasAutoCalc = !!equippedArmor || !!equippedShield || zephyrIronDef;
+    // Misdirection (Cheat): "Gain INT armor." Stacks on top of equipped armor / shield / modifiers.
+    const misdirection = ch.className === 'The Cheat' && (ch.abilities || []).some(a => a.name === 'Misdirection');
+    const hasAutoCalc = !!equippedArmor || !!equippedShield || zephyrIronDef || misdirection;
 
     // Legacy fallback: if no categorized gear & no class feature, use the manual ch.armor
     if (!hasAutoCalc) {
@@ -3105,6 +3156,12 @@ const app = {
     if (equippedShield && equippedShield.shieldArmor) {
       total += equippedShield.shieldArmor;
       breakdown.push(`${equippedShield.name}: +${equippedShield.shieldArmor}`);
+    }
+
+    // Cheat Misdirection: always-on INT bonus (stacks with any armor setup).
+    if (misdirection) {
+      total += intStat;
+      breakdown.push(`Misdirection: INT ${intStat >= 0 ? '+' : ''}${intStat}`);
     }
 
     // Manual armor modifier (e.g., Fearless -1 background, or manual edits via +/-)
@@ -3291,7 +3348,182 @@ const app = {
       });
     }
 
+    // Invoker of Chaos (Tempest Mage L7) / Invoker of Control (At Any Cost L7):
+    // Learn exactly 1 cantrip + 1 tiered spell from Wind / Necrotic (NOT the whole school).
+    // Stored in ch.invokerPicks = { cantrip, tiered } — the player picks via invokerPicksModal.
+    const invokerSchool = this._invokerPickSchool(ch);
+    if (invokerSchool && ch.invokerPicks) {
+      const schoolData = spellData[invokerSchool];
+      const addByName = (name, tierHint) => {
+        if (!name) return;
+        if (spells.find(s => s.name === name)) return;
+        const pool = [
+          ...(schoolData?.cantrips || []).map(s => ({ ...s, tier: 0 })),
+          ...(schoolData?.spells || [])
+        ];
+        const found = pool.find(s => s.name === name);
+        if (!found) return;
+        spells.push({
+          name: found.name, tier: found.tier ?? tierHint ?? 0, school: invokerSchool,
+          actions: found.actions, range: found.range || found.reach,
+          damage: found.damage || 'None', description: found.description || '',
+          invokerPick: true
+        });
+      };
+      addByName(ch.invokerPicks.cantrip, 0);
+      addByName(ch.invokerPicks.tiered);
+    }
+
     return spells;
+  },
+
+  // Returns the school granted by the character's Invoker subclass (L7 picks), or null.
+  _invokerPickSchool(ch) {
+    if (!ch || ch.className !== 'Mage') return null;
+    if (ch.subclass === 'Invoker of Chaos') return 'wind';
+    if (ch.subclass === 'Invoker of Control') return 'necrotic';
+    return null;
+  },
+
+  // Returns the feature name tied to the Invoker pick for the character's subclass.
+  _invokerFeatureName(ch) {
+    if (ch?.subclass === 'Invoker of Chaos') return 'Tempest Mage';
+    if (ch?.subclass === 'Invoker of Control') return 'At Any Cost';
+    return null;
+  },
+
+  // True if the character has access to Invoker picks (Mage, correct subclass, L7+).
+  hasInvokerPicks(ch) {
+    if (!ch) return false;
+    const school = this._invokerPickSchool(ch);
+    if (!school) return false;
+    const featureName = this._invokerFeatureName(ch);
+    return (ch.level || 1) >= 7 && (ch.abilities || []).some(a => a.name === featureName);
+  },
+
+  // Opens the picker for At Any Cost / Tempest Mage.
+  invokerPicksModal() {
+    const ch = this.getChar();
+    if (!ch) return;
+    const school = this._invokerPickSchool(ch);
+    if (!school) { this.toast('No Invoker picks available'); return; }
+    const featureName = this._invokerFeatureName(ch);
+
+    const data = this.getData();
+    const schoolData = data.spells?.[school] || {};
+    const cantrips = schoolData.cantrips || [];
+    const maxTier = this.getMaxSpellTier(ch);
+    const tieredSpells = (schoolData.spells || []).filter(sp => sp.tier <= maxTier);
+
+    const current = ch.invokerPicks || { cantrip: null, tiered: null };
+    const schoolLabel = school.charAt(0).toUpperCase() + school.slice(1);
+
+    const cantripOptions = cantrips.map(sp =>
+      `<option value="${this.esc(sp.name)}" ${current.cantrip === sp.name ? 'selected' : ''}>${this.esc(sp.name)} &mdash; ${this.esc(sp.damage || sp.description?.slice(0, 40) || '')}</option>`
+    ).join('');
+    const tieredOptions = tieredSpells.map(sp =>
+      `<option value="${this.esc(sp.name)}" ${current.tiered === sp.name ? 'selected' : ''}>T${sp.tier} &middot; ${this.esc(sp.name)} &mdash; ${this.esc(sp.damage || sp.description?.slice(0, 40) || '')}</option>`
+    ).join('');
+
+    this.showModal(`
+      <div class="modal-header"><h2>&#10024; ${this.esc(featureName)}</h2></div>
+      <div class="modal-body">
+        <p style="font-size:0.78rem;color:var(--ink);margin-bottom:10px">
+          ${this.esc(featureName)} grants <strong>1 cantrip + 1 tiered spell</strong> from the ${this.esc(schoolLabel)} school.
+          You can change these picks anytime (e.g., during Study!).
+        </p>
+        <label style="display:block;font-size:0.72rem;font-weight:bold;color:var(--burgundy);margin-bottom:4px">${this.esc(schoolLabel)} Cantrip</label>
+        <select id="invokerCantrip" style="width:100%;padding:8px;margin-bottom:12px;border:1px solid var(--parchment-edge);border-radius:4px;background:var(--parchment);color:var(--ink);font-family:inherit;font-size:0.85rem">
+          <option value="">-- choose a cantrip --</option>
+          ${cantripOptions}
+        </select>
+        <label style="display:block;font-size:0.72rem;font-weight:bold;color:var(--burgundy);margin-bottom:4px">${this.esc(schoolLabel)} Tiered Spell (up to Tier ${maxTier})</label>
+        <select id="invokerTiered" style="width:100%;padding:8px;border:1px solid var(--parchment-edge);border-radius:4px;background:var(--parchment);color:var(--ink);font-family:inherit;font-size:0.85rem">
+          <option value="">-- choose a tiered spell --</option>
+          ${tieredOptions}
+        </select>
+        ${current.cantrip || current.tiered ? `<p style="font-size:0.7rem;color:var(--ink-light);margin-top:10px;font-style:italic">Changing picks will swap your ${this.esc(schoolLabel)} spells accordingly.</p>` : ''}
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="app.saveInvokerPicks()">Save</button>
+      </div>
+    `);
+  },
+
+  saveInvokerPicks() {
+    const ch = this.getChar();
+    if (!ch) return;
+    const cantrip = document.getElementById('invokerCantrip')?.value || '';
+    const tiered = document.getElementById('invokerTiered')?.value || '';
+    if (!cantrip || !tiered) { this.toast('Pick both a cantrip and a tiered spell'); return; }
+
+    const school = this._invokerPickSchool(ch);
+    // Remove any previously-picked invoker spells (tagged invokerPick) or old school-granted spells
+    // that are no longer the current pick. Be conservative: only remove invokerPick-tagged ones.
+    const oldPicks = ch.invokerPicks || {};
+    const stripNames = [oldPicks.cantrip, oldPicks.tiered].filter(Boolean);
+    let updatedSpells = (ch.spells || []).filter(sp =>
+      !(sp.invokerPick && stripNames.includes(sp.name))
+    );
+
+    // Set new picks first, then re-run autoLoadSpells which will add the new ones
+    ch.invokerPicks = { cantrip, tiered };
+    ch.spells = updatedSpells;
+    ch.spells = this.autoLoadSpells(ch);
+
+    this.updateChar({ invokerPicks: ch.invokerPicks, spells: ch.spells });
+    this.closeModal();
+    this.toast(`${school.charAt(0).toUpperCase() + school.slice(1)} picks updated`);
+    this.render();
+  },
+
+  // Tiefling/Infernal "Flameborn": one of the neutral saves becomes advantaged (player's choice).
+  // Neutral saves = stats that aren't the class's advantaged or disadvantaged save.
+  neutralSavePickerModal() {
+    const ch = this.getChar();
+    if (!ch) return;
+    const data = this.getData();
+    const classData = (data.classes || []).find(c => c.name === ch.className);
+    const raw = ch.saves || classData?.saves || {};
+    const advStat = raw.advantaged;
+    const disStat = raw.disadvantaged;
+    const neutrals = ['STR','DEX','INT','WIL'].filter(s => s !== advStat && s !== disStat);
+
+    const current = ch.neutralSaveAdv;
+    const rows = neutrals.map(s => `
+      <label style="display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:6px;background:var(--parchment);border:1px solid ${current === s ? 'var(--gold)' : 'var(--parchment-edge)'};border-radius:6px;cursor:pointer">
+        <input type="radio" name="neutralSave" value="${s}" ${current === s ? 'checked' : ''} style="transform:scale(1.2)">
+        <div style="flex:1">
+          <div style="font-weight:bold;font-size:0.88rem">${s}</div>
+          <div style="font-size:0.65rem;color:var(--ink-light)">Becomes advantaged</div>
+        </div>
+      </label>`).join('');
+
+    this.showModal(`
+      <div class="modal-header"><h2>&#128293; Infernal Legacy</h2></div>
+      <div class="modal-body">
+        <p style="font-size:0.78rem;color:var(--ink);margin-bottom:10px">
+          Your ancestry lets you pick one of your neutral saves to become <strong>advantaged</strong>. Your class save (advantaged/disadvantaged) is unchanged.
+        </p>
+        ${rows}
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="app.saveNeutralSaveAdv()">Save</button>
+      </div>
+    `);
+  },
+
+  saveNeutralSaveAdv() {
+    const ch = this.getChar();
+    if (!ch) return;
+    const picked = document.querySelector('input[name="neutralSave"]:checked')?.value;
+    if (!picked) { this.toast('Pick one stat'); return; }
+    this.updateChar({ neutralSaveAdv: picked });
+    this.closeModal();
+    this.toast(`${picked} save is now advantaged`);
+    this.render();
   },
 
   // --- Level Up System ---
@@ -5489,10 +5721,6 @@ const app = {
           <div style="font-size:0.6rem;color:var(--ink-light)">Speed</div>
           <div style="font-size:1rem;font-weight:bold;color:var(--gold)">${ch.speed ?? 6}</div>
         </div>
-        ${ch.maxMana > 0 ? `<div style="text-align:center;padding:4px 10px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:6px">
-          <div style="font-size:0.6rem;color:var(--ink-light)">Mana</div>
-          <div style="font-size:1rem;font-weight:bold;color:var(--gold)">${ch.mana ?? 0} / ${ch.maxMana}</div>
-        </div>` : ''}
       </div>
       <div class="tracker-row" style="justify-content:center">
         <span class="tracker-label">HP</span>
@@ -5514,6 +5742,18 @@ const app = {
         <button class="adj-plus" onclick="app.applyAdjust('combatTempHp',1)">&plus;</button>
         <button class="adj-cancel" onclick="app.hideAdjust('combatTempHp')">&#10005;</button>
       </div>
+      ${ch.maxMana > 0 ? `
+        <div class="tracker-row" style="justify-content:center">
+          <span class="tracker-label">&#128293; Mana</span>
+          <span class="tracker-value tappable" onclick="app.showAdjust('combatMana')">${ch.mana ?? 0} / ${ch.maxMana}</span>
+        </div>
+        <div class="tracker-row adjust-row" id="adjust-combatMana" style="display:none;justify-content:center">
+          <input type="number" id="adj-combatMana-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('combatMana',1)">
+          <button class="adj-minus" onclick="app.applyAdjust('combatMana',-1)">&minus;</button>
+          <button class="adj-plus" onclick="app.applyAdjust('combatMana',1)">&plus;</button>
+          <button class="adj-cancel" onclick="app.hideAdjust('combatMana')">&#10005;</button>
+        </div>
+      ` : ''}
       <div class="tracker-row" style="justify-content:center"><span class="tracker-label">Wounds${this.getBonusWounds(ch) > 0 ? ` <span style='font-size:0.65rem;color:var(--gold)'>+${this.getBonusWounds(ch)}</span>` : ''}</span><div class="wounds-row">`;
     const cWounds = ch.wounds || 0;
     const cBonus = this.getBonusWounds(ch);
@@ -6127,6 +6367,11 @@ const app = {
   // Only Campaigns + Bestiary are functional in Fase 0. The other tabs show
   // roadmap placeholders so the user can preview what's coming.
   renderGM() {
+    // Map prep overrides everything else (full-screen prep view)
+    if (this._mapPrep) {
+      return `<div class="gm-view view-padding-bottom">${this._renderMapPrep()}</div>`;
+    }
+
     const sub = this.state.gmView || 'campaigns';
     const tab = (id, label, icon) =>
       `<button class="gm-subnav-btn ${sub === id ? 'active' : ''}" onclick="app.setGMView('${id}')">
@@ -6152,6 +6397,64 @@ const app = {
         </nav>
         <div class="gm-subview">${body}</div>
       </div>`;
+  },
+
+  // Full-screen map prep view. Reuses renderCombatMap by constructing a combat-like shim.
+  _renderMapPrep() {
+    const mp = this._mapPrep;
+    if (!mp) return '';
+    const c = (this.state.campaigns || []).find(x => x.id === mp.campaignId);
+    const e = c?.encounters?.find(x => x.id === mp.encounterId);
+    const title = e?.name || 'Encounter';
+
+    // Render map via renderCombatMap, but set flags so token clicks use mapPrep* handlers
+    this._inPrepMode = true;
+    const mapHtml = this.renderCombatMap({ map: mp.map, participants: mp.participants, turnOrder: [], turnIndex: 0 }, false);
+    this._inPrepMode = false;
+
+    const mode = mp.paintMode || 'select';
+    const modeBtn = (id, icon, label) =>
+      `<button onclick="app.mapPrepSetMode('${id}')" style="flex:1;padding:6px 8px;font-size:0.75rem;background:${mode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${mode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
+
+    const fogCount = Object.keys(mp.map.fog || {}).length;
+    const wallCount = Object.keys(mp.map.walls || {}).length;
+    const gridType = mp.map.gridType || 'square';
+
+    const paintExtras = mode === 'fog'
+      ? `<div style="display:flex;gap:6px;margin-top:6px">
+           <button class="btn btn-secondary btn-small" style="flex:1;font-size:0.7rem" onclick="app.mapPrepCoverAllFog()">Cover all</button>
+           <button class="btn btn-secondary btn-small" style="flex:1;font-size:0.7rem" onclick="app.mapPrepClearFog()">Clear fog (${fogCount})</button>
+         </div>`
+      : mode === 'wall'
+        ? `<div style="display:flex;gap:6px;margin-top:6px">
+             <button class="btn btn-secondary btn-small" style="flex:1;font-size:0.7rem" onclick="app.mapPrepClearWalls()">Clear walls (${wallCount})</button>
+           </div>`
+        : '';
+
+    return `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <button class="btn btn-secondary btn-small" onclick="app.cancelMapPrep()">&larr;</button>
+        <div style="flex:1;min-width:0">
+          <h2 style="margin:0;font-size:1rem">&#128506;&#65039; Prepare Map</h2>
+          <div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(title)}</div>
+        </div>
+        <button class="btn btn-primary btn-small" style="background:var(--gold);color:var(--leather-dark)" onclick="app.saveMapPrep()">Save</button>
+      </div>
+
+      <div style="padding:8px 10px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);border-radius:5px;margin-bottom:10px;font-size:0.72rem;color:var(--ink-light);display:flex;gap:8px;align-items:center">
+        <div style="flex:1">Position tokens + paint fog / walls. This carries over to combat.</div>
+        <button onclick="app.mapPrepToggleGridType()" class="btn btn-secondary btn-small" style="font-size:0.68rem;padding:4px 8px" title="Toggle square/hex grid">${gridType === 'hex' ? '&#11042; Hex' : '&#9633; Square'}</button>
+      </div>
+
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        ${modeBtn('select', '&#128273;', 'Select')}
+        ${modeBtn('fog', '&#127787;&#65039;', 'Fog')}
+        ${modeBtn('wall', '&#129721;', 'Wall')}
+      </div>
+      ${paintExtras}
+
+      <div style="margin-top:10px">${mapHtml}</div>
+    `;
   },
 
   setGMView(sub) {
@@ -6602,6 +6905,7 @@ const app = {
     this._npcDraft = {
       editIndex: editIndex == null ? null : editIndex,
       name:    existing?.name    || '',
+      role:    existing?.role    || 'enemy',
       level:   existing?.level   || '',
       size:    existing?.size    || '',
       hp:      existing?.hp      ?? '',
@@ -6624,6 +6928,20 @@ const app = {
           ${lbl('Name')}
           <input id="npcName" type="text" value="${this.esc(d.name)}" placeholder="Thorn Quickblade" style="${inputStyle}">
         </label>
+        <div style="margin-bottom:10px">
+          ${lbl('Role')}
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <label style="flex:1;display:flex;align-items:center;gap:6px;padding:8px;background:var(--parchment);border:2px solid ${d.role === 'ally' ? '#4a7c3e' : 'var(--parchment-edge)'};border-radius:5px;cursor:pointer">
+              <input type="radio" name="npcRole" value="ally" ${d.role === 'ally' ? 'checked' : ''}>
+              <span style="font-size:0.8rem;font-weight:bold;color:#4a7c3e">&#128100; Ally</span>
+            </label>
+            <label style="flex:1;display:flex;align-items:center;gap:6px;padding:8px;background:var(--parchment);border:2px solid ${d.role === 'enemy' ? 'var(--burgundy)' : 'var(--parchment-edge)'};border-radius:5px;cursor:pointer">
+              <input type="radio" name="npcRole" value="enemy" ${d.role === 'enemy' ? 'checked' : ''}>
+              <span style="font-size:0.8rem;font-weight:bold;color:var(--burgundy)">&#128128; Enemy</span>
+            </label>
+          </div>
+          <div style="font-size:0.65rem;color:var(--ink-light);margin-top:4px;font-style:italic">Allies act with the heroes (individual turn, HP visible). Enemies act with the monster group (HP hidden).</div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <label>${lbl('Level')}<input id="npcLevel" type="text" value="${this.esc(d.level)}" placeholder="e.g. 3 or 1/4" style="${inputStyle}"></label>
           <label>${lbl('Size')}<input id="npcSize" type="text" value="${this.esc(d.size)}" placeholder="small, large…" style="${inputStyle}"></label>
@@ -6666,8 +6984,12 @@ const app = {
 
     const hpIn    = parseInt(document.getElementById('npcHP')?.value, 10);
     const maxHpIn = parseInt(document.getElementById('npcMaxHP')?.value, 10);
-    const maxHp   = isNaN(maxHpIn) ? (isNaN(hpIn) ? 0 : hpIn) : maxHpIn;
-    const hp      = isNaN(hpIn) ? maxHp : hpIn;
+    const maxHp   = Math.max(0, isNaN(maxHpIn) ? (isNaN(hpIn) ? 0 : hpIn) : maxHpIn);
+    let hp        = isNaN(hpIn) ? maxHp : hpIn;
+    // Clamp: HP can never exceed maxHp and can't go below 0
+    const rawHp   = hp;
+    hp            = Math.max(0, Math.min(hp, maxHp));
+    if (rawHp !== hp) this.toast(`HP capped to 0–${maxHp}`);
     // Parse level flexibly: "3" → 3, "1/4" → stays as string
     const rawLvl  = (document.getElementById('npcLevel')?.value || '').trim();
     const level   = rawLvl.includes('/') ? rawLvl : (parseInt(rawLvl, 10) || rawLvl || '');
@@ -6675,9 +6997,12 @@ const app = {
     const rawSpd  = (document.getElementById('npcSpeed')?.value || '').trim();
     const speed   = /^\d+$/.test(rawSpd) ? parseInt(rawSpd, 10) : (rawSpd || 6);
 
+    const role = document.querySelector('input[name="npcRole"]:checked')?.value || 'enemy';
+
     const npc = {
       id: d.editIndex != null ? c.npcs[d.editIndex].id : ('npc_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
       name,
+      role,
       level,
       size:    (document.getElementById('npcSize')?.value || '').trim(),
       hp, maxHp,
@@ -7004,7 +7329,11 @@ const app = {
         <button class="btn btn-secondary" style="flex:1" onclick="app.cancelEncounterEdit()">Cancel</button>
         <button class="btn btn-primary" style="flex:1" onclick="app.saveEncounter()">${isNew ? 'Create' : 'Save'}</button>
       </div>
-      ${!isNew ? `<button class="btn btn-primary btn-block" style="margin-top:8px;background:var(--gold);color:var(--leather-dark)" onclick="app.startCombatFromEncounter('${d.id}')">&#9654; Start Combat</button>` : ''}`;
+      ${!isNew ? `
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-secondary" style="flex:1" onclick="app.openMapPrep('${d.id}')">&#128506;&#65039; Prepare Map${c.encounters.find(x=>x.id===d.id)?.map ? ' &#10003;' : ''}</button>
+          <button class="btn btn-primary" style="flex:1;background:var(--gold);color:var(--leather-dark)" onclick="app.startCombatFromEncounter('${d.id}')">&#9654; Start Combat</button>
+        </div>` : ''}`;
 
     return html;
   },
@@ -7165,16 +7494,16 @@ const app = {
     const linkedPCs = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
 
     const participants = [];
-    // Player characters go in first — live HP linked to their sheet
+    // Player characters go in first — live HP linked to their sheet.
+    // Nimble rule: PCs roll initiative and tell the GM; we don't auto-roll. Entered in the initiative phase.
     for (const ch of linkedPCs) {
-      const dex = ch.stats?.DEX ?? 0;
       participants.push({
         id: 'p_' + Math.random().toString(36).slice(2, 9),
         kind: 'pc',
         sourceKind: 'pc',
         sourceId: ch.id,
         name: ch.name,
-        initiative: this._rollD20() + dex,
+        initiative: null,   // entered by GM after each player rolls
         hp: ch.hp ?? ch.maxHp ?? 0,
         maxHp: ch.maxHp ?? 0,
         armor: null, // handled by PC sheet; display-only
@@ -7209,8 +7538,46 @@ const app = {
       }
     }
 
-    // Sort by initiative desc, stable
-    participants.sort((a, b) => (b.initiative || 0) - (a.initiative || 0));
+    // Nimble rule: enemies don't roll initiative. Regular monsters act as a group after all heroes;
+    // legendary bosses act between each hero's turn. Display order: heroes (PCs + ally NPCs),
+    // then legendaries, then enemy NPCs, monsters, minions. Hero order is chosen manually via ▲/▼.
+    const sideOrder = (p) => {
+      if (p.kind === 'pc') return 0;
+      if (p.kind === 'npc' && p.role === 'ally') return 1;
+      if (p.kind === 'legendary') return 2;
+      if (p.kind === 'npc') return 3;
+      if (p.kind === 'monster') return 4;
+      return 5;
+    };
+    participants.sort((a, b) => sideOrder(a) - sideOrder(b));
+
+    // Build initial combat map. If the encounter has a prepared map, copy token positions from it
+    // via slot keys (stable across participant ID changes).
+    const initialMap = this._initCombatMap(participants);
+    if (e.map && e.map.tokens) {
+      // Assign instance indices per (kind,sourceId) in order to match prep slot keys
+      const groupCounters = {};
+      for (const p of participants) {
+        const baseKey = `${p.sourceKind || p.kind}:${p.sourceId}`;
+        const isMulti = participants.filter(q =>
+          (q.sourceKind || q.kind) === (p.sourceKind || p.kind) && q.sourceId === p.sourceId
+        ).length > 1;
+        if (isMulti) {
+          groupCounters[baseKey] = (groupCounters[baseKey] || 0) + 1;
+          p._slotKey = `${baseKey}:${groupCounters[baseKey]}`;
+        } else {
+          p._slotKey = `${baseKey}:0`;
+        }
+        // Match against prepared map
+        const prepared = e.map.tokens[p._slotKey];
+        if (prepared) initialMap.tokens[p.id] = { x: prepared.x, y: prepared.y };
+      }
+      initialMap.fog = { ...(e.map.fog || {}) };
+      initialMap.walls = { ...(e.map.walls || {}) };
+      if (e.map.width) initialMap.width = e.map.width;
+      if (e.map.height) initialMap.height = e.map.height;
+      if (e.map.gridType) initialMap.gridType = e.map.gridType;
+    }
 
     this.state.activeCombat = {
       id: 'combat_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
@@ -7219,11 +7586,13 @@ const app = {
       encounterName: e.name,
       round: 1,
       turnIndex: 0,
+      phase: 'initiative',   // 'initiative' | 'active' — combat starts in initiative entry
+      turnOrder: [],         // built on submitInitiatives; array of { type, pid? }
       startedAt: Date.now(),
       participants,
       // Fase 4 — Combat Map. 20×20 grid default (Nimble uses "spaces" = 1 square = 5 ft).
       // Tokens keyed by participant id with {x, y} in grid coords.
-      map: this._initCombatMap(participants)
+      map: initialMap
     };
 
     // Navigate to Combat tab
@@ -7240,6 +7609,138 @@ const app = {
     return Math.floor(Math.random() * 20) + 1;
   },
 
+  // True when the participant acts on the heroes' side (own turn slot, visible HP).
+  _isHeroSide(p) {
+    return p.kind === 'pc' || (p.kind === 'npc' && p.role === 'ally');
+  },
+  _isRegularEnemy(p) {
+    if (p.kind === 'monster' || p.kind === 'minion') return true;
+    if (p.kind === 'npc' && p.role !== 'ally') return true;
+    return false;
+  },
+
+  // Build the round's turn order from participants.
+  // Nimble (core-rules §Turn Order): players decide the turn order among themselves at combat start
+  // and it stays fixed for the rest of combat. Initiative only determines STARTING ACTIONS, not order.
+  // After each hero (PC or ally NPC) turn, every legendary boss acts. At the end of the round, all
+  // regular monsters/minions + enemy NPCs act as a single "monsters" phase.
+  _buildTurnOrder(participants) {
+    const heroes = (participants || []).filter(p => this._isHeroSide(p));
+    const legendaries = (participants || []).filter(p => p.kind === 'legendary');
+    const hasRegularEnemies = (participants || []).some(p => this._isRegularEnemy(p));
+
+    const order = [];
+    for (const h of heroes) {
+      order.push({ type: h.kind === 'npc' ? 'ally' : 'pc', pid: h.id });
+      for (const leg of legendaries) {
+        order.push({ type: 'legendary', pid: leg.id });
+      }
+    }
+    if (hasRegularEnemies) order.push({ type: 'monsters' });
+    // Edge case: no heroes but enemies exist — still give monsters a turn so combat can advance
+    if (!heroes.length && !legendaries.length && hasRegularEnemies && order.length === 0) {
+      order.push({ type: 'monsters' });
+    }
+    // Edge case: only legendaries, no heroes — give each legendary its own slot
+    if (!heroes.length && legendaries.length) {
+      for (const leg of legendaries) order.push({ type: 'legendary', pid: leg.id });
+    }
+    return order;
+  },
+
+  // Initiative roll → starting actions (core-rules §Starting Combat):
+  // 1-9 = 1 action, 10-19 = 2 actions, 20+ = 3 actions. Back to 3 every subsequent turn.
+  _startingActionsFor(init) {
+    if (init == null || isNaN(init)) return 3;
+    if (init >= 20) return 3;
+    if (init >= 10) return 2;
+    return 1;
+  },
+
+  _capturePendingInitiatives() {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    for (const p of combat.participants) {
+      if (p.kind !== 'pc') continue;
+      const inp = document.getElementById('init_' + p.id);
+      if (!inp) continue;
+      const raw = inp.value?.trim();
+      if (!raw) continue;
+      const n = parseInt(raw, 10);
+      if (!isNaN(n)) p.initiative = n;
+    }
+  },
+
+  // ▲/▼ to reorder heroes (PCs + ally NPCs). Turn order is manually set at combat start, then locked.
+  movePcInitiative(pid, direction) {
+    const combat = this.state.activeCombat;
+    if (!combat || combat.phase !== 'initiative') return;
+    // Save any typed init values before re-rendering so users don't lose their entries
+    this._capturePendingInitiatives();
+
+    const heroIds = combat.participants.filter(p => this._isHeroSide(p)).map(p => p.id);
+    const pos = heroIds.indexOf(pid);
+    if (pos < 0) return;
+    const targetPos = pos + (direction === 'up' ? -1 : 1);
+    if (targetPos < 0 || targetPos >= heroIds.length) return;
+
+    // Swap the two participants in the full array so kind grouping is preserved
+    const fromId = heroIds[pos], toId = heroIds[targetPos];
+    const fromIdx = combat.participants.findIndex(p => p.id === fromId);
+    const toIdx = combat.participants.findIndex(p => p.id === toId);
+    [combat.participants[fromIdx], combat.participants[toIdx]] =
+      [combat.participants[toIdx], combat.participants[fromIdx]];
+
+    this.save();
+    this.render();
+  },
+
+  submitInitiatives() {
+    const combat = this.state.activeCombat;
+    if (!combat || combat.phase !== 'initiative') return;
+
+    // Read PC initiative inputs — required (used for starting action count).
+    // Ally NPCs don't roll; GM controls them so they get full 3 actions.
+    const pcs = combat.participants.filter(p => p.kind === 'pc');
+    const updates = [];
+    for (const pc of pcs) {
+      const inp = document.getElementById('init_' + pc.id);
+      const raw = inp?.value?.trim();
+      if (!raw) { this.toast(`Enter initiative for ${pc.name}`); return; }
+      const val = parseInt(raw, 10);
+      if (isNaN(val)) { this.toast(`Invalid initiative for ${pc.name}`); return; }
+      updates.push({ pid: pc.id, init: val });
+    }
+    for (const u of updates) {
+      const p = combat.participants.find(x => x.id === u.pid);
+      if (p) {
+        p.initiative = u.init;
+        // Starting actions apply only on round 1 per Nimble rules
+        p.startingActions = this._startingActionsFor(u.init);
+      }
+    }
+
+    // Keep participants in their current manual order inside each side group.
+    // Stable sort on side only preserves the user-chosen hero order.
+    const sideOrder = (p) => {
+      if (p.kind === 'pc') return 0;
+      if (p.kind === 'npc' && p.role === 'ally') return 1;
+      if (p.kind === 'legendary') return 2;
+      if (p.kind === 'npc') return 3;
+      if (p.kind === 'monster') return 4;
+      return 5;
+    };
+    combat.participants.sort((a, b) => sideOrder(a) - sideOrder(b));
+
+    combat.turnOrder = this._buildTurnOrder(combat.participants);
+    combat.phase = 'active';
+    combat.turnIndex = 0;
+    combat.round = 1;
+    this.save();
+    this.render();
+    this.toast('Combat begins!');
+  },
+
   _mkMonsterParticipant(tpl, seq) {
     const baseName = tpl.name + (seq ? ' #' + seq : '');
     const parsedHp = typeof tpl.hp === 'number' ? tpl.hp : parseInt(tpl.hp, 10);
@@ -7250,7 +7751,7 @@ const app = {
       sourceKind: 'bestiary',
       sourceId: tpl.id,
       name: baseName,
-      initiative: this._rollD20(),
+      initiative: 0,                     // Nimble: enemies don't roll; monsters act as a group at end of round
       hp, maxHp: hp,
       armor: tpl.armor || null,
       level: tpl.level,
@@ -7278,7 +7779,7 @@ const app = {
       sourceKind: 'legendary',
       sourceId: tpl.id,
       name: baseName,
-      initiative: this._rollD20() + 2,   // legendaries act often — nudge up the initiative
+      initiative: 0,                     // legendaries act between each PC turn (boss pacing); no roll
       hp, maxHp: hp,
       armor: tpl.armor || null,
       level: tpl.level,
@@ -7299,13 +7800,15 @@ const app = {
 
   _mkNPCParticipant(npc, seq) {
     const baseName = npc.name + (seq ? ' #' + seq : '');
+    const role = npc.role === 'ally' ? 'ally' : 'enemy';
     return {
       id: 'p_' + Math.random().toString(36).slice(2, 9),
       kind: 'npc',
+      role,                             // 'ally' acts with heroes; 'enemy' acts with the monster group
       sourceKind: 'npc',
       sourceId: npc.id,
       name: baseName,
-      initiative: this._rollD20(),
+      initiative: 0,                    // Allies get their own slot; enemies act with the monster phase
       hp: npc.hp || 0, maxHp: npc.maxHp || npc.hp || 0,
       armor: npc.armor || null,
       level: npc.level,
@@ -7321,14 +7824,171 @@ const app = {
   // ---- Fase 4: Combat Map ----
   // Auto-distribute tokens. PCs line up at the top edge, monsters at the bottom.
   // Fase 4.5: fog/walls are sparse objects keyed by "x,y" so the Firestore doc stays small.
+  // ---- Map prep (Fase 3 #10) ----
+  // Lets a GM place tokens and paint fog/walls on an encounter's map BEFORE starting combat.
+  // encounter.map = { width, height, tokens: { slotKey: {x,y} }, fog, walls }
+  // slotKey is stable across combats: "pc:<charId>:0" / "bestiary:<id>:<instance>" / etc.
+  _previewEncounterParticipants(c, e) {
+    const out = [];
+    const chars = this.state.characters || [];
+    for (const charId of (c.playerCharIds || [])) {
+      const ch = chars.find(x => x.id === charId);
+      if (!ch) continue;
+      out.push({ id: 'pc:' + ch.id + ':0', kind: 'pc', name: ch.name });
+    }
+    for (const entry of (e.monsters || [])) {
+      const count = Math.max(1, entry.count || 1);
+      for (let i = 1; i <= count; i++) {
+        const suffix = count > 1 ? ' #' + i : '';
+        const instanceLabel = count > 1 ? i : 0;
+        const name = (entry.name || '(unnamed)') + suffix;
+        const slotKey = `${entry.kind}:${entry.id}:${instanceLabel}`;
+        if (entry.kind === 'bestiary') {
+          out.push({ id: slotKey, kind: 'monster', name });
+        } else if (entry.kind === 'legendary') {
+          out.push({ id: slotKey, kind: 'legendary', name });
+        } else if (entry.kind === 'npc') {
+          const npc = (c.npcs || []).find(n => n.id === entry.id);
+          out.push({ id: slotKey, kind: 'npc', role: npc?.role || 'enemy', name });
+        }
+      }
+    }
+    return out;
+  },
+
+  openMapPrep(encId) {
+    const c = this.getCampaign();
+    if (!c) return;
+    const e = (c.encounters || []).find(x => x.id === encId);
+    if (!e) { this.toast('Encounter not found'); return; }
+    if (!(e.monsters || []).length) { this.toast('Add monsters before preparing the map'); return; }
+
+    const participants = this._previewEncounterParticipants(c, e);
+    // Use existing encounter.map or auto-place
+    const base = this._initCombatMap(participants);  // will auto-place based on hero/non-hero
+    const stored = e.map || {};
+    const map = {
+      width: stored.width || base.width,
+      height: stored.height || base.height,
+      tokens: { ...base.tokens, ...(stored.tokens || {}) },   // prefer stored positions
+      fog: { ...(stored.fog || {}) },
+      walls: { ...(stored.walls || {}) }
+    };
+    this._mapPrep = {
+      encounterId: encId,
+      campaignId: c.id,
+      participants,
+      map,
+      selectedTokenId: null,
+      paintMode: 'select'
+    };
+    this.render(true);
+  },
+
+  cancelMapPrep() {
+    this._mapPrep = null;
+    this.render(true);
+  },
+
+  saveMapPrep() {
+    const mp = this._mapPrep;
+    if (!mp) return;
+    const c = (this.state.campaigns || []).find(x => x.id === mp.campaignId);
+    if (!c) return;
+    const e = (c.encounters || []).find(x => x.id === mp.encounterId);
+    if (!e) return;
+    e.map = {
+      width: mp.map.width,
+      height: mp.map.height,
+      gridType: mp.map.gridType || 'square',
+      tokens: { ...mp.map.tokens },
+      fog: { ...mp.map.fog },
+      walls: { ...mp.map.walls }
+    };
+    e.updatedAt = Date.now();
+    c.updatedAt = Date.now();
+    this._mapPrep = null;
+    this.save();
+    this.toast('Map prepared');
+    this.render(true);
+  },
+
+  // Prep-mode versions of map interactions (route via this._mapPrep instead of state.activeCombat)
+  mapPrepSelectToken(pid) {
+    if (!this._mapPrep) return;
+    this._mapPrep.selectedTokenId = this._mapPrep.selectedTokenId === pid ? null : pid;
+    this._mapPrep.paintMode = 'select';
+    this.render();
+  },
+  mapPrepMoveCell(x, y) {
+    if (!this._mapPrep || !this._mapPrep.selectedTokenId) return;
+    this._mapPrep.map.tokens[this._mapPrep.selectedTokenId] = { x, y };
+    this._mapPrep.selectedTokenId = null;
+    this.render();
+  },
+  mapPrepCellClick(x, y) {
+    if (!this._mapPrep) return;
+    const mode = this._mapPrep.paintMode || 'select';
+    if (mode === 'select' && this._mapPrep.selectedTokenId) return this.mapPrepMoveCell(x, y);
+    if (mode === 'fog') {
+      const k = x + ',' + y;
+      if (this._mapPrep.map.fog[k]) delete this._mapPrep.map.fog[k];
+      else this._mapPrep.map.fog[k] = true;
+      this.render();
+    } else if (mode === 'wall') {
+      const k = x + ',' + y;
+      if (this._mapPrep.map.walls[k]) delete this._mapPrep.map.walls[k];
+      else this._mapPrep.map.walls[k] = true;
+      this.render();
+    }
+  },
+  mapPrepSetMode(mode) {
+    if (!this._mapPrep) return;
+    this._mapPrep.paintMode = mode;
+    if (mode !== 'select') this._mapPrep.selectedTokenId = null;
+    this.render();
+  },
+  mapPrepCoverAllFog() {
+    if (!this._mapPrep) return;
+    const { width, height } = this._mapPrep.map;
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) this._mapPrep.map.fog[x+','+y] = true;
+    this.render();
+  },
+  mapPrepClearFog() {
+    if (!this._mapPrep) return;
+    this._mapPrep.map.fog = {};
+    this.render();
+  },
+  mapPrepClearWalls() {
+    if (!this._mapPrep) return;
+    this._mapPrep.map.walls = {};
+    this.render();
+  },
+  mapPrepToggleGridType() {
+    if (!this._mapPrep) return;
+    this._mapPrep.map.gridType = this._mapPrep.map.gridType === 'hex' ? 'square' : 'hex';
+    this.render();
+  },
+
+  // Flip grid type on an active combat (GM only)
+  mapToggleGridType() {
+    const combat = this.state.activeCombat;
+    if (!combat || !combat.map) return;
+    combat.map.gridType = combat.map.gridType === 'hex' ? 'square' : 'hex';
+    this.save();
+    this.render();
+  },
+
   _initCombatMap(participants) {
     const width = 20, height = 20;
     const tokens = {};
-    let pcX = 2, monsterX = 2;
+    let heroX = 2, monsterX = 2;
     for (const p of participants) {
-      if (p.kind === 'pc') {
-        tokens[p.id] = { x: Math.min(pcX, width - 1), y: 1 };
-        pcX += 2;
+      // Heroes (PCs + ally NPCs) line up at the top; everything else at the bottom.
+      const isHero = p.kind === 'pc' || (p.kind === 'npc' && p.role === 'ally');
+      if (isHero) {
+        tokens[p.id] = { x: Math.min(heroX, width - 1), y: 1 };
+        heroX += 2;
       } else {
         tokens[p.id] = { x: Math.min(monsterX, width - 1), y: height - 2 };
         monsterX += 2;
@@ -7340,7 +8000,7 @@ const app = {
   _tokenColor(p) {
     if (p.kind === 'pc') return '#4a7cc1';
     if (p.kind === 'legendary') return '#c9a84c';
-    if (p.kind === 'npc') return '#4a7c3e';
+    if (p.kind === 'npc') return p.role === 'ally' ? '#4a7c3e' : '#8b1a1a';  // ally green, enemy burgundy
     if (p.kind === 'minion') return '#666';
     return '#8b1a1a'; // monster default
   },
@@ -7465,22 +8125,55 @@ const app = {
   renderCombatMap(combat, readOnly) {
     this._readOnlyMap = !!readOnly;
     if (!combat) return '';
+    const prep = this._inPrepMode;   // routes clicks through mapPrep* when true
     const map = combat.map || this._initCombatMap(combat.participants || []);
     const w = map.width || 20, h = map.height || 20;
-    const cell = 20; // px per cell
-    const viewW = w * cell, viewH = h * cell;
+    const isHex = map.gridType === 'hex';
+    const cell = 20; // px per square cell
+
+    // Hex geometry (pointy-top, odd-row horizontal offset)
+    const hexSize = 11;
+    const hexW = Math.sqrt(3) * hexSize;   // flat-side width
+    const hexH = 2 * hexSize;               // point-to-point height
+    const rowSp = hexH * 0.75;              // vertical row spacing
+
+    // Cell → pixel center
+    const cellCenter = (x, y) => {
+      if (!isHex) return { cx: x * cell + cell/2, cy: y * cell + cell/2 };
+      return {
+        cx: x * hexW + (y % 2 ? hexW/2 : 0) + hexW/2,
+        cy: y * rowSp + hexH/2
+      };
+    };
+    // Cell polygon path (for walls / fog / click targets)
+    const cellPath = (x, y) => {
+      if (!isHex) return `M${x*cell} ${y*cell}h${cell}v${cell}h-${cell}z`;
+      const { cx, cy } = cellCenter(x, y);
+      const pts = [];
+      for (let i = 0; i < 6; i++) {
+        const a = Math.PI / 180 * (60 * i - 30);
+        pts.push([cx + hexSize * Math.cos(a), cy + hexSize * Math.sin(a)]);
+      }
+      return `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}` + pts.slice(1).map(p => `L${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join('') + 'Z';
+    };
+
+    const viewW = isHex ? (w * hexW + hexW/2 + 2) : w * cell;
+    const viewH = isHex ? (h * rowSp + hexH/4 + 2) : h * cell;
+
     const fog = map.fog || {};
     const walls = map.walls || {};
 
-    const paintMode = readOnly ? 'select' : (this._mapPaintMode || 'select');
-    const selectedId = readOnly ? null : this._mapSelectedTokenId;
+    const paintMode = readOnly ? 'select' : (prep ? (this._mapPrep?.paintMode || 'select') : (this._mapPaintMode || 'select'));
+    const selectedId = readOnly ? null : (prep ? this._mapPrep?.selectedTokenId : this._mapSelectedTokenId);
     const selectedP = selectedId ? (combat.participants || []).find(p => p.id === selectedId) : null;
+    const cellHandler = prep ? 'app.mapPrepCellClick' : 'app.mapCellClick';
+    const tokenHandler = prep ? 'app.mapPrepSelectToken' : 'app.mapSelectToken';
 
     // --- Walls layer (visible to everyone) ---
     let wallsHtml = '';
     for (const k of Object.keys(walls)) {
       const [x, y] = k.split(',').map(Number);
-      wallsHtml += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="#3d2b1f" stroke="#5c3d2e" stroke-width="0.5" style="pointer-events:none"/>`;
+      wallsHtml += `<path d="${cellPath(x, y)}" fill="#3d2b1f" stroke="#5c3d2e" stroke-width="0.5" style="pointer-events:none"/>`;
     }
 
     // --- Grid cells (clickable when paint mode active OR token selected) ---
@@ -7493,9 +8186,7 @@ const app = {
       const cursor = (paintMode === 'fog' || paintMode === 'wall') ? 'pointer' : 'crosshair';
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
-          cellsHtml += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"
-            fill="transparent" style="cursor:${cursor}"
-            onclick="app.mapCellClick(${x}, ${y})"/>`;
+          cellsHtml += `<path d="${cellPath(x, y)}" fill="transparent" style="cursor:${cursor}" onclick="${cellHandler}(${x}, ${y})"/>`;
         }
       }
     }
@@ -7510,20 +8201,30 @@ const app = {
       const onFog = !!fog[tokCellKey];
       // Players: don't render tokens hidden under fog at all
       if (readOnly && onFog) continue;
-      const cx = tok.x * cell + cell / 2;
-      const cy = tok.y * cell + cell / 2;
-      const r = cell * 0.42;
+      const { cx, cy } = cellCenter(tok.x, tok.y);
+      const r = isHex ? hexSize * 0.72 : cell * 0.42;
       const dead = p.dead || (p.kind === 'legendary' ? p.phase === 'dead' : (!p.isMinion && p.hp <= 0));
       const color = this._tokenColor(p);
       const isSelected = p.id === selectedId;
       const isTurn = p.id === turnParticipantId;
       const label = this._tokenLabel(p);
 
+      // Token ring: don't leak enemy HP %. PCs & ally NPCs show red/amber/green (hero info).
+      // Enemies show bloodied (orange) or last-stand/dead (dark/red). Everyone else is neutral.
       const hpPct = p.maxHp > 0 ? p.hp / p.maxHp : 1;
-      const ringColor = dead ? '#444' : (hpPct < 0.33 ? '#8b1a1a' : (hpPct < 0.66 ? '#c9a84c' : '#4a7c3e'));
+      const heroSide = p.kind === 'pc' || (p.kind === 'npc' && p.role === 'ally');
+      const regularEnemy = p.kind === 'monster' || (p.kind === 'npc' && p.role !== 'ally');
+      let ringColor;
+      if (dead) ringColor = '#444';
+      else if (heroSide) {
+        ringColor = hpPct < 0.33 ? '#8b1a1a' : (hpPct < 0.66 ? '#c9a84c' : '#4a7c3e');
+      } else if (p.kind === 'legendary' && p.phase === 'lastStand') ringColor = '#8b1a1a';
+      else if ((p.kind === 'legendary' && p.bloodied) || (regularEnemy && !p.isMinion && p.hp > 0 && p.hp <= p.maxHp / 2)) {
+        ringColor = '#b8621b';
+      } else ringColor = '#3d2b1f';
 
       // GM can tap tokens only in Select paint mode. In Fog/Wall modes, cell-rects intercept all clicks.
-      const click = (!readOnly && paintMode === 'select') ? ` style="cursor:pointer" onclick="event.stopPropagation();app.mapSelectToken('${p.id}')"` : ' style="pointer-events:none"';
+      const click = (!readOnly && paintMode === 'select') ? ` style="cursor:pointer" onclick="event.stopPropagation();${tokenHandler}('${p.id}')"` : ' style="pointer-events:none"';
 
       tokensHtml += `
         <g${click}${dead ? ' opacity="0.35"' : ''}>
@@ -7539,21 +8240,22 @@ const app = {
     let fogHtml = '';
     for (const k of Object.keys(fog)) {
       const [x, y] = k.split(',').map(Number);
-      fogHtml += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="#1a1a1a" opacity="${fogOpacity}" style="pointer-events:none"/>`;
+      fogHtml += `<path d="${cellPath(x, y)}" fill="#1a1a1a" opacity="${fogOpacity}" style="pointer-events:none"/>`;
     }
 
-    // --- Paint toolbar (GM only) ---
+    // --- Paint toolbar (GM only; suppressed in prep mode — prep renders its own) ---
     let toolbarHtml = '';
-    if (!readOnly) {
+    if (!readOnly && !prep) {
       const toolBtn = (id, icon, label) =>
         `<button onclick="app.setMapPaintMode('${id}')" style="flex:1;padding:5px 6px;font-size:0.7rem;background:${paintMode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${paintMode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
       const fogCount = Object.keys(fog).length;
       const wallCount = Object.keys(walls).length;
       toolbarHtml = `
-        <div style="display:flex;gap:4px;margin-bottom:6px">
+        <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center">
           ${toolBtn('select', '&#128273;', 'Select')}
           ${toolBtn('fog',    '&#127787;&#65039;', 'Fog')}
           ${toolBtn('wall',   '&#129521;', 'Wall')}
+          <button onclick="app.mapToggleGridType()" class="btn btn-secondary btn-small" style="font-size:0.65rem;padding:4px 6px" title="Toggle grid type">${isHex ? '&#11042;' : '&#9633;'}</button>
         </div>
         ${(paintMode === 'fog' || paintMode === 'wall')
           ? `<div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">
@@ -7592,6 +8294,16 @@ const app = {
       hint = `<div style="padding:6px 10px;background:var(--parchment-dark);font-size:0.7rem;color:var(--ink-light);border-radius:4px;margin-bottom:6px;text-align:center">Tap a token to select, then tap a cell to move.</div>`;
     }
 
+    // Grid outline: render hex outlines as non-clickable paths (pretty but not interactive)
+    let gridOutline = '';
+    if (isHex) {
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          gridOutline += `<path d="${cellPath(x, y)}" fill="none" stroke="#5c3d2e" stroke-width="0.5" opacity="0.35" style="pointer-events:none"/>`;
+        }
+      }
+    }
+
     return `
       ${toolbarHtml}
       ${hint}
@@ -7603,7 +8315,7 @@ const app = {
             </pattern>
           </defs>
           <rect width="${viewW}" height="${viewH}" fill="#f4e4c1"/>
-          <rect width="${viewW}" height="${viewH}" fill="url(#nimbleGrid)"/>
+          ${isHex ? gridOutline : `<rect width="${viewW}" height="${viewH}" fill="url(#nimbleGrid)"/>`}
           ${wallsHtml}
           ${cellsHtml}
           ${tokensHtml}
@@ -7612,6 +8324,101 @@ const app = {
       </div>
       ${legend}
     `;
+  },
+
+  // Initiative entry screen — shown when combat.phase === 'initiative'
+  _renderInitiativeEntry(combat) {
+    const campaign = (this.state.campaigns || []).find(c => c.id === combat.campaignId);
+    const heroes = combat.participants.filter(p => this._isHeroSide(p));
+    const legendaries = combat.participants.filter(p => p.kind === 'legendary');
+    const regulars = combat.participants.filter(p => this._isRegularEnemy(p));
+
+    const heroRows = heroes.length
+      ? heroes.map((h, i) => {
+          const isAlly = h.kind === 'npc';
+          const dex = isAlly ? null : ((this.state.characters.find(c => c.id === h.sourceId)?.stats?.DEX) ?? 0);
+          const dexHint = dex == null ? null : (dex >= 0 ? `+${dex}` : `${dex}`);
+          const init = h.initiative;
+          const startActs = this._startingActionsFor(init);
+          const actsHint = (init != null && !isNaN(init) && !isAlly)
+            ? `<span style="font-size:0.65rem;background:var(--gold);color:var(--leather-dark);padding:2px 6px;border-radius:3px;margin-left:6px;font-weight:bold">${startActs} action${startActs===1?'':'s'}</span>`
+            : '';
+          const upDisabled = i === 0 ? 'disabled' : '';
+          const downDisabled = i === heroes.length - 1 ? 'disabled' : '';
+          const icon = isAlly ? '&#129309;' : '&#128100;';
+          const subtitle = isAlly
+            ? `<span style="color:#4a7c3e;font-weight:bold">Ally NPC</span> &middot; GM decides starting actions`
+            : `DEX ${dexHint} &middot; roll d20 + DEX`;
+          const initInput = isAlly
+            ? `<span style="width:64px;text-align:center;font-size:0.65rem;color:var(--ink-light);font-style:italic">ally</span>`
+            : `<input id="init_${h.id}" type="number" inputmode="numeric" placeholder="init"
+                     value="${init != null ? init : ''}"
+                     oninput="app._onInitInput && app._onInitInput('${h.id}', this.value)"
+                     style="width:64px;padding:6px;font-size:0.95rem;border:1px solid var(--gold);border-radius:4px;background:var(--parchment);color:var(--ink);text-align:center;font-weight:bold">`;
+          return `
+            <div style="display:flex;gap:6px;align-items:center;padding:8px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:5px;margin-bottom:6px">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <button onclick="app.movePcInitiative('${h.id}','up')" ${upDisabled} title="Move up"
+                  style="padding:2px 8px;font-size:0.7rem;border:1px solid var(--parchment-edge);background:var(--parchment-dark);color:var(--ink);border-radius:3px;cursor:pointer;${upDisabled?'opacity:0.3;cursor:default':''}">&#9650;</button>
+                <button onclick="app.movePcInitiative('${h.id}','down')" ${downDisabled} title="Move down"
+                  style="padding:2px 8px;font-size:0.7rem;border:1px solid var(--parchment-edge);background:var(--parchment-dark);color:var(--ink);border-radius:3px;cursor:pointer;${downDisabled?'opacity:0.3;cursor:default':''}">&#9660;</button>
+              </div>
+              <span style="font-size:0.7rem;color:var(--ink-light);min-width:18px;text-align:center;font-weight:bold">${i+1}.</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:bold;font-size:0.88rem">${icon} ${this.esc(h.name)}${actsHint}</div>
+                <div style="font-size:0.65rem;color:var(--ink-light)">${subtitle}</div>
+              </div>
+              ${initInput}
+            </div>`;
+        }).join('')
+      : `<div style="padding:10px;background:var(--parchment);border-radius:5px;font-size:0.75rem;color:var(--ink-light);font-style:italic">No heroes (players or ally NPCs) in this combat.</div>`;
+
+    const enemySummary = [];
+    if (legendaries.length) enemySummary.push(`${legendaries.length} legendary`);
+    if (regulars.length) enemySummary.push(`${regulars.length} regular enemy/enemies`);
+
+    return `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="flex:1;min-width:0">
+          <h2 style="margin:0;font-size:1.05rem;line-height:1.2">&#9876; ${this.esc(combat.encounterName)}</h2>
+          <div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(campaign?.name || '—')} &middot; Initiative</div>
+        </div>
+        <button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.endCombatConfirm()" title="Cancel combat">Cancel</button>
+      </div>
+
+      <div style="padding:10px;background:var(--parchment-dark);border:1px solid var(--gold);border-radius:6px;margin-bottom:12px;font-size:0.78rem;line-height:1.4">
+        <strong style="color:var(--burgundy)">How initiative works in Nimble:</strong>
+        <ul style="margin:6px 0 0;padding-left:18px">
+          <li>Each player rolls <strong>d20 + DEX</strong>. The result decides <strong>starting actions</strong> (not turn order): 1&ndash;9 = 1 action, 10&ndash;19 = 2, 20+ = 3.</li>
+          <li><strong>Players choose the turn order</strong> themselves &mdash; use &#9650;/&#9660; to set it.</li>
+          <li>Regular monsters don't roll &mdash; they act as a group after all heroes.</li>
+          <li>Legendary bosses act between every hero's turn (multiple times per round).</li>
+        </ul>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:0.78rem;font-weight:bold;color:var(--burgundy);margin-bottom:6px">Turn Order &middot; Initiative</div>
+        ${heroRows}
+      </div>
+
+      ${enemySummary.length ? `
+        <div style="margin-bottom:12px;padding:8px 10px;background:var(--parchment);border:1px dashed var(--parchment-edge);border-radius:5px;font-size:0.72rem;color:var(--ink-light)">
+          <strong>Enemies:</strong> ${enemySummary.join(', ')} (no initiative roll needed)
+        </div>` : ''}
+
+      <button class="btn btn-primary btn-block" style="background:var(--gold);color:var(--leather-dark);font-weight:bold" onclick="app.submitInitiatives()">&#9876; Start Combat</button>
+    `;
+  },
+
+  // Updates the "N action(s)" badge live as the GM types an init value — no full re-render.
+  _onInitInput(pid, val) {
+    const combat = this.state.activeCombat;
+    if (!combat) return;
+    const p = combat.participants.find(x => x.id === pid);
+    if (!p) return;
+    const n = parseInt(val, 10);
+    p.initiative = isNaN(n) ? null : n;
+    // Don't re-render every keystroke (would steal focus). Users can reorder or submit when ready.
   },
 
   // ---- Combat tracker render ----
@@ -7625,6 +8432,9 @@ const app = {
           <button class="btn btn-primary" onclick="app.setGMView('campaigns')">Go to Campaigns</button>
         </div>`;
     }
+
+    // Initiative phase — players roll, GM enters each result
+    if (combat.phase === 'initiative') return this._renderInitiativeEntry(combat);
 
     const campaign = (this.state.campaigns || []).find(c => c.id === combat.campaignId);
     const viewMode = this.state.combatViewMode || 'list';
@@ -7653,21 +8463,50 @@ const app = {
       </div>
     `;
 
+    // Resolve the current turn slot from turnOrder
+    const slot = (combat.turnOrder || [])[combat.turnIndex] || null;
+    let turnLabel = '';
+    if (slot) {
+      if (slot.type === 'monsters') {
+        turnLabel = "Monsters' Turn — all regular enemies act now";
+      } else {
+        const cur = combat.participants.find(p => p.id === slot.pid);
+        if (cur) {
+          const prefix = slot.type === 'legendary' ? '👑 Legendary: ' : (slot.type === 'ally' ? '🤝 Ally: ' : '');
+          turnLabel = `${prefix}${cur.name}`;
+        }
+      }
+    }
+
     if (viewMode === 'map') {
-      // Compact current-turn strip + map
-      const cur = combat.participants[combat.turnIndex];
-      if (cur) {
-        const hpBit = cur.isMinion ? 'minion' : `${cur.hp}/${cur.maxHp} HP`;
+      if (turnLabel) {
         html += `
           <div style="padding:8px 10px;background:var(--parchment);border:1px solid var(--gold);border-radius:5px;margin-bottom:8px;font-size:0.78rem">
-            <strong>Turn:</strong> ${this.esc(cur.name)} &middot; ${hpBit}
+            <strong>Turn:</strong> ${this.esc(turnLabel)}
           </div>`;
       }
       html += this.renderCombatMap(combat, false);
     } else {
+      if (turnLabel) {
+        html += `
+          <div style="padding:8px 10px;background:var(--gold);color:var(--leather-dark);border-radius:5px;margin-bottom:8px;font-size:0.78rem;font-weight:bold;text-align:center">
+            ${this.esc(turnLabel)}
+          </div>`;
+      }
       html += '<div style="display:flex;flex-direction:column;gap:6px">';
       for (let i = 0; i < combat.participants.length; i++) {
-        html += this._renderCombatParticipant(combat.participants[i], i, i === combat.turnIndex);
+        const p = combat.participants[i];
+        // A participant is "current" when the slot is 'monsters' and p is a regular enemy,
+        // or the slot pid matches this participant.
+        let isCurrent = false;
+        if (slot) {
+          if (slot.type === 'monsters') {
+            isCurrent = this._isRegularEnemy(p);
+          } else {
+            isCurrent = slot.pid === p.id;
+          }
+        }
+        html += this._renderCombatParticipant(p, i, isCurrent);
       }
       html += '</div>';
     }
@@ -7683,23 +8522,45 @@ const app = {
     const hpPct = p.maxHp > 0 ? Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100)) : 0;
     const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
 
-    const kindIcon = { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#127917;', minion: '&#128049;' }[p.kind] || '';
+    const isAllyNPC = p.kind === 'npc' && p.role === 'ally';
+    const isEnemyNPC = p.kind === 'npc' && p.role !== 'ally';
+    const kindIcon = isAllyNPC
+      ? '&#129309;' // handshake for ally NPC
+      : { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#128128;', minion: '&#128049;' }[p.kind] || '';
     const armorBadge = p.armor ? `<span style="background:var(--leather);color:var(--parchment);font-size:0.6rem;padding:2px 5px;border-radius:3px;margin-left:4px">${this.esc(p.armor)}</span>` : '';
 
-    // Phase banners for legendaries
+    // Nimble GM UX: don't reveal enemy HP numbers. Only a Bloodied badge once below half HP.
+    // Regular monsters + enemy NPCs both hide HP. Ally NPCs show HP like PCs.
+    const isRegularEnemy = p.kind === 'monster' || isEnemyNPC;
+    const isBloodiedRegular = isRegularEnemy && !p.isMinion && p.maxHp > 0 && p.hp > 0 && p.hp <= p.maxHp / 2;
+
+    // Phase banners — legendaries track Bloodied/Last Stand explicitly; regular enemies get a derived badge
     let phaseBanner = '';
     if (p.kind === 'legendary') {
       if (p.phase === 'lastStand') phaseBanner = '<span style="background:var(--burgundy);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">LAST STAND</span>';
       else if (p.bloodied) phaseBanner = '<span style="background:#b8621b;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">BLOODIED</span>';
+    } else if (isBloodiedRegular) {
+      phaseBanner = '<span style="background:#b8621b;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">BLOODIED</span>';
     }
 
-    // HP row
+    // HP / damage controls
+    //  - Minion: Kill-minion button (unchanged).
+    //  - PC: full HP bar + numbers (party tracks own HP).
+    //  - Enemy: hide numbers; show a subtle status label (Healthy/Bloodied/Dead) plus damage controls.
+    const dmgControls = `
+      <div style="display:flex;gap:4px;margin-top:6px;align-items:center">
+        <input type="number" id="dmg_${p.id}" placeholder="dmg" inputmode="numeric" min="0"
+               style="width:56px;padding:4px 6px;font-size:0.75rem;border:1px solid var(--parchment-edge);border-radius:4px;background:var(--parchment);color:var(--ink);text-align:center">
+        <button class="btn btn-secondary btn-small" style="padding:3px 10px;font-size:0.75rem;color:var(--burgundy)" onclick="app.combatApplyHP('${p.id}', -1)">− Dmg</button>
+        <button class="btn btn-secondary btn-small" style="padding:3px 10px;font-size:0.75rem;color:#4a7c3e" onclick="app.combatApplyHP('${p.id}', 1)">+ Heal</button>
+      </div>`;
+
     let hpRow = '';
     if (p.isMinion) {
       hpRow = p.dead
         ? '<span style="color:var(--burgundy);font-size:0.75rem;font-weight:bold">DEAD</span>'
         : `<button class="btn btn-secondary btn-small" style="font-size:0.7rem;padding:3px 10px" onclick="app.combatKillMinion('${p.id}')">Kill minion</button>`;
-    } else {
+    } else if (p.kind === 'pc' || isAllyNPC) {
       hpRow = `
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
           <div style="flex:1;height:7px;background:var(--parchment-edge);border-radius:3px;overflow:hidden">
@@ -7707,13 +8568,24 @@ const app = {
           </div>
           <span style="font-size:0.75rem;font-weight:bold;white-space:nowrap;min-width:60px;text-align:right">${p.hp} / ${p.maxHp}</span>
         </div>
-        <div style="display:flex;gap:4px;margin-top:6px;align-items:center">
-          <input type="number" id="dmg_${p.id}" placeholder="dmg" inputmode="numeric" min="0"
-                 style="width:56px;padding:4px 6px;font-size:0.75rem;border:1px solid var(--parchment-edge);border-radius:4px;background:var(--parchment);color:var(--ink);text-align:center">
-          <button class="btn btn-secondary btn-small" style="padding:3px 10px;font-size:0.75rem;color:var(--burgundy)" onclick="app.combatApplyHP('${p.id}', -1)">− Dmg</button>
-          <button class="btn btn-secondary btn-small" style="padding:3px 10px;font-size:0.75rem;color:#4a7c3e" onclick="app.combatApplyHP('${p.id}', 1)">+ Heal</button>
+        ${dmgControls}`;
+    } else {
+      // Enemy (regular monster / legendary / npc): status label only, no numbers
+      const statusText = effectivelyDead
+        ? 'DEAD'
+        : (p.kind === 'legendary' && p.phase === 'lastStand')
+          ? 'LAST STAND'
+          : (p.kind === 'legendary' && p.bloodied) || isBloodiedRegular
+            ? 'BLOODIED'
+            : 'Healthy';
+      const statusColor = effectivelyDead
+        ? 'var(--burgundy)'
+        : statusText === 'LAST STAND' ? 'var(--burgundy)' : statusText === 'BLOODIED' ? '#b8621b' : 'var(--ink-light)';
+      hpRow = `
+        <div style="margin-top:6px;padding:5px 8px;background:var(--parchment-dark);border-radius:4px;text-align:center;font-size:0.72rem;font-weight:bold;color:${statusColor};letter-spacing:0.5px">
+          ${statusText}
         </div>
-      `;
+        ${dmgControls}`;
     }
 
     // Conditions
@@ -7722,10 +8594,10 @@ const app = {
       ? `<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">${condsList.map(c => `<span style="background:var(--burgundy);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px">${this.esc(c)} <span onclick="event.stopPropagation();app.combatToggleCondition('${p.id}','${c.replace(/'/g, "\\'")}')" style="cursor:pointer;margin-left:3px">&times;</span></span>`).join('')}</div>`
       : '';
 
-    // Info row (init, level, armor)
+    // Info row (init shown only for PCs — enemies don't roll in Nimble)
     const infoRow = `
       <div style="display:flex;gap:6px;align-items:baseline;font-size:0.65rem;color:var(--ink-light);flex-wrap:wrap">
-        <span>Init <strong style="color:var(--gold)">${p.initiative}</strong></span>
+        ${p.kind === 'pc' && p.initiative != null ? `<span>Init <strong style="color:var(--gold)">${p.initiative}</strong></span>` : ''}
         ${p.level != null ? `<span>Lvl ${p.level}</span>` : ''}
         ${p.size ? `<span>${this.esc(p.size)}</span>` : ''}
         ${p.speed ? `<span>Spd ${p.speed}</span>` : ''}
@@ -7894,15 +8766,27 @@ const app = {
 
   combatNextTurn() {
     const combat = this.state.activeCombat;
-    if (!combat) return;
-    const n = combat.participants.length;
+    if (!combat || combat.phase !== 'active') return;
+    const order = combat.turnOrder || [];
+    const n = order.length;
     if (!n) return;
-    // Advance, skip over dead non-legendary participants
+
+    const slotIsSkippable = (slot) => {
+      if (slot.type === 'monsters') {
+        // Skip the monster phase only if every regular enemy is already dead
+        return !combat.participants.some(p =>
+          this._isRegularEnemy(p) && !p.dead && p.hp > 0
+        );
+      }
+      const p = combat.participants.find(x => x.id === slot.pid);
+      if (!p) return true;
+      if (p.kind === 'legendary') return p.phase === 'dead';
+      return p.dead || p.hp <= 0;
+    };
+
     for (let i = 1; i <= n; i++) {
       const next = (combat.turnIndex + i) % n;
-      const p = combat.participants[next];
-      const isDead = p.kind === 'legendary' ? p.phase === 'dead' : (p.dead || p.hp <= 0);
-      if (!isDead) {
+      if (!slotIsSkippable(order[next])) {
         // Wrap-around increments the round counter
         if (next <= combat.turnIndex) combat.round++;
         combat.turnIndex = next;
@@ -7911,7 +8795,7 @@ const app = {
         return;
       }
     }
-    // All dead → keep as-is, just advance round
+    // Everything is skippable — just advance the round counter and stay put
     combat.round++;
     this.save();
     this.render();
@@ -7919,7 +8803,7 @@ const app = {
 
   combatNewRound() {
     const combat = this.state.activeCombat;
-    if (!combat) return;
+    if (!combat || combat.phase !== 'active') return;
     combat.round++;
     combat.turnIndex = 0;
     this.save();
@@ -8282,6 +9166,17 @@ const app = {
       { name: 'Acolyte', description: 'Servant of a higher power', mechanics: '+1 Insight, religious knowledge' },
       { name: 'Entertainer', description: 'Performer and showperson', mechanics: '+1 Persuasion, performance tools' },
     ];
+    // Helper: format a background's stat requirements as a readable badge
+    const reqBadge = (b) => {
+      if (!b.statRequirements) return '';
+      const parts = Object.entries(b.statRequirements).map(([stat, r]) => {
+        if (r.max !== undefined) return `${stat} ≤ ${r.max}`;
+        if (r.min !== undefined) return `${stat} ≥ ${r.min}`;
+        return stat;
+      });
+      return `<div style="display:inline-block;margin-top:4px;padding:2px 8px;font-size:0.65rem;font-weight:bold;background:var(--burgundy);color:#fff;border-radius:10px">Req: ${parts.join(', ')}</div>`;
+    };
+
     let html = '<div class="option-grid single-col">';
     bgs.forEach(b => {
       const sel = cr.background === b.name ? 'selected' : '';
@@ -8290,6 +9185,7 @@ const app = {
           <h4>${b.name}</h4>
           <p>${b.description || ''}</p>
           ${b.mechanics ? '<div class="complexity" style="color:var(--burgundy)">' + b.mechanics + '</div>' : ''}
+          ${reqBadge(b)}
         </div>`;
     });
     html += '</div>';
@@ -8348,6 +9244,30 @@ const app = {
     const skills = data.skills || this.getData().skills;
 
     let html = '<p style="font-size:0.8rem;color:var(--ink-light);margin-bottom:12px">Choose an array and assign values to your stats.</p>';
+
+    // Background stat requirement banner — e.g., "So Dumb I'm Smart Sometimes" requires INT ≤ 0
+    const bgData = (data.backgrounds || []).find(b => b.name === cr.background);
+    const reqs = bgData?.statRequirements;
+    if (reqs) {
+      const sa = this.resolveStats(cr, data);
+      const allAssigned = Object.values(sa).every(v => v !== null);
+      const unmet = Object.entries(reqs).filter(([stat, r]) => {
+        if (sa[stat] == null) return false;
+        if (r.max !== undefined && sa[stat] > r.max) return true;
+        if (r.min !== undefined && sa[stat] < r.min) return true;
+        return false;
+      });
+      const reqText = Object.entries(reqs).map(([s, r]) =>
+        r.max !== undefined ? `${s} ≤ ${r.max}` : `${s} ≥ ${r.min}`
+      ).join(', ');
+      const ok = allAssigned && unmet.length === 0;
+      const color = ok ? '#4a7c3e' : 'var(--burgundy)';
+      const icon = ok ? '✓' : '⚠';
+      html += `<div style="padding:8px 12px;margin-bottom:12px;background:var(--parchment-dark);border:2px solid ${color};border-radius:6px;font-size:0.78rem">
+        <strong style="color:${color}">${icon} ${this.esc(cr.background)}</strong> requires <strong>${reqText}</strong> at creation.
+        ${!ok ? '<div style="margin-top:4px;font-size:0.7rem;color:var(--ink-light)">Assign your stats so the requirement is met to continue.</div>' : ''}
+      </div>`;
+    }
 
     // Array selector
     html += '<div class="array-selector">';
@@ -8693,10 +9613,26 @@ const app = {
         if (!cr.background) { this.toast('Please choose a background'); return; }
         if (cr.background === 'Academy Dropout' && !cr.utilitySpell) { this.toast('Please choose a Utility Spell'); return; }
         break;
-      case 3:
+      case 3: {
         const vals = Object.values(cr.statAssignment);
         if (vals.some(v => v === null)) { this.toast('Assign all stat values'); return; }
+        // Enforce background stat requirements (So Dumb I'm Smart, Bumblewise, etc.)
+        const data3 = this.getData();
+        const bg3 = (data3.backgrounds || []).find(b => b.name === cr.background);
+        const reqs3 = bg3?.statRequirements;
+        if (reqs3) {
+          const sa3 = this.resolveStats(cr, data3);
+          for (const [stat, r] of Object.entries(reqs3)) {
+            if (r.max !== undefined && sa3[stat] > r.max) {
+              this.toast(`${cr.background} requires ${stat} ≤ ${r.max}`); return;
+            }
+            if (r.min !== undefined && sa3[stat] < r.min) {
+              this.toast(`${cr.background} requires ${stat} ≥ ${r.min}`); return;
+            }
+          }
+        }
         break;
+      }
       case 6:
         if (cr.className === 'Songweaver' && !cr.songweaverSchool) { this.toast('Choose your Songweaver spell school'); return; }
         break;
@@ -9021,6 +9957,13 @@ const app = {
       // Fase 3: activeCombat may be null (explicitly ended elsewhere) or a full object
       if (remoteCombat !== undefined) {
         this.state.activeCombat = remoteCombat || null;
+        // Migrate legacy combats adopted from another device that predates the initiative rework
+        if (this.state.activeCombat && !this.state.activeCombat.phase) {
+          const combat = this.state.activeCombat;
+          combat.phase = 'active';
+          combat.turnOrder = this._buildTurnOrder(combat.participants || []);
+          combat.turnIndex = 0;
+        }
       }
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state.characters)); } catch (_) {}
       try { localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(this.state.campaigns)); } catch (_) {}
@@ -9213,17 +10156,28 @@ const app = {
 
     const modeBtn = (id, icon, label) =>
       `<button onclick="app.setRemoteViewerMode('${id}')"
-        style="flex:1;padding:5px;font-size:0.72rem;background:${viewMode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${viewMode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
+        style="flex:1;padding:5px;font-size:0.7rem;background:${viewMode === id ? 'var(--gold)' : 'var(--parchment-dark)'};color:${viewMode === id ? 'var(--leather-dark)' : 'var(--ink)'};border:1px solid var(--parchment-edge);border-radius:4px;cursor:pointer;font-family:inherit">${icon} ${label}</button>`;
 
     let body = '';
     if (viewMode === 'map') {
-      const cur = combat.participants?.[combat.turnIndex];
-      if (cur) {
+      // Resolve current turn from turnOrder (supports 'monsters' phase)
+      const slot = (combat.turnOrder || [])[combat.turnIndex] || null;
+      let turnLabel = '';
+      if (slot) {
+        if (slot.type === 'monsters') turnLabel = "Monsters' Turn";
+        else {
+          const cur = (combat.participants || []).find(p => p.id === slot.pid);
+          if (cur) turnLabel = (slot.type === 'legendary' ? '👑 ' : '') + cur.name;
+        }
+      }
+      if (turnLabel) {
         body += `<div style="padding:6px 10px;background:var(--parchment);border:1px solid var(--gold);border-radius:5px;margin-bottom:8px;font-size:0.75rem">
-          <strong>Turn:</strong> ${this.esc(cur.name)}
+          <strong>Turn:</strong> ${this.esc(turnLabel)}
         </div>`;
       }
       body += this.renderCombatMap(combat, true);
+    } else if (viewMode === 'myactions') {
+      body = this._renderMyActionsPanel(combat);
     } else {
       body = this._renderRemoteParticipantList(combat);
     }
@@ -9239,6 +10193,7 @@ const app = {
         <div style="display:flex;gap:5px;margin-bottom:10px">
           ${modeBtn('list', '&#128203;', 'List')}
           ${modeBtn('map',  '&#128506;&#65039;', 'Map')}
+          ${modeBtn('myactions', '&#9876;', 'My Actions')}
         </div>
         ${body}
       </div>
@@ -9248,36 +10203,201 @@ const app = {
     `);
   },
 
+  // Which of this device's local characters is the player using during this session?
+  // Priority: selected character → character already in the combat's participants → first one.
+  _getSessionPlayerCharacter(combat) {
+    const chars = this.state.characters || [];
+    if (!chars.length) return null;
+    if (this.state.selectedCharacterId) {
+      const sel = chars.find(c => c.id === this.state.selectedCharacterId);
+      if (sel) return sel;
+    }
+    const participantIds = new Set((combat?.participants || []).filter(p => p.kind === 'pc').map(p => p.sourceId));
+    const inCombat = chars.find(c => participantIds.has(c.id));
+    if (inCombat) return inCombat;
+    return chars[0];
+  },
+
+  _renderMyActionsPanel(combat) {
+    const ch = this._getSessionPlayerCharacter(combat);
+    if (!ch) {
+      return `
+        <div style="padding:16px;background:var(--parchment);border:1px dashed var(--parchment-edge);border-radius:6px;text-align:center">
+          <div style="font-size:0.8rem;margin-bottom:8px">No character on this device yet.</div>
+          <div style="font-size:0.7rem;color:var(--ink-light)">Create or import a character to see your actions here.</div>
+        </div>`;
+      }
+
+    // Is this character actually in the combat? (nice-to-have info, not a gate)
+    const inCombat = (combat.participants || []).some(p => p.kind === 'pc' && p.sourceId === ch.id);
+
+    // Header card: name + level + HP + mana
+    const manaLine = (ch.maxMana && ch.maxMana > 0)
+      ? `<span style="margin-left:10px">&#128293; Mana ${ch.mana ?? ch.maxMana}/${ch.maxMana}</span>`
+      : '';
+    const header = `
+      <div style="padding:10px;background:var(--parchment);border:1px solid var(--gold);border-radius:6px;margin-bottom:10px">
+        <div style="font-weight:bold;font-size:0.95rem">&#128100; ${this.esc(ch.name)}</div>
+        <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">
+          ${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')} &middot; Lvl ${ch.level || 1}
+          ${inCombat ? '' : '<span style="margin-left:6px;color:var(--burgundy);font-style:italic">(not in this combat)</span>'}
+        </div>
+        <div style="font-size:0.78rem;margin-top:6px">
+          &#10084;&#65039; HP ${ch.hp ?? ch.maxHp}/${ch.maxHp}
+          ${manaLine}
+        </div>
+      </div>`;
+
+    // Attacks (equipped weapons + unarmed)
+    const attacks = this.getCharacterAttacks(ch) || [];
+    let attacksSec = '';
+    if (attacks.length) {
+      attacksSec = '<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px">&#127993; Attacks</div>';
+      attacksSec += attacks.map(atk => `
+        <div style="padding:8px 10px;margin-bottom:4px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+            <strong style="font-size:0.82rem">${this.esc(atk.name)}</strong>
+            <span style="font-size:0.7rem;color:var(--gold);font-weight:bold">${this.esc(atk.damageDisplay || '')}</span>
+          </div>
+          <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">
+            ${atk.damageType ? this.esc(atk.damageType) : ''}
+            ${atk.properties && atk.properties.length ? ' &middot; ' + atk.properties.map(p => this.esc(p)).join(', ') : ''}
+          </div>
+          ${atk.notes ? `<div style="font-size:0.68rem;color:var(--ink-light);margin-top:2px;font-style:italic">${this.esc(atk.notes)}</div>` : ''}
+        </div>`).join('');
+    }
+
+    // Active abilities (class features tagged active)
+    const spellNames = new Set((ch.spells || []).map(s => s.name));
+    const activeAbilities = (ch.abilities || []).filter(a =>
+      !spellNames.has(a.name) && this.classifyAbilityType(a) === 'active'
+    );
+    let activeSec = '';
+    if (activeAbilities.length) {
+      activeSec = '<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px">&#9876; Active Abilities</div>';
+      activeSec += activeAbilities.map(a => `
+        <details style="padding:8px 10px;margin-bottom:4px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:6px">
+          <summary style="cursor:pointer;font-weight:bold;font-size:0.8rem;color:var(--ink)">${this.esc(a.name)}</summary>
+          <div style="font-size:0.72rem;margin-top:6px;color:var(--ink)">${this.esc(a.description || '')}</div>
+        </details>`).join('');
+    }
+
+    // Spells (grouped by tier)
+    const spells = ch.spells || [];
+    let spellsSec = '';
+    if (spells.length) {
+      const tierLabels = { 0: 'Cantrip', 1: 'T1', 2: 'T2', 3: 'T3', 4: 'T4', 5: 'T5', 6: 'T6', 7: 'T7', 8: 'T8', 9: 'T9' };
+      const byTier = {};
+      spells.forEach(sp => {
+        const t = sp.tier ?? 0;
+        if (!byTier[t]) byTier[t] = [];
+        byTier[t].push(sp);
+      });
+      spellsSec = '<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px">&#10024; Spells</div>';
+      const tierKeys = Object.keys(byTier).map(Number).sort((a, b) => a - b);
+      for (const t of tierKeys) {
+        for (const sp of byTier[t]) {
+          const cost = t > 0 ? `${t} mana` : '0 mana';
+          const affordable = t === 0 || (ch.mana ?? 0) >= t;
+          const meta = [
+            tierLabels[t] || ('T' + t),
+            sp.actions ? `${sp.actions}a` : null,
+            sp.range || null,
+            sp.damage && sp.damage !== 'None' ? sp.damage : null,
+            cost
+          ].filter(Boolean).join(' · ');
+          spellsSec += `
+            <details style="padding:8px 10px;margin-bottom:4px;background:var(--parchment);border:1px solid ${affordable ? 'var(--parchment-edge)' : 'var(--burgundy)'};border-radius:6px;${affordable ? '' : 'opacity:0.65'}">
+              <summary style="cursor:pointer;font-size:0.78rem">
+                <strong>${this.esc(sp.name)}</strong>
+                <div style="font-size:0.65rem;color:var(--ink-light);margin-top:2px">${meta}${affordable ? '' : ' &middot; <em>not enough mana</em>'}</div>
+              </summary>
+              <div style="font-size:0.72rem;margin-top:6px;color:var(--ink)">${this.esc(sp.description || '')}</div>
+            </details>`;
+        }
+      }
+    }
+
+    if (!attacks.length && !activeAbilities.length && !spells.length) {
+      return header + `
+        <div style="padding:12px;background:var(--parchment);border:1px dashed var(--parchment-edge);border-radius:6px;text-align:center;font-size:0.75rem;color:var(--ink-light)">
+          No attacks, active abilities, or spells yet.
+        </div>`;
+    }
+
+    return header + attacksSec + activeSec + spellsSec;
+  },
+
   _renderRemoteParticipantList(combat) {
-    // Build a compact read-only participant list
-    const participantRows = (combat.participants || []).map((p, idx) => {
-      const isCurrent = idx === combat.turnIndex;
-      const kindIcon = { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#127917;', minion: '&#128049;' }[p.kind] || '';
+    // Resolve current turn from turnOrder (post-Fase-1-#1 initiative rework)
+    const slot = (combat.turnOrder || [])[combat.turnIndex] || null;
+
+    const participantRows = (combat.participants || []).map((p) => {
+      const isCurrent = slot && (
+        (slot.type === 'monsters' && (p.kind === 'monster' || p.kind === 'minion' || p.kind === 'npc'))
+        || slot.pid === p.id
+      );
+      const isAllyNPC = p.kind === 'npc' && p.role === 'ally';
+      const isEnemyNPC = p.kind === 'npc' && p.role !== 'ally';
+      const kindIcon = isAllyNPC
+        ? '&#129309;'
+        : { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#128128;', minion: '&#128049;' }[p.kind] || '';
       const hpPct = p.maxHp > 0 ? Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100)) : 0;
       const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
       const dead = p.dead || (p.kind === 'legendary' ? p.phase === 'dead' : (!p.isMinion && p.hp <= 0));
+
+      const isRegularEnemy = p.kind === 'monster' || isEnemyNPC;
+      const isBloodiedRegular = isRegularEnemy && !p.isMinion && p.maxHp > 0 && p.hp > 0 && p.hp <= p.maxHp / 2;
+
       let phaseBadge = '';
       if (p.kind === 'legendary') {
         if (p.phase === 'lastStand') phaseBadge = '<span style="background:var(--burgundy);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">LAST STAND</span>';
         else if (p.bloodied) phaseBadge = '<span style="background:#b8621b;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">BLOODIED</span>';
+      } else if (isBloodiedRegular) {
+        phaseBadge = '<span style="background:#b8621b;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:3px;margin-left:4px">BLOODIED</span>';
       }
+
       const conds = Object.keys(p.conditions || {}).filter(k => p.conditions[k]);
       const condsRow = conds.length ? `<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">${conds.map(c => `<span style="background:var(--burgundy);color:#fff;font-size:0.55rem;padding:1px 5px;border-radius:6px">${this.esc(c)}</span>`).join('')}</div>` : '';
-      const hpLine = p.isMinion
-        ? `<div style="font-size:0.7rem;color:${p.dead ? 'var(--burgundy)' : 'var(--ink-light)'}">${p.dead ? 'DEAD' : 'minion'}</div>`
-        : `<div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+
+      // HP: PCs and ally NPCs show numbers/bar. Enemies show a status label; minions show minion/DEAD.
+      let hpLine;
+      if (p.isMinion) {
+        hpLine = `<div style="font-size:0.7rem;color:${p.dead ? 'var(--burgundy)' : 'var(--ink-light)'}">${p.dead ? 'DEAD' : 'minion'}</div>`;
+      } else if (p.kind === 'pc' || isAllyNPC) {
+        hpLine = `<div style="display:flex;align-items:center;gap:6px;margin-top:3px">
              <div style="flex:1;height:5px;background:var(--parchment-edge);border-radius:3px;overflow:hidden">
                <div style="width:${hpPct}%;height:100%;background:${hpColor}"></div>
              </div>
              <span style="font-size:0.7rem;white-space:nowrap">${p.hp}/${p.maxHp}</span>
            </div>`;
+      } else {
+        // Enemy — hide HP; show only the status label
+        const statusText = dead
+          ? 'DEAD'
+          : (p.kind === 'legendary' && p.phase === 'lastStand')
+            ? 'LAST STAND'
+            : (p.kind === 'legendary' && p.bloodied) || isBloodiedRegular
+              ? 'BLOODIED'
+              : 'Healthy';
+        const statusColor = dead
+          ? 'var(--burgundy)'
+          : statusText === 'LAST STAND' ? 'var(--burgundy)' : statusText === 'BLOODIED' ? '#b8621b' : 'var(--ink-light)';
+        hpLine = `<div style="margin-top:4px;padding:4px 6px;background:var(--parchment-dark);border-radius:4px;text-align:center;font-size:0.68rem;font-weight:bold;color:${statusColor};letter-spacing:0.5px">${statusText}</div>`;
+      }
+
+      // Init only shown for PCs — enemies don't roll (Nimble)
+      const initLine = p.kind === 'pc' && p.initiative != null
+        ? `Init ${p.initiative}${p.level != null ? ` &middot; Lvl ${p.level}` : ''}${p.armor ? ' &middot; ' + this.esc(p.armor) : ''}`
+        : `${p.level != null ? `Lvl ${p.level}` : ''}${p.armor ? (p.level != null ? ' &middot; ' : '') + this.esc(p.armor) : ''}`;
+
       return `
         <div class="combat-participant${isCurrent ? ' current' : ''}${dead ? ' dead' : ''}" style="padding:8px 10px">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
             <strong style="font-size:0.85rem">${kindIcon} ${this.esc(p.name)}${phaseBadge}</strong>
             ${isCurrent ? '<span style="background:var(--gold);color:var(--leather-dark);font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:bold">TURN</span>' : ''}
           </div>
-          <div style="font-size:0.65rem;color:var(--ink-light);margin-top:2px">Init ${p.initiative}${p.level != null ? ` &middot; Lvl ${p.level}` : ''}${p.armor ? ' &middot; ' + this.esc(p.armor) : ''}</div>
+          ${initLine ? `<div style="font-size:0.65rem;color:var(--ink-light);margin-top:2px">${initLine}</div>` : ''}
           ${hpLine}
           ${condsRow}
         </div>`;

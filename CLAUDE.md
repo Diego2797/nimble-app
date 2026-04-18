@@ -406,6 +406,8 @@ app.state = {
   songweaverSchool: null,            // Extra school chosen by Songweaver at creation (e.g., 'fire')
   stormshifterSchool: null,          // Extra school chosen by Stormshifter Sky & Storm subclass (e.g., 'ice' | 'radiant')
   fiendishBoonStat: null,            // Shadowmancer's Fiendish Boon: chosen stat for +1 / -1 max hit dice
+  invokerPicks: null,                // { cantrip: 'name', tiered: 'name' } — Mage Invoker of Chaos/Control L7 picks
+  neutralSaveAdv: null,              // 'STR'|'DEX'|'INT'|'WIL' — Fiendkin ancestry: chosen neutral save to upgrade
 }
 ```
 
@@ -758,7 +760,7 @@ app.renderSyncHeader()                   // UI block at top of Characters tab
 ## Service Worker
 
 - **File**: `sw.js`
-- **Version**: `v6` (bump CACHE_NAME to force old clients to purge cache on `activate`)
+- **Version**: `v25` (bump CACHE_NAME to force old clients to purge cache on `activate`)
 - **Strategy**: stale-while-revalidate (was cache-first in v5, which caused "deployed but phones still show old version" issues)
   - Serves cached response instantly (fast, offline)
   - Simultaneously fetches fresh, updates cache for next visit
@@ -1031,6 +1033,7 @@ This session closed out all the player-facing Playgroup-Stage items. Kept for co
 
 - **Storage Persistence API** — iOS Safari evicts PWA data after 7 days of no use. Adding `navigator.storage.persist()` mitigates this for users who aren't signed in to cloud sync. ~15 min work.
 - **Onboarding / first-run tour** — a simple guided walkthrough for non-technical playgroup members on their first visit. Cloud-sync pitch + character creation entry point.
+- **Background stat requirements** — some backgrounds have stat prereqs (e.g., "So Dumb I'm Smart Sometimes" requires INT ≤ 0 at character creation; "Bumblewise" requires WIL ≤ 0). The creation flow currently lets you pick any background regardless of your stats. Two possible fixes: (a) re-order creation steps so stats come BEFORE background and hide ineligible options, or (b) after picking a qualifying background, lock the required stat when the player reaches the Stats step. (a) is cleaner; (b) keeps the existing step order. Flagged by Diego during Session 4 live-play testing.
 
 ### GM Mode (in progress — roadmap by phases)
 
@@ -1657,6 +1660,65 @@ Implementation sketch when we get to Fase 3+ (cross-device real-time):
 - [x] iOS PWA stuck on old cached version after deploys — `registration.update()` on every boot + reload on new SW activation. Combined with the existing stale-while-revalidate strategy this means deploys propagate automatically. (Clients stuck on pre-v7 SWs still need a manual uninstall/reinstall once, but that's a one-time migration.)
 - [x] App was mobile-only (max-width 500 px) — added `@media (min-width: 900px)` block with sidebar layout, wider centered content, multi-column character list, hover states. Mobile untouched.
 - [x] No way to sync characters across devices — Firebase Auth + Firestore cloud sync added. Local-first, last-write-wins, real-time listener via `onSnapshot`. See Cloud Sync System section.
+
+### Bugs Fixed (April 2026 Session 4 — live-play debug pass + Nimble-correct combat model)
+
+Big rework session after the first live playtest with GM mode. Fixed 11 issues across 3 tiers:
+
+**Tier 1 — combat fundamentals (broken on every fight):**
+- [x] Initiative was auto-rolled for every participant and used for turn order — WRONG per Nimble. Correct rules: PCs roll d20+DEX for **starting actions only** (1-9=1 action, 10-19=2, 20+=3). Players **manually decide** turn order among themselves at combat start, and it's locked for the rest of the fight. Monsters don't roll. Regular enemies (monsters, minions, enemy NPCs) all act as one group after all heroes. Legendary bosses act between each hero's turn (multiple times per round). See "Combat System (Session 4 rework)" section below for the data model.
+- [x] Monster HP was visible to both GM and players — violates Nimble's philosophy ("the GM tracks damage, says when it's bloodied or dead"). Now: PCs and ally NPCs show full HP bar + numbers. Regular enemies + legendaries + enemy NPCs show only a status label (Healthy / BLOODIED / LAST STAND / DEAD) derived from HP. Map token rings for non-hero participants show only bloodied (orange) / last-stand (dark red) / dead (gray) — no HP-percent leak.
+- [x] Players couldn't see the map or their actions during remote sessions — the session viewer was list-only. Added a 3rd mode "**My Actions**" to `_renderRemoteCombatViewer`: shows the LOCAL player's character header (HP/Mana), attacks (via existing `getCharacterAttacks`), active abilities (via `classifyAbilityType`), and spells grouped by tier with mana-cost hints ("not enough mana" if unaffordable). Each player sees only their OWN character's actions. Uses `_getSessionPlayerCharacter(combat)` to pick which local char to show (selected → in-combat → first).
+
+**Tier 2 — caster UX + character sheet correctness:**
+- [x] Mana was read-only in the Combat tab — casters had to leave combat to spend mana every cast. Added a tracker row "Mana X/Y" below HP/Temp HP with tap-to-show +/- controls (`combatMana` handler in `applyAdjust`). Only renders if `maxMana > 0`.
+- [x] At Any Cost (Invoker of Control) and Tempest Mage (Invoker of Chaos) were granting the FULL necrotic/wind school — reference says "1 cantrip + 1 tiered spell from X". Removed both entries from `SPELL_PROGRESSION.Mage.subclassSchools`. Added `ch.invokerPicks = { cantrip, tiered }`. `autoLoadSpells` adds only those two picked spells (tagged with `invokerPick: true`). Picker modal: `invokerPicksModal()` + `saveInvokerPicks()`. Button on the sheet ("✨ Pick At Any Cost Spells" gold when empty, "Change … Picks" leather when filled) — retrainable anytime (also serves as Study! retrain for these picks). Re-pick cleanly swaps the old invokerPick-tagged spells for the new ones. Works symmetrically for both Mage Invoker subclasses.
+- [x] Celestial ancestry's "disadvantaged save → neutral" was never applied to the sheet indicators. Fiendkin's "1 neutral save → advantaged" also ignored. Both ancestries have `statMods: { disadvantagedSaveNeutral }` / `{ neutralSaveAdvantaged }` in gamedata, but nothing consumed them. Fixed in the save-normalization block of `renderSheet`: reads `ancestryData.statMods` and (a) strips the disadvantage for Celestial, (b) applies the player's chosen neutral stat to Fiendkin. New char field `ch.neutralSaveAdv: 'STR'|'DEX'|'INT'|'WIL'`. Prompt UI appears near stats: gold prompt "Pick your boosted save" if unset → `neutralSavePickerModal()`; small strip + "Change" button once picked. Audit of other ancestries/backgrounds with save effects: all conditional (Survivalist vs poison, Bumblewise WIL reroll, etc.), no sheet indicator needed.
+- [x] The Cheat's "Misdirection" (L11 Silent Blade subclass feature) "Gain INT armor" wasn't applied. Added detection in `calculateArmor`: when the character is The Cheat and has the "Misdirection" ability, adds INT to total armor and appears in the breakdown ("Misdirection: INT +N"). Stacks with equipped armor and shield (verified against reference — it's an always-on bonus, not replacement). Triggers the auto-calc path even when the character has no equipped gear so the bonus still shows.
+
+**Tier 3 — encounter builder + map polish:**
+- [x] NPC HP could exceed max HP when editing. `saveNPC` now clamps `hp = max(0, min(hp, maxHp))` with a toast if adjusted.
+- [x] NPCs only worked as enemies. Added `npc.role: 'ally' | 'enemy'` (default enemy) with radio buttons in the NPC modal. **Allies act as heroes**: own turn slot in `turnOrder` (kind `'ally'` alongside `'pc'`), HP visible like PCs, legendary interleave triggers after their turn, token ring uses hero HP-color coding. **Enemies act with monsters**: same group turn, HP hidden, token burgundy. New helpers `_isHeroSide(p)` / `_isRegularEnemy(p)` centralize this logic (used in `_buildTurnOrder`, `combatNextTurn` skip check, `_renderCombatParticipant`, remote list, map tokens). Initiative entry screen now lists allies alongside PCs with ▲/▼ reorder (allies have no init input — GM full 3 actions).
+- [x] Map could only be edited during live combat. Added **encounter map prep**: `encounter.map = { width, height, gridType, tokens, fog, walls }` keyed by stable slotKeys (`pc:<charId>:0`, `bestiary:<id>:<N>`, `legendary:<id>:<N>`, `npc:<id>:<N>`). "🗺 Prepare Map" button on the encounter editor → `openMapPrep(encId)` opens a dedicated full-screen view (`_renderMapPrep` inside `renderGM`). Reuses `renderCombatMap` via an `_inPrepMode` flag that routes token/cell clicks to `mapPrep*` handlers (so prep doesn't touch `state.activeCombat`). On `startCombatFromEncounter`, positions + fog + walls from `encounter.map` override the auto-placement via slot-key matching (`p._slotKey`). Encounter cards/editor show ✓ when a map is prepared.
+- [x] Grid was square-only. Added **hex grid** option: `map.gridType: 'square' | 'hex'` (default square). Pointy-top, odd-row horizontal offset. `renderCombatMap` uses helpers `cellCenter(x, y)` and `cellPath(x, y)` that switch geometry by `gridType`. Hex cells are SVG polygons (clickable via path onclick). Toggle buttons in both the prep toolbar ("⬢ Hex" / "□ Square") and the live combat map toolbar. `gridType` persists from `encounter.map` through `startCombatFromEncounter` into `combat.map`.
+
+**Supporting changes:**
+- Service worker bumped v13 → v25 across the session (12 bumps for cache invalidation).
+- New character fields: `ch.invokerPicks`, `ch.neutralSaveAdv`. New NPC field: `npc.role`. New encounter field: `encounter.map`. New combat fields: `combat.phase`, `combat.turnOrder`, participant `initiative: null|int` (PC only), `startingActions` (PC only, round-1 reference), `_slotKey` (transient).
+- Legacy-combat migration added to both `load()` and `_adoptFromCloud`: if an active combat lacks `phase`, auto-set `phase='active'` and rebuild `turnOrder` from existing participants.
+
+## Combat System (Session 4 rework) — quick reference
+
+```javascript
+combat = {
+  ...existing fields,
+  phase: 'initiative' | 'active',    // 'initiative' = waiting for GM to enter PC rolls
+  turnOrder: [                        // built by _buildTurnOrder on submitInitiatives
+    { type: 'pc',        pid },       // PC slot
+    { type: 'ally',      pid },       // ally NPC slot (hero-side)
+    { type: 'legendary', pid },       // inserted after EACH hero turn
+    { type: 'monsters' }              // single end-of-round slot for all regular enemies
+  ],
+  turnIndex: number,                  // index into turnOrder
+  map: { width, height, gridType: 'square'|'hex', tokens: { pid: {x,y} }, fog, walls }
+}
+
+participant = {
+  // existing fields ...
+  initiative: null | number,          // PC only (null during init phase, set on submit)
+  startingActions: 1 | 2 | 3,         // PC only — 1-9 roll = 1, 10-19 = 2, 20+ = 3
+  role: 'ally' | 'enemy',             // NPC only — determines turn slot + HP visibility
+  _slotKey: 'pc:charId:0' | 'bestiary:goblin:3' | ...   // transient, for map prep matching
+}
+
+// Key helpers:
+app._isHeroSide(p)                    // PC or ally NPC → own turn slot + visible HP
+app._isRegularEnemy(p)                // monster/minion/enemy NPC → 'monsters' group turn, hidden HP
+app._buildTurnOrder(participants)     // constructs the turnOrder array per Nimble rules
+app._startingActionsFor(init)         // 1-9→1, 10-19→2, 20+→3, null→3 (ally default)
+app._invokerPickSchool(ch)            // 'wind' | 'necrotic' | null — for Mage Invoker subclasses
+app.hasInvokerPicks(ch)               // true if picker button should show on sheet
+```
 
 ## Aesthetic Guidelines
 - **Fantasy old book / worn parchment** look

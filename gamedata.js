@@ -291,10 +291,10 @@ window.GAME_DATA = {
     { name: "(Secretly) Undead",    description: "Unnatural Resilience: You are immune to disease and do not need to eat, drink, or breathe.", mechanics: "Immune to disease. No need to eat, drink, or breathe. Children, animals, and Celestials are uneasy in your presence." },
     { name: "Taste for the Finer Things", description: "You always have up-to-date knowledge of the customs and dress of the upper classes.", mechanics: "Advantage on Influence checks with the upper class." },
     { name: "Fearless",             description: "You are immune to the Frightened condition.", mechanics: "Immune to Frightened. +1 Initiative. -1 Armor.", bonuses: { initiative: 1, armor: -1 } },
-    { name: "So Dumb I'm Smart Sometimes", description: "Requires 0 or negative INT at character creation.", mechanics: "Reroll an INT-related skill check, 1/day. Reroll a failed INT save with advantage, 1/Safe Rest." },
-    { name: "Wily Underdog",        description: "Requires 0 or negative STR at character creation.", mechanics: "Reroll a failed STR-related roll and use another stat instead, 1/day." },
-    { name: "Bumblewise",           description: "Requires 0 or negative WIL at character creation.", mechanics: "A result of 1 or less on any WIL-related roll counts as a natural 20 (WIL save, Naturecraft, Perception, Influence, or Insight check)." },
-    { name: "Accidental Acrobat",   description: "Requires 0 or negative DEX at character creation.", mechanics: "Whenever you fail a DEX-related roll, you may roll again. If you still fail, the consequences are BAD." },
+    { name: "So Dumb I'm Smart Sometimes", description: "Requires 0 or negative INT at character creation.", mechanics: "Reroll an INT-related skill check, 1/day. Reroll a failed INT save with advantage, 1/Safe Rest.", statRequirements: { INT: { max: 0 } } },
+    { name: "Wily Underdog",        description: "Requires 0 or negative STR at character creation.", mechanics: "Reroll a failed STR-related roll and use another stat instead, 1/day.", statRequirements: { STR: { max: 0 } } },
+    { name: "Bumblewise",           description: "Requires 0 or negative WIL at character creation.", mechanics: "A result of 1 or less on any WIL-related roll counts as a natural 20 (WIL save, Naturecraft, Perception, Influence, or Insight check).", statRequirements: { WIL: { max: 0 } } },
+    { name: "Accidental Acrobat",   description: "Requires 0 or negative DEX at character creation.", mechanics: "Whenever you fail a DEX-related roll, you may roll again. If you still fail, the consequences are BAD.", statRequirements: { DEX: { max: 0 } } },
     { name: "Tradesman/Artisan",    description: "Choose a profession (Baker/Cook, Smith, Stonemason, Weaver, Leatherworker, etc.).", mechanics: "Checks you make related to that profession are made with advantage. You retain special knowledge related to your profession." }
   ],
 
