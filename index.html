@@ -27,7 +27,7 @@
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
     const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } =
       await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
-    const { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp, collection } =
+    const { getFirestore, doc, setDoc, getDoc, onSnapshot, serverTimestamp, collection, deleteDoc } =
       await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js");
 
     const firebaseConfig = {
@@ -47,7 +47,7 @@
     window.firebaseSync = {
       auth, db, googleProvider,
       signInWithPopup, signOut, onAuthStateChanged,
-      doc, setDoc, getDoc, onSnapshot, serverTimestamp, collection
+      doc, setDoc, getDoc, onSnapshot, serverTimestamp, collection, deleteDoc
     };
     window.dispatchEvent(new Event('firebase-ready'));
   } catch (err) {
@@ -1915,6 +1915,9 @@ const app = {
     // Also schedule a push to the cloud if the user is logged in.
     // Debounced so rapid HP/mana/skill clicks don't spam Firestore.
     this.scheduleCloudPush();
+    // Session 5 cross-device: if this player has joined a GM session, republish their
+    // character snapshot (debounced) so the GM sees edits in real time.
+    this._schedulePartyRepublish();
   },
 
   load() {
@@ -6721,54 +6724,68 @@ const app = {
     const linked = (c.playerCharIds || [])
       .map(id => chars.find(ch => ch.id === id))
       .filter(Boolean);
+    const remoteEntries = Object.entries(this._remoteParty || {});   // [uid, { char, charId, displayName }]
+
+    // Helper: render one character card. `remote` shows a cloud badge and disables the X unlink button.
+    const renderCard = (ch, remote, uid) => {
+      const ancestry = ch.ancestry || '—';
+      const cls = ch.className || '—';
+      const lvl = ch.level || 1;
+      const hp = ch.hp ?? '?';
+      const maxHp = ch.maxHp ?? '?';
+      const hpPct = (ch.maxHp > 0) ? Math.max(0, Math.min(100, (ch.hp / ch.maxHp) * 100)) : 0;
+      const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
+      const remoteBadge = remote
+        ? `<span title="Joined from their own device" style="display:inline-block;margin-left:6px;padding:1px 6px;font-size:0.55rem;background:var(--gold);color:var(--leather-dark);border-radius:8px;font-weight:bold">&#9729;&#65039; REMOTE</span>`
+        : '';
+      const removeBtn = remote
+        ? ''   // remote players leave by themselves (Leave Session); GM can't forcibly remove
+        : `<button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem" onclick="event.stopPropagation();app.unlinkCharacter('${ch.id}')" title="Remove from campaign">&times;</button>`;
+      return `
+        <div class="char-card" style="position:relative${remote ? ';border-color:var(--gold)' : ''}">
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <h3 style="margin:0;font-size:0.95rem">${this.esc(ch.name)}</h3>
+                <span style="font-size:0.65rem;color:var(--ink-light)">Lvl ${lvl}</span>
+                ${remoteBadge}
+              </div>
+              <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">${this.esc(ancestry)} ${this.esc(cls)}</div>
+              <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+                <div style="flex:1;height:6px;background:var(--parchment-edge);border-radius:3px;overflow:hidden">
+                  <div style="width:${hpPct}%;height:100%;background:${hpColor};transition:width 0.3s"></div>
+                </div>
+                <span style="font-size:0.7rem;color:var(--ink-light);white-space:nowrap">${hp} / ${maxHp} HP</span>
+              </div>
+            </div>
+            ${removeBtn}
+          </div>
+        </div>`;
+    };
 
     let html = '';
-    if (linked.length === 0) {
+    if (linked.length === 0 && remoteEntries.length === 0) {
       html += `
         <div class="empty-state" style="padding:24px 16px">
           <div class="icon">&#128107;</div>
-          <p>No player characters linked.<br>Add the adventurers to track them here.</p>
+          <p>No player characters linked.<br>Add locally or share your session code so friends can join from their own device.</p>
         </div>`;
     } else {
       html += '<div style="display:flex;flex-direction:column;gap:8px">';
-      for (const ch of linked) {
-        const ancestry = ch.ancestry || '—';
-        const cls = ch.className || '—';
-        const lvl = ch.level || 1;
-        const hp = ch.hp ?? '?';
-        const maxHp = ch.maxHp ?? '?';
-        const hpPct = (ch.maxHp > 0) ? Math.max(0, Math.min(100, (ch.hp / ch.maxHp) * 100)) : 0;
-        const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
-        html += `
-          <div class="char-card" style="position:relative">
-            <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
-              <div style="flex:1;min-width:0">
-                <div style="display:flex;align-items:center;gap:8px">
-                  <h3 style="margin:0;font-size:0.95rem">${this.esc(ch.name)}</h3>
-                  <span style="font-size:0.65rem;color:var(--ink-light)">Lvl ${lvl}</span>
-                </div>
-                <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">${this.esc(ancestry)} ${this.esc(cls)}</div>
-                <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
-                  <div style="flex:1;height:6px;background:var(--parchment-edge);border-radius:3px;overflow:hidden">
-                    <div style="width:${hpPct}%;height:100%;background:${hpColor};transition:width 0.3s"></div>
-                  </div>
-                  <span style="font-size:0.7rem;color:var(--ink-light);white-space:nowrap">${hp} / ${maxHp} HP</span>
-                </div>
-              </div>
-              <button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem" onclick="event.stopPropagation();app.unlinkCharacter('${ch.id}')" title="Remove from campaign">&times;</button>
-            </div>
-          </div>`;
+      for (const ch of linked) html += renderCard(ch, false);
+      for (const [uid, entry] of remoteEntries) {
+        if (!entry?.char) continue;
+        html += renderCard(entry.char, true, uid);
       }
       html += '</div>';
     }
 
     // Add button always
-    html += `<button class="btn btn-primary btn-block" style="margin-top:12px" onclick="app.linkCharactersModal()">+ Add Player Character</button>`;
+    html += `<button class="btn btn-primary btn-block" style="margin-top:12px" onclick="app.linkCharactersModal()">+ Add Player Character (local)</button>`;
 
-    // Share-code hint (roadmap)
+    // Remote join hint
     html += `<p style="font-size:0.68rem;color:var(--ink-light);margin-top:14px;line-height:1.4">
-      &#128260; Linking players from their own device (share codes) arrives with live combat push in Fase 3.
-      For now, link characters you have on this device.
+      &#9729;&#65039; Share your campaign code (&#128279; on the header). Players join from their own device and their character appears here automatically.
     </p>`;
 
     return html;
@@ -7088,24 +7105,33 @@ const app = {
   },
 
   // -------- difficulty / level helpers --------
-  _partyLevelTotal(c) {
+  // Returns the PCs this campaign is running with, combining local-linked + remote (party-published).
+  // Remote entries come from `this._remoteParty` which the GM subscribes to on campaign open.
+  _campaignAllPCs(c) {
     const chars = this.state.characters || [];
-    const linked = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
-    if (linked.length === 0) {
+    const local = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
+    const remote = Object.values(this._remoteParty || {}).map(e => e?.char).filter(Boolean);
+    // If a local char id also appears remotely (same device joined its own session), prefer the remote snapshot
+    const remoteIds = new Set(remote.map(ch => ch.id));
+    const localFiltered = local.filter(ch => !remoteIds.has(ch.id));
+    return [...localFiltered, ...remote];
+  },
+
+  _partyLevelTotal(c) {
+    const all = this._campaignAllPCs(c);
+    if (all.length === 0) {
       // Fall back to partyLevel × 4 heroes as a heuristic when no characters linked
       return (c.partyLevel || 1) * 4;
     }
-    return linked.reduce((sum, ch) => sum + (ch.level || 1), 0);
+    return all.reduce((sum, ch) => sum + (ch.level || 1), 0);
   },
 
   _partyInfo(c) {
-    const chars = this.state.characters || [];
-    const linked = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
-    const total = this._partyLevelTotal(c);
+    const all = this._campaignAllPCs(c);
     return {
-      size: linked.length || 4,
-      total,
-      fallback: linked.length === 0
+      size: all.length || 4,
+      total: this._partyLevelTotal(c),
+      fallback: all.length === 0
     };
   },
 
@@ -7493,18 +7519,26 @@ const app = {
       if (!confirm(`A combat is already running (${this.esc(this.state.activeCombat.encounterName || 'Encounter')}). End it and start a new one?`)) return;
     }
 
-    const chars = this.state.characters || [];
-    const linkedPCs = (c.playerCharIds || []).map(id => chars.find(ch => ch.id === id)).filter(Boolean);
+    // Combine local-linked characters with remote-party entries (Session 5 cross-device).
+    // Duplicates (same id in both) are de-duped in _campaignAllPCs, preferring the remote snapshot.
+    const allPCs = this._campaignAllPCs(c);
+    // Track which PCs come from remote devices so we don't try to mirror HP into a local char later.
+    const remoteUidByCharId = {};
+    for (const [uid, entry] of Object.entries(this._remoteParty || {})) {
+      if (entry?.char?.id) remoteUidByCharId[entry.char.id] = uid;
+    }
 
     const participants = [];
     // Player characters go in first — live HP linked to their sheet.
     // Nimble rule: PCs roll initiative and tell the GM; we don't auto-roll. Entered in the initiative phase.
-    for (const ch of linkedPCs) {
+    for (const ch of allPCs) {
+      const remoteUid = remoteUidByCharId[ch.id] || null;
       participants.push({
         id: 'p_' + Math.random().toString(36).slice(2, 9),
         kind: 'pc',
         sourceKind: 'pc',
         sourceId: ch.id,
+        remoteUid,                        // null for local; uid of the player device if remote
         name: ch.name,
         initiative: null,   // entered by GM after each player rolls
         hp: ch.hp ?? ch.maxHp ?? 0,
@@ -8939,12 +8973,43 @@ const app = {
   openCampaign(id) {
     this.state.selectedCampaignId = id;
     this.state.campaignView = 'party';
+    // Subscribe to the remote party subcollection so remote players appear live.
+    this.subscribeToCampaignParty();
     this.render(true);
   },
 
   backToCampaignList() {
+    this.unsubscribeFromCampaignParty();
     this.state.selectedCampaignId = null;
     this.render(true);
+  },
+
+  // Cross-device party (Session 5): subscribe to sessions/{campaignId}/party so players who
+  // joined this session and published their character show up live in the GM's party view.
+  subscribeToCampaignParty() {
+    const fb = window.firebaseSync;
+    const c = this.getCampaign();
+    if (!fb || !fb.collection || !c) return;
+    this.unsubscribeFromCampaignParty();
+    this._remoteParty = this._remoteParty || {};
+    const col = fb.collection(fb.db, 'sessions', c.id, 'party');
+    this._partyUnsub = fb.onSnapshot(col, (snap) => {
+      snap.docChanges().forEach(change => {
+        if (change.type === 'removed') {
+          delete this._remoteParty[change.doc.id];
+        } else {
+          this._remoteParty[change.doc.id] = change.doc.data();
+        }
+      });
+      this.render();
+    }, (err) => {
+      console.warn('party subscribe failed:', err);
+    });
+  },
+
+  unsubscribeFromCampaignParty() {
+    if (this._partyUnsub) { try { this._partyUnsub(); } catch (_) {} this._partyUnsub = null; }
+    this._remoteParty = {};
   },
 
   setCampaignView(v) {
@@ -10162,6 +10227,9 @@ const app = {
     this.state.joinedSessionId = sessionId;
     try { localStorage.setItem(JOINED_SESSION_KEY, sessionId); } catch (_) {}
     this.subscribeToRemoteSession();
+    // Publish this device's current character snapshot to the session party.
+    // The GM subscribes to this subcollection and sees the player appear in real time.
+    this._publishPartySnapshot();
     this.toast('Joined — waiting for GM updates…');
     this.render();
   },
@@ -10169,11 +10237,63 @@ const app = {
   leaveSession() {
     if (!confirm('Leave this GM session?')) return;
     if (this._sessionUnsub) { try { this._sessionUnsub(); } catch (_) {} this._sessionUnsub = null; }
+    // Remove this device's snapshot from the session party (best-effort)
+    this._unpublishPartySnapshot();
     this.state.joinedSessionId = null;
     this.state.remoteSession = null;
     try { localStorage.removeItem(JOINED_SESSION_KEY); } catch (_) {}
     this.toast('Left session');
     this.render();
+  },
+
+  // Writes the player's current character snapshot to sessions/{sid}/party/{uid}.
+  // Called on join, and debounced from save() via schedulePartyRepublish.
+  async _publishPartySnapshot() {
+    const fb = window.firebaseSync;
+    const uid = this.user?.uid;
+    const sid = this.state.joinedSessionId;
+    if (!fb || !uid || !sid) return;
+    const ch = this._getSessionPlayerCharacter(this.state.remoteSession?.activeCombat);
+    if (!ch) return;   // no character to publish yet
+    try {
+      await fb.setDoc(
+        fb.doc(fb.db, 'sessions', sid, 'party', uid),
+        {
+          charId: ch.id,
+          char: this._sanitizeCharForPublish(ch),
+          displayName: this.user?.displayName || null,
+          updatedAt: fb.serverTimestamp()
+        }
+      );
+    } catch (e) {
+      console.warn('party publish failed:', e);
+    }
+  },
+
+  async _unpublishPartySnapshot() {
+    const fb = window.firebaseSync;
+    const uid = this.user?.uid;
+    const sid = this.state.joinedSessionId;
+    if (!fb || !uid || !sid || !fb.deleteDoc) return;   // deleteDoc optional; skip if not exposed
+    try {
+      await fb.deleteDoc(fb.doc(fb.db, 'sessions', sid, 'party', uid));
+    } catch (e) {
+      // non-fatal; doc is harmless if left behind
+    }
+  },
+
+  // Strip heavy or unnecessary fields before publishing. Keeps the snapshot small.
+  _sanitizeCharForPublish(ch) {
+    // Full copy — Firestore doc limit is 1 MB; a typical character with an image is ~50 KB.
+    // If we ever run into doc-size issues, we can drop ch.image here and load it locally.
+    return JSON.parse(JSON.stringify(ch));
+  },
+
+  // Debounced republish triggered from save(). Collapses rapid edits into one write.
+  _schedulePartyRepublish() {
+    if (!this.state.joinedSessionId) return;
+    if (this._partyPushTimer) clearTimeout(this._partyPushTimer);
+    this._partyPushTimer = setTimeout(() => this._publishPartySnapshot(), 1200);
   },
 
   subscribeToRemoteSession() {
