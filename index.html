@@ -17,6 +17,11 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 
+<!-- Fonts: Inter for UI (clean modern sans), Cinzel for character names / titles (fantasy serif). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <!-- Firebase SDK (loaded as ES modules from Google CDN).
      Exposes a handful of helpers via window.firebaseSync so the main (non-module)
      <script> below can use them. Dispatches 'firebase-ready' when initialized so the
@@ -1715,6 +1720,616 @@ h3 { font-size: 1.1rem; }
   .btn:hover { filter: brightness(1.08); }
   .btn:active { filter: brightness(0.95); }
 }
+
+/* ============================================================
+   DESIGN SYSTEM v2 (May 2026 — clean redesign)
+   Modern, professional aesthetic inspired by Xip-style apps.
+   Keeps Nimble's burgundy/gold/leather palette but lighter,
+   with white surfaces, subtle borders, generous spacing, SVG icons.
+   This block overrides legacy styles above where selectors match.
+   ============================================================ */
+
+:root {
+  /* Surfaces — warmer cream bg, pure white cards (proper contrast) */
+  --ds-bg: #ede0c4;
+  --ds-bg-soft: #e3d5b3;
+  --ds-surface: #ffffff;
+  --ds-surface-hover: #fbf7ee;
+  --ds-surface-sunken: #f3eddb;
+
+  /* Borders — thin & subtle but visible */
+  --ds-border: #d8caa6;
+  --ds-border-strong: #b8a574;
+
+  /* Text */
+  --ds-text: #2a1f17;
+  --ds-text-muted: #6e5e4d;
+  --ds-text-dim: #9b8d76;
+
+  /* Accents — Nimble brand kept */
+  --ds-accent: #8b1a1a;
+  --ds-accent-soft: rgba(139, 26, 26, 0.08);
+  --ds-accent-hover: #6e1515;
+  --ds-gold: #c9a84c;
+  --ds-gold-soft: rgba(201, 168, 76, 0.16);
+  --ds-leather: #3d2b1f;
+  --ds-leather-2: #2a1c12;
+
+  /* Semantic */
+  --ds-success: #2d5a27;
+  --ds-success-soft: rgba(45, 90, 39, 0.10);
+  --ds-warning: #b07020;
+  --ds-warning-soft: rgba(176, 112, 32, 0.10);
+
+  /* Radii */
+  --ds-r-sm: 10px;
+  --ds-r-md: 14px;
+  --ds-r-lg: 20px;
+  --ds-r-xl: 28px;
+  --ds-r-pill: 999px;
+
+  /* Shadows */
+  --ds-shadow-card: 0 1px 2px rgba(61,43,31,0.04), 0 4px 16px rgba(61,43,31,0.05);
+  --ds-shadow-elevated: 0 8px 28px rgba(61,43,31,0.10);
+}
+
+/* ---- Global typography ---- */
+html, body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  color: var(--ds-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+}
+body { background: var(--ds-leather-2); }
+
+h1, h2, h3, h4 {
+  font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+  color: var(--ds-text);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+.ds-serif { font-family: 'Cinzel', Georgia, serif; font-weight: 600; }
+.ds-mono  { font-family: 'JetBrains Mono', SFMono-Regular, Menlo, monospace; }
+
+/* ---- App backgrounds ---- */
+.parchment-bg {
+  background: var(--ds-bg);
+}
+
+/* ---- Header (top bar) ---- */
+.app-header {
+  background: var(--ds-leather);
+  color: #f4e4c1;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.02rem;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(0,0,0,0.25);
+}
+.app-header .back-btn { color: var(--ds-gold); font-size: 1.2rem; }
+
+/* ---- Bottom tab nav ---- */
+.tab-nav {
+  background: var(--ds-leather);
+  border-top: 1px solid rgba(0,0,0,0.35);
+  padding-top: 6px;
+}
+.tab-nav button {
+  color: #9a8b75;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  gap: 4px;
+}
+.tab-nav button .tab-icon {
+  font-size: 1rem;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tab-nav button .tab-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+.tab-nav button.active { color: var(--ds-gold); }
+.tab-nav button.active .tab-icon svg { filter: drop-shadow(0 0 6px rgba(201,168,76,0.45)); }
+
+/* ---- Buttons ---- */
+.btn {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0;
+  border-radius: var(--ds-r-md);
+  border: 1px solid transparent;
+  padding: 12px 18px;
+  min-height: 44px;
+  transition: transform 0.1s ease, background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  box-shadow: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--ds-accent);
+  color: #fff;
+  border-color: var(--ds-accent);
+}
+.btn-primary:active { background: var(--ds-accent-hover); }
+.btn-secondary {
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  border-color: var(--ds-border);
+}
+.btn-secondary:hover { background: var(--ds-surface-hover); }
+.btn-gold {
+  background: var(--ds-gold);
+  color: var(--ds-leather);
+  border-color: var(--ds-gold);
+}
+.btn-danger {
+  background: var(--ds-accent);
+  color: #fff;
+  border-color: var(--ds-accent);
+}
+.btn-small { padding: 8px 14px; font-size: 0.8rem; min-height: 36px; }
+.btn-icon { width: 40px; height: 40px; padding: 0; border-radius: var(--ds-r-pill); }
+.btn-block { width: 100%; }
+.btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.btn-small svg { width: 14px; height: 14px; }
+
+/* ---- Cards ---- */
+.card {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-lg);
+  padding: 18px;
+  box-shadow: var(--ds-shadow-card);
+  margin-bottom: 14px;
+}
+.card::before { display: none; }
+
+/* ---- Utility classes for the new system ---- */
+.ds-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ds-text-muted);
+}
+.ds-label .ds-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--ds-gold);
+  border-radius: 50%;
+  display: inline-block;
+}
+.ds-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: var(--ds-r-pill);
+  background: var(--ds-bg-soft);
+  color: var(--ds-text-muted);
+  letter-spacing: 0.01em;
+}
+.ds-pill.accent { background: var(--ds-accent-soft); color: var(--ds-accent); }
+.ds-pill.gold   { background: var(--ds-gold-soft); color: #8a6f1d; }
+.ds-pill.success { background: var(--ds-success-soft); color: var(--ds-success); }
+.ds-pill.warning { background: var(--ds-warning-soft); color: var(--ds-warning); }
+.ds-pill .ds-mono { font-size: 0.72rem; letter-spacing: 0.04em; }
+.ds-divider { height: 1px; background: var(--ds-border); margin: 12px 0; border: 0; }
+
+/* Section title shown on character sheet etc. */
+.section-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ds-text-muted);
+  margin-top: 22px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+}
+.section-title::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ds-gold);
+  flex-shrink: 0;
+}
+
+/* ---- Characters list ---- */
+.characters-list { padding: 18px 16px 28px; }
+.char-card {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-lg);
+  box-shadow: var(--ds-shadow-card);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.char-card::before { display: none; }
+.char-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ds-leather) 0%, var(--ds-accent) 100%);
+  color: var(--ds-gold);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.char-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.char-avatar svg { width: 24px; height: 24px; }
+.char-info h3 {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.02rem;
+  letter-spacing: 0.01em;
+  margin: 0 0 3px;
+  color: var(--ds-text);
+}
+.char-info p {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ds-text-muted);
+  margin: 0;
+}
+.char-card .char-delete {
+  background: var(--ds-accent);
+  color: #fff;
+  width: 60px;
+  font-size: 0;
+}
+.char-card .char-delete svg { width: 18px; height: 18px; color: #fff; }
+
+/* Empty state */
+.empty-state {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-lg);
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: var(--ds-shadow-card);
+}
+.empty-state .icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--ds-bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  font-size: 0;
+}
+.empty-state .icon svg { width: 28px; height: 28px; color: var(--ds-text-muted); }
+.empty-state p {
+  margin: 0 0 20px;
+  font-family: 'Cinzel', Georgia, serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--ds-text-muted);
+  line-height: 1.55;
+}
+
+/* ---- Sync header (signed-out / signed-in) ---- */
+.sync-header {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-lg);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--ds-shadow-card);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sync-header .ds-pill { margin-left: auto; }
+.sync-header .sync-pitch {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.sync-header .sync-pitch-text {
+  font-size: 0.82rem;
+  color: var(--ds-text-muted);
+  line-height: 1.4;
+}
+.sync-header .sync-pitch-text strong { color: var(--ds-text); font-weight: 600; }
+.sync-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
+.sync-name { font-weight: 600; font-size: 0.9rem; color: var(--ds-text); }
+
+/* ---- Character sheet header ---- */
+.sheet-header {
+  background: linear-gradient(135deg, var(--ds-leather) 0%, var(--ds-leather-2) 100%);
+  padding: 22px 18px 24px;
+  color: #f4e4c1;
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+  position: relative;
+}
+.sheet-avatar {
+  border: 2px solid var(--ds-gold);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  background: var(--ds-leather-2);
+}
+.sheet-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 0.01em;
+  color: #f4e4c1;
+}
+.sheet-subtitle {
+  font-size: 0.82rem;
+  opacity: 0.85;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.sheet-details { font-size: 0.72rem; opacity: 0.62; margin-top: 6px; font-weight: 500; letter-spacing: 0.03em; }
+.sheet-body { padding: 16px; }
+
+/* Stats grid (sheet) */
+.stat-box {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-md);
+  box-shadow: var(--ds-shadow-card);
+  padding: 10px 8px;
+}
+.stat-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ds-text-muted);
+}
+.stat-value {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  color: var(--ds-text);
+}
+
+/* Skills grid — number-first design, no pill */
+.skills-grid { gap: 8px; }
+.skill-item {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-md);
+  box-shadow: var(--ds-shadow-card);
+  padding: 10px 14px;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+.skill-name {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ds-text);
+}
+.skill-stat {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--ds-text-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.skill-bonus {
+  background: transparent !important;
+  color: var(--ds-text) !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.4ch;
+  text-align: right;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.skill-bonus.pos { color: var(--ds-success); }
+.skill-bonus.neg { color: var(--ds-accent); }
+.skill-bonus.zero { color: var(--ds-text-dim); }
+
+/* Tracker rows on sheet — bigger contrast, bolder numbers */
+.tracker-row {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-md);
+  box-shadow: var(--ds-shadow-card);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  min-height: 56px;
+}
+.tracker-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ds-text);
+  letter-spacing: 0;
+}
+.tracker-value {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--ds-text);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.tracker-value.tappable {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--ds-border-strong);
+  text-underline-offset: 5px;
+}
+.tracker-btn {
+  background: var(--ds-bg-soft);
+  color: var(--ds-text);
+  border: 1px solid var(--ds-border);
+  border-radius: 50%;
+  font-weight: 600;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tracker-btn.minus { background: var(--ds-accent); color: #fff; border-color: var(--ds-accent); }
+.tracker-btn.plus  { background: var(--ds-success); color: #fff; border-color: var(--ds-success); }
+
+/* Stat values: bigger and darker, serif for character */
+.stat-box {
+  padding: 12px 8px;
+}
+.stat-value {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--ds-text);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-save {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ds-text-dim);
+  margin-top: 4px;
+}
+
+/* Collapsible group headers (abilities / spells) */
+.collapsible-header {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-md);
+  box-shadow: var(--ds-shadow-card);
+  padding: 12px 14px;
+}
+.collapsible-header h4 { font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; }
+.spell-school-header {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-md);
+  box-shadow: var(--ds-shadow-card);
+}
+
+/* SVG icon helper class */
+.ds-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ds-icon svg { display: block; }
+
+/* Inline icon button (replaces emoji icon-only buttons) */
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--ds-r-pill);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  color: var(--ds-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn:hover { background: var(--ds-surface-hover); }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn.accent { background: var(--ds-accent); color: #fff; border-color: var(--ds-accent); }
+.icon-btn.gold   { background: var(--ds-gold); color: var(--ds-leather); border-color: var(--ds-gold); }
+
+/* Action button row (e.g., Level Up / Combat / Story Transition on sheet) */
+.action-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.action-row .btn { flex: 1 1 calc(50% - 4px); min-width: 0; }
+
+/* Sheet sub-tab nav (under the character header) */
+.sheet-subnav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  background: var(--ds-surface);
+  border-bottom: 1px solid var(--ds-border);
+  padding: 0 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sheet-subnav::-webkit-scrollbar { display: none; }
+.sheet-subnav button {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 12px 8px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ds-text-muted);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+}
+.sheet-subnav button svg { width: 14px; height: 14px; opacity: 0.7; }
+.sheet-subnav button.active {
+  color: var(--ds-text);
+  border-bottom-color: var(--ds-accent);
+}
+.sheet-subnav button.active svg { opacity: 1; color: var(--ds-accent); }
+.sheet-subnav button:active { transform: none; }
+
+/* Desktop tweaks for the new system */
+@media (min-width: 900px) {
+  .characters-list { padding: 24px 0; }
+  .empty-state { padding: 48px 32px; }
+  .sheet-header { padding: 32px 24px 36px; }
+}
 </style>
 </head>
 <body>
@@ -1730,23 +2345,23 @@ h3 { font-size: 1.1rem; }
 
   <nav class="tab-nav" id="tabNav">
     <button data-tab="characters" class="active" onclick="app.goToCharactersTab()">
-      <span class="tab-icon">&#128214;</span>
+      <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span>Characters</span>
     </button>
     <button data-tab="combat" onclick="app.navigate('combat')">
-      <span class="tab-icon">&#9876;</span>
+      <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/></svg></span>
       <span>Combat</span>
     </button>
     <button data-tab="dice" onclick="app.navigate('dice')">
-      <span class="tab-icon">&#127922;</span>
+      <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/></svg></span>
       <span>Dice</span>
     </button>
     <button data-tab="rules" onclick="app.navigate('rules')">
-      <span class="tab-icon">&#128220;</span>
+      <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
       <span>Rules</span>
     </button>
     <button data-tab="gm" onclick="app.navigate('gm')">
-      <span class="tab-icon">&#128081;</span>
+      <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l3-12 5 6 2-7 2 7 5-6 3 12"/><path d="M4 21h16"/></svg></span>
       <span>GM</span>
     </button>
   </nav>
@@ -1766,10 +2381,84 @@ const CAMPAIGNS_KEY = 'nimble_campaigns';
 const ACTIVE_COMBAT_KEY = 'nimble_active_combat';
 const JOINED_SESSION_KEY = 'nimble_joined_session';   // Fase 3.5: player-side session subscription
 
+// ============================================================
+// SVG ICON LIBRARY (May 2026 — replaces emoji usage)
+// All icons share viewBox 0 0 24 24, stroke="currentColor" so they
+// inherit color from the surrounding text. Pass through app.icon().
+// ============================================================
+const ICONS = {
+  // Tab nav + primary surfaces
+  characters: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  combat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/></svg>',
+  dice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/></svg>',
+  rules: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  gm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l3-12 5 6 2-7 2 7 5-6 3 12"/><path d="M4 21h16"/></svg>',
+
+  // Common actions
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+  arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+  arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
+  chevronDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+  chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+
+  // Domain icons
+  sparkle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9z"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  scroll: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a3 3 0 0 0 3 3h12a3 3 0 0 1-3-3z"/><path d="M14 9h-4"/><path d="M14 13h-4"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  google: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>',
+  signOut: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>',
+  list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  swords: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>',
+  arrowUp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
+  arrowDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  crown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l3-12 5 6 2-7 2 7 5-6 3 12"/><path d="M4 21h16"/></svg>',
+  notes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
+  inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+  mapPin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  fog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="21" y2="8"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="3" y1="16" x2="21" y2="16"/></svg>',
+  wall: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="8" height="6"/><rect x="10" y="4" width="12" height="6"/><rect x="2" y="10" width="14" height="6"/><rect x="16" y="10" width="6" height="6"/><rect x="2" y="16" width="8" height="6"/><rect x="10" y="16" width="12" height="6"/></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  filePlus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+  bug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M19 7l-3 2"/><path d="M5 7l3 2"/><path d="M19 13h-3"/><path d="M5 13h3"/><path d="M19 19l-3-2"/><path d="M5 19l3-2"/><path d="M12 2v4"/></svg>',
+  hash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+
+  // Spell schools (used in spell lists, level-up modal)
+  fire: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2c1 3 3 5 3 8a3 3 0 0 1-6 0c0-1.5.5-2.5 1.5-4C9 7 7 9 7 13a5 5 0 0 0 10 0c0-4-2-7-5-11z"/></svg>',
+  ice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/><polyline points="8 4 12 2 16 4"/><polyline points="8 20 12 22 16 20"/><polyline points="4 8 2 12 4 16"/><polyline points="20 8 22 12 20 16"/></svg>',
+  lightning: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>',
+  wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/></svg>',
+  radiant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.93 19.07l1.41-1.41"/><path d="M17.66 6.34l1.41-1.41"/></svg>',
+  necrotic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M9 16h6"/></svg>',
+  mana: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2C8 8 4 12 4 16a8 8 0 0 0 16 0c0-4-4-8-8-14z"/></svg>',
+};
+
 const app = {
   state: {
     currentView: 'characters',
     selectedCharacterId: null,
+    sheetTab: 'general',          // 'general' | 'abilities' | 'inventory' | 'notes' — sub-tab inside the character sheet
+    combatTab: 'turn',            // 'turn' | 'actions' | 'conditions' — sub-tab inside the Combat view
     characters: [],
     creation: null,
     combat: {
@@ -2056,16 +2745,12 @@ const app = {
   // ===== CHARACTERS LIST =====
   renderCharacters() {
     const chars = this.state.characters;
-
-    // ---- Cloud sync header (login button or signed-in badge) ----
-    // Includes the Fase 3.5 session banner (Join GM Session / connected / view combat)
     const syncHeader = this.renderSyncHeader() + this.renderSessionBanner();
 
-    // Shared backup row: Import is always available; Export only when chars exist
     const backupRow = `
       <div style="display:flex;gap:8px;margin-top:16px">
-        ${chars.length > 0 ? `<button class="btn btn-secondary btn-small" style="flex:1" onclick="app.exportCharacters()">&#128190; Export Backup</button>` : ''}
-        <button class="btn btn-secondary btn-small" style="flex:1" onclick="app.importCharactersPrompt()">&#128194; Import Backup</button>
+        ${chars.length > 0 ? `<button class="btn btn-secondary btn-small" style="flex:1" onclick="app.exportCharacters()">${this.icon('download', 14)} Export</button>` : ''}
+        <button class="btn btn-secondary btn-small" style="flex:1" onclick="app.importCharactersPrompt()">${this.icon('upload', 14)} Import</button>
       </div>
       <input type="file" id="charImportInput" accept="application/json,.json" style="display:none" onchange="app.importCharactersFromFile(event)">`;
 
@@ -2074,9 +2759,11 @@ const app = {
         <div class="characters-list">
           ${syncHeader}
           <div class="empty-state">
-            <div class="icon">&#128214;</div>
-            <p>No adventurers yet.<br>Begin your journey!</p>
-            <button class="btn btn-primary btn-block" onclick="app.startCreation()">Create New Character</button>
+            <div class="icon">${this.icon('user', 28)}</div>
+            <p>No adventurers yet.<br>Begin your journey.</p>
+            <button class="btn btn-primary btn-block" onclick="app.startCreation()">
+              ${this.icon('plus', 16)} Create New Character
+            </button>
           </div>
           ${backupRow}
         </div>`;
@@ -2084,21 +2771,25 @@ const app = {
 
     let html = '<div class="characters-list">';
     html += syncHeader;
+    html += `<div class="ds-label" style="margin:18px 4px 10px"><span class="ds-dot"></span>Your Adventurers · ${chars.length}</div>`;
     chars.forEach(ch => {
       const avatar = ch.image
-        ? `<div class="char-avatar"><img src="${ch.image}" alt="${ch.name}"></div>`
-        : `<div class="char-avatar">&#9876;</div>`;
+        ? `<div class="char-avatar"><img src="${ch.image}" alt="${this.esc(ch.name)}"></div>`
+        : `<div class="char-avatar">${this.esc((ch.name || '?').charAt(0).toUpperCase())}</div>`;
       html += `
         <div class="card char-card" onclick="app.navigate('sheet', {charId:'${ch.id}'})" ontouchstart="app.swipeStart(event,'${ch.id}')" ontouchmove="app.swipeMove(event,'${ch.id}')" ontouchend="app.swipeEnd(event,'${ch.id}')" id="char-${ch.id}">
           ${avatar}
           <div class="char-info">
             <h3>${this.esc(ch.name)}</h3>
-            <p>${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')} - Lvl ${ch.level || 1}</p>
+            <p>${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')} · Level ${ch.level || 1}</p>
           </div>
-          <button class="char-delete" onclick="event.stopPropagation(); app.deleteCharacter('${ch.id}')">&#128465;</button>
+          <span class="ds-icon" style="color:var(--ds-text-dim)">${this.icon('chevronRight', 18)}</span>
+          <button class="char-delete" onclick="event.stopPropagation(); app.deleteCharacter('${ch.id}')">${this.icon('trash', 18)}</button>
         </div>`;
     });
-    html += `<button class="btn btn-primary btn-block" style="margin-top:16px" onclick="app.startCreation()">Create New Character</button>`;
+    html += `<button class="btn btn-primary btn-block" style="margin-top:18px" onclick="app.startCreation()">
+      ${this.icon('plus', 16)} Create New Character
+    </button>`;
     html += backupRow;
     html += '</div>';
     return html;
@@ -2200,7 +2891,7 @@ const app = {
     const conflicts = incoming.filter(c => existingIds.has(c.id));
     const newOnes = incoming.filter(c => !existingIds.has(c.id));
 
-    let html = `<h3>&#128194; Import Characters</h3>
+    let html = `<h3>${this.icon('upload', 14)} Import Characters</h3>
       <div style="font-size:0.8rem;color:var(--ink-light);margin-bottom:10px">
         Found <strong>${incoming.length}</strong> character${incoming.length === 1 ? '' : 's'} in the backup.
       </div>`;
@@ -2310,47 +3001,49 @@ const app = {
     }
     const maxSlots = 10 + (stats.STR || 0);
     const editMode = this.state.editMode;
+    const tab = this.state.sheetTab || 'general';
 
     let html = '';
 
     // Header
     const avatarContent = ch.image
-      ? `<img src="${ch.image}" alt="${ch.name}">`
-      : '&#9876;';
+      ? `<img src="${ch.image}" alt="${this.esc(ch.name)}">`
+      : `<span style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:600;color:var(--ds-gold)">${this.esc((ch.name || '?').charAt(0).toUpperCase())}</span>`;
     html += `
       <div class="sheet-header">
-        <div class="sheet-avatar" onclick="app.uploadImage()">${avatarContent}</div>
-        <div class="sheet-name">${this.esc(ch.name)}</div>
-        <div class="sheet-subtitle">${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')}${ch.subclass ? ' · ' + this.esc(ch.subclass) : ''} &middot; Level ${ch.level || 1}
-          <button class="btn btn-gold btn-small" style="padding:2px 10px;min-height:24px;font-size:0.7rem;margin-left:8px;vertical-align:middle" onclick="app.levelUp()">Level Up</button>
-          <button class="btn btn-small" style="padding:2px 10px;min-height:24px;font-size:0.7rem;margin-left:4px;vertical-align:middle;background:var(--leather-dark);color:var(--parchment)" onclick="app.navigate('combat')">&#9876; Combat</button>
-          ${ch.subclass && this.hasSubclassSwapOption(ch) ? `<button class="btn btn-small" style="padding:2px 10px;min-height:24px;font-size:0.7rem;margin-left:4px;vertical-align:middle;background:var(--parchment-dark);color:var(--ink);border:1px solid var(--parchment-edge)" onclick="app.changeSubclassModal()" title="Story-based subclass transition">&#128260; Story Transition</button>` : ''}
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          <div class="sheet-avatar" onclick="app.uploadImage()">${avatarContent}</div>
+          <div style="flex:1;min-width:0">
+            <div class="sheet-name">${this.esc(ch.name)}</div>
+            <div class="sheet-subtitle">${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')}${ch.subclass ? ' · ' + this.esc(ch.subclass) : ''}</div>
+            <div style="margin-top:6px"><span class="ds-pill gold" style="background:rgba(201,168,76,0.18);color:#dfc06a">Level ${ch.level || 1}</span></div>
+          </div>
         </div>
-        <button class="btn btn-small ${this.state.editMode ? 'btn-gold' : 'btn-secondary'}" style="margin-top:6px;padding:2px 12px;min-height:24px;font-size:0.7rem" onclick="app.toggleEditMode()">&#9998; ${this.state.editMode ? 'Done Editing' : 'Edit Character'}</button>
+        <div class="action-row" style="margin-top:4px">
+          <button class="btn btn-gold btn-small" onclick="app.levelUp()">${this.icon('arrowUp', 14)} Level Up</button>
+          <button class="btn btn-small" style="background:rgba(0,0,0,0.25);color:#f4e4c1;border-color:rgba(255,255,255,0.1)" onclick="app.navigate('combat')">${this.icon('swords', 14)} Combat</button>
+          ${ch.subclass && this.hasSubclassSwapOption(ch) ? `<button class="btn btn-small" style="background:rgba(0,0,0,0.25);color:#f4e4c1;border-color:rgba(255,255,255,0.1)" onclick="app.changeSubclassModal()" title="Story-based subclass transition">${this.icon('refresh', 14)} Story Transition</button>` : ''}
+          <button class="btn btn-small ${this.state.editMode ? 'btn-gold' : ''}" ${this.state.editMode ? '' : 'style="background:rgba(0,0,0,0.25);color:#f4e4c1;border-color:rgba(255,255,255,0.1)"'} onclick="app.toggleEditMode()">${this.icon('edit', 14)} ${this.state.editMode ? 'Done' : 'Edit'}</button>
+        </div>
         <div class="sheet-details">
-          ${ch.height ? 'Height: ' + this.esc(ch.height) : ''} ${ch.weight ? '&middot; Weight: ' + this.esc(ch.weight) : ''}
-          ${ch.speed !== undefined ? '&middot; Speed: ' + ch.speed + ' spaces' : ''}
-          ${ch.hitDice ? '&middot; HD: ' + Math.max(0, (ch.level || 1) + (ch.hitDiceMaxMod || 0)) + this.esc(ch.hitDice) : ''}
+          ${ch.height ? 'Height ' + this.esc(ch.height) : ''} ${ch.weight ? '· Weight ' + this.esc(ch.weight) : ''}
+          ${ch.speed !== undefined ? '· Speed ' + ch.speed + ' spaces' : ''}
+          ${ch.hitDice ? '· HD ' + Math.max(0, (ch.level || 1) + (ch.hitDiceMaxMod || 0)) + this.esc(ch.hitDice) : ''}
         </div>
+      </div>
+      <div class="sheet-subnav">
+        <button class="${tab === 'general' ? 'active' : ''}" onclick="app.setSheetTab('general')">${this.icon('user', 14)} General</button>
+        <button class="${tab === 'abilities' ? 'active' : ''}" onclick="app.setSheetTab('abilities')">${this.icon('sparkle', 14)} Abilities</button>
+        <button class="${tab === 'inventory' ? 'active' : ''}" onclick="app.setSheetTab('inventory')">${this.icon('shield', 14)} Inventory</button>
+        <button class="${tab === 'notes' ? 'active' : ''}" onclick="app.setSheetTab('notes')">${this.icon('book', 14)} Notes</button>
       </div>
       <div class="sheet-body view-padding-bottom">`;
 
-    // Adventuring Motivation — flavor text shown under the header.
-    // Always visible if set. In edit mode, shown as a textarea even if empty so the user can add/update it.
-    if (editMode) {
-      html += `<div class="section-title">&#127774; Adventuring Motivation</div>
-        <textarea class="notes-area" style="min-height:50px"
-          oninput="app.updateChar({motivation:this.value})"
-          placeholder="Why does your character adventure?">${this.esc(ch.motivation || '')}</textarea>`;
-    } else if (ch.motivation && ch.motivation.trim()) {
-      html += `<div style="margin:12px 0 8px 0;padding:10px 14px;border-left:3px solid var(--gold);background:rgba(201,168,76,0.08);border-radius:0 6px 6px 0">
-        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--burgundy);margin-bottom:4px">&#127774; Adventuring Motivation</div>
-        <div style="font-style:italic;color:var(--ink);font-size:0.85rem;line-height:1.4">${this.esc(ch.motivation)}</div>
-      </div>`;
-    }
+    // ====== GENERAL TAB: Attributes + Vitals + Skills ======
+    if (tab === 'general') {
 
     // Stats
-    html += '<div class="section-title">&#9876; Attributes</div>';
+    html += '<div class="section-title">Attributes</div>';
     html += '<div class="stats-grid">';
     ['STR', 'DEX', 'INT', 'WIL'].forEach(s => {
       const val = stats[s] || 0;
@@ -2374,7 +3067,7 @@ const app = {
     if (aMods.neutralSaveAdvantaged) {
       if (!ch.neutralSaveAdv) {
         html += `<div style="margin-top:8px;padding:8px 12px;background:var(--gold);color:var(--leather-dark);border-radius:6px;display:flex;align-items:center;gap:8px">
-          <div style="flex:1;font-size:0.78rem;font-weight:bold">&#9888; Pick your boosted save (${this.esc(ch.ancestry)})</div>
+          <div style="flex:1;font-size:0.78rem;font-weight:bold">${this.icon('warning', 14)} Pick your boosted save (${this.esc(ch.ancestry)})</div>
           <button class="btn btn-small" style="background:var(--leather-dark);color:var(--parchment);font-weight:bold" onclick="app.neutralSavePickerModal()">Pick Save</button>
         </div>`;
       } else {
@@ -2386,7 +3079,7 @@ const app = {
     }
 
     // HP, Temp HP, Armor, Initiative
-    html += '<div class="section-title">&#10084; Vitals</div>';
+    html += '<div class="section-title">Vitals</div>';
     const hp = ch.hp ?? ch.maxHp ?? 10;
     const maxHp = ch.maxHp ?? 10;
     html += `
@@ -2401,7 +3094,7 @@ const app = {
         <input type="number" id="adj-hp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('hp',1)">
         <button class="adj-minus" onclick="app.applyAdjust('hp',-1)">&minus;</button>
         <button class="adj-plus" onclick="app.applyAdjust('hp',1)">&plus;</button>
-        <button class="adj-cancel" onclick="app.hideAdjust('hp')">&#10005;</button>
+        <button class="adj-cancel" onclick="app.hideAdjust('hp')">${this.icon('close', 12)}</button>
       </div>
       ${editMode ? `<div class="tracker-row">
         <span class="tracker-label" style="font-size:0.7rem">Max HP</span>
@@ -2424,7 +3117,7 @@ const app = {
         <input type="number" id="adj-tempHp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('tempHp',1)">
         <button class="adj-minus" onclick="app.applyAdjust('tempHp',-1)">&minus;</button>
         <button class="adj-plus" onclick="app.applyAdjust('tempHp',1)">&plus;</button>
-        <button class="adj-cancel" onclick="app.hideAdjust('tempHp')">&#10005;</button>
+        <button class="adj-cancel" onclick="app.hideAdjust('tempHp')">${this.icon('close', 12)}</button>
       </div>`;
 
     const armorInfo = this.calculateArmor(ch);
@@ -2480,7 +3173,7 @@ const app = {
           <input type="number" id="adj-mana-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('mana',1)">
           <button class="adj-minus" onclick="app.applyAdjust('mana',-1)">&minus;</button>
           <button class="adj-plus" onclick="app.applyAdjust('mana',1)">&plus;</button>
-          <button class="adj-cancel" onclick="app.hideAdjust('mana')">&#10005;</button>
+          <button class="adj-cancel" onclick="app.hideAdjust('mana')">${this.icon('close', 12)}</button>
         </div>`;
     }
 
@@ -2499,34 +3192,40 @@ const app = {
         <input type="number" id="adj-hitDice-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('hitDice',1)">
         <button class="adj-minus" onclick="app.applyAdjust('hitDice',-1)">&minus;</button>
         <button class="adj-plus" onclick="app.applyAdjust('hitDice',1)">&plus;</button>
-        <button class="adj-cancel" onclick="app.hideAdjust('hitDice')">&#10005;</button>
+        <button class="adj-cancel" onclick="app.hideAdjust('hitDice')">${this.icon('close', 12)}</button>
       </div>`;
 
     // Skills
-    html += '<div class="section-title">&#9733; Skills</div>';
+    html += '<div class="section-title">Skills</div>';
     html += '<div class="skills-grid">';
     const charSkills = ch.skillBonuses || {};
     skills.forEach(sk => {
       const base = stats[sk.stat] || 0;
       const bonus = (charSkills[sk.name] || 0);
       const total = base + bonus;
+      const cls = total > 0 ? 'pos' : (total < 0 ? 'neg' : 'zero');
       html += `
-        <div class="skill-item">
-          <div style="flex:1;cursor:pointer" onclick="app.rollSkill('${sk.name}', ${total})">
+        <div class="skill-item" onclick="app.rollSkill('${sk.name}', ${total})">
+          <div>
             <div class="skill-name">${sk.name}</div>
-            <div class="skill-stat">${sk.stat} ${bonus > 0 ? '(+' + bonus + ' pts)' : ''}</div>
+            <div class="skill-stat">${sk.stat}${bonus > 0 ? ' · +' + bonus + ' pts' : ''}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:3px">
-            ${editMode ? `<button class="tracker-btn minus" style="width:18px;height:18px;font-size:0.6rem;border-width:1px" onclick="event.stopPropagation();app.adjustSkillBonus('${sk.name}',-1)">-</button>` : ''}
-            <div class="skill-bonus" style="min-width:28px;cursor:pointer" onclick="app.rollSkill('${sk.name}', ${total})">${total >= 0 ? '+' : ''}${total}</div>
-            ${editMode ? `<button class="tracker-btn plus" style="width:18px;height:18px;font-size:0.6rem;border-width:1px" onclick="event.stopPropagation();app.adjustSkillBonus('${sk.name}',1)">+</button>` : ''}
+          <div style="display:flex;align-items:center;gap:6px">
+            ${editMode ? `<button class="tracker-btn minus" style="width:24px;height:24px;font-size:0.75rem" onclick="event.stopPropagation();app.adjustSkillBonus('${sk.name}',-1)">-</button>` : ''}
+            <div class="skill-bonus ${cls}">${total >= 0 ? '+' : ''}${total}</div>
+            ${editMode ? `<button class="tracker-btn plus" style="width:24px;height:24px;font-size:0.75rem" onclick="event.stopPropagation();app.adjustSkillBonus('${sk.name}',1)">+</button>` : ''}
           </div>
         </div>`;
     });
     html += '</div>';
 
+    } // ====== END GENERAL TAB ======
+
+    // ====== ABILITIES TAB: Abilities + Spells ======
+    if (tab === 'abilities') {
+
     // Abilities (filter out any that are also in the spells list), split by type
-    html += '<div class="section-title">&#9885; Abilities</div>';
+    html += '<div class="section-title">Abilities</div>';
     const abilities = ch.abilities || [];
     const spellNames = new Set((ch.spells || []).map(s => s.name));
     const filteredAbilities = abilities.filter(ab => !spellNames.has(ab.name));
@@ -2543,25 +3242,25 @@ const app = {
       const renderAbilityCard = (ab) => `
         <div class="collapsible-header" onclick="app.toggleCollapsible(this)">
           <h4>${this.esc(ab.name)}</h4>
-          <span class="collapsible-arrow">&#9660;</span>
+          <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
         </div>
         <div class="collapsible-body">${this.esc(ab.description || '')}</div>`;
 
       // --- Active ---
       if (buckets.active.length > 0) {
-        html += `<div class="ability-group-header"><span class="ability-group-icon">&#9876;</span> Active <span class="ability-group-count">(${buckets.active.length})</span></div>`;
+        html += `<div class="ability-group-header"><span class="ability-group-icon">${this.icon('swords', 14)}</span> Active <span class="ability-group-count">(${buckets.active.length})</span></div>`;
         buckets.active.forEach(ab => { html += renderAbilityCard(ab); });
       }
 
       // --- Passive ---
       if (buckets.passive.length > 0) {
-        html += `<div class="ability-group-header"><span class="ability-group-icon">&#128274;</span> Passive <span class="ability-group-count">(${buckets.passive.length})</span></div>`;
+        html += `<div class="ability-group-header"><span class="ability-group-icon">${this.icon('shield', 14)}</span> Passive <span class="ability-group-count">(${buckets.passive.length})</span></div>`;
         buckets.passive.forEach(ab => { html += renderAbilityCard(ab); });
       }
 
       // --- Reference (collapsed by default) ---
       if (buckets.reference.length > 0) {
-        html += `<div class="ability-group-header ref-collapsible" onclick="app.toggleCollapsible(this)"><span class="ability-group-icon">&#128218;</span> Reference <span class="ability-group-count">(${buckets.reference.length})</span><span class="collapsible-arrow" style="margin-left:auto">&#9660;</span></div>`;
+        html += `<div class="ability-group-header ref-collapsible" onclick="app.toggleCollapsible(this)"><span class="ability-group-icon">${this.icon('book', 14)}</span> Reference <span class="ability-group-count">(${buckets.reference.length})</span><span class="collapsible-arrow" style="margin-left:auto">${this.icon('chevronDown', 14)}</span></div>`;
         html += `<div class="collapsible-body">`;
         buckets.reference.forEach(ab => { html += renderAbilityCard(ab); });
         html += `</div>`;
@@ -2586,12 +3285,12 @@ const app = {
       const btnStyle = hasPicks
         ? 'background:var(--leather-dark);color:var(--parchment)'
         : 'background:var(--gold);color:var(--leather-dark);font-weight:bold';
-      html += `<button class="btn btn-small" style="${btnStyle}" onclick="app.invokerPicksModal()">&#10024; ${this.esc(label)}</button>`;
+      html += `<button class="btn btn-small" style="${btnStyle}" onclick="app.invokerPicksModal()">${this.icon('sparkle', 14)} ${this.esc(label)}</button>`;
     }
     html += `</div>`;
 
     // Spells (always shown — homebrew may grant spells to any class)
-    html += '<div class="section-title">&#10024; Spells</div>';
+    html += '<div class="section-title">Spells</div>';
     const charSpells = ch.spells || [];
     if (charSpells.length === 0) {
       html += '<p style="font-size:0.8rem;color:var(--ink-light);padding:8px 0">No spells known.</p>';
@@ -2619,7 +3318,7 @@ const app = {
         const modifiers = this.getAbilitiesModifyingSpell(sp.name, ch.abilities || []);
         const modifierHtml = modifiers.map(m => `
           <div class="spell-modifier-note">
-            <span class="modifier-name">&#9876; ${this.esc(m.name)}</span>
+            <span class="modifier-name">${this.icon('swords', 14)} ${this.esc(m.name)}</span>
             ${this.esc(m.description || '')}
           </div>`).join('');
         return `<div class="spell-card">
@@ -2634,8 +3333,8 @@ const app = {
       if (classSpells.length > 0) {
         classSpells.sort(sortByTier);
         html += `<div class="spell-school-header" onclick="app.toggleCollapsible(this)">
-          <h4>&#9876; ${this.esc(ch.className)} Spells <span class="spell-count">(${classSpells.length})</span></h4>
-          <span class="collapsible-arrow">&#9660;</span>
+          <h4>${this.icon('swords', 14)} ${this.esc(ch.className)} Spells <span class="spell-count">(${classSpells.length})</span></h4>
+          <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
         </div><div class="spell-school-body">`;
         classSpells.forEach(sp => { html += renderSpellCard(sp); });
         html += '</div>';
@@ -2643,7 +3342,8 @@ const app = {
 
       // School groups — iterate through standard schools first, then any unknown schools as fallback
       const schoolOrder = ['fire', 'ice', 'lightning', 'wind', 'radiant', 'necrotic'];
-      const schoolIcons = { fire: '&#128293;', ice: '&#10052;', lightning: '&#9889;', wind: '&#127744;', radiant: '&#9728;', necrotic: '&#9760;', hexbinder: '&#128520;' };
+      const schoolIconNames = { fire: 'fire', ice: 'ice', lightning: 'lightning', wind: 'wind', radiant: 'radiant', necrotic: 'necrotic', hexbinder: 'sparkle' };
+      const schoolColors = { fire: '#c44a18', ice: '#3a7ec4', lightning: '#c9a84c', wind: '#7a9d5e', radiant: '#d9b34a', necrotic: '#5c3a6b', hexbinder: '#5c3a6b' };
       const extraSchoolLabels = { hexbinder: 'Hexbinder' };
       const allSchoolsToRender = [
         ...schoolOrder,
@@ -2654,10 +3354,10 @@ const app = {
         if (!spells || spells.length === 0) return;
         spells.sort(sortByTier);
         const label = schoolLabels[school] || extraSchoolLabels[school] || (school.charAt(0).toUpperCase() + school.slice(1));
-        const icon = schoolIcons[school] || '&#10024;';
+        const iconHtml = `<span class="ds-icon" style="color:${schoolColors[school] || 'var(--ds-text-muted)'}">${this.icon(schoolIconNames[school] || 'sparkle', 16)}</span>`;
         html += `<div class="spell-school-header" onclick="app.toggleCollapsible(this)">
-          <h4>${icon} ${label} <span class="spell-count">(${spells.length})</span></h4>
-          <span class="collapsible-arrow">&#9660;</span>
+          <h4 style="display:flex;align-items:center;gap:8px">${iconHtml} ${label} <span class="spell-count">(${spells.length})</span></h4>
+          <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
         </div><div class="spell-school-body">`;
         let lastTier = -1;
         spells.forEach(sp => {
@@ -2673,8 +3373,8 @@ const app = {
       // Utility spells
       if (utilitySpells.length > 0) {
         html += `<div class="spell-school-header" onclick="app.toggleCollapsible(this)">
-          <h4>&#128218; Utility Spells <span class="spell-count">(${utilitySpells.length})</span></h4>
-          <span class="collapsible-arrow">&#9660;</span>
+          <h4>${this.icon('book', 14)} Utility Spells <span class="spell-count">(${utilitySpells.length})</span></h4>
+          <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
         </div><div class="spell-school-body">`;
         utilitySpells.forEach(sp => { html += renderSpellCard(sp); });
         html += '</div>';
@@ -2684,23 +3384,28 @@ const app = {
       html += `<button class="btn btn-secondary btn-small" style="margin-top:8px" onclick="app.addSpellModal()">+ Add Spell</button>`;
     }
 
+    } // ====== END ABILITIES TAB ======
+
+    // ====== INVENTORY TAB: Equipment + Homebrew + Languages ======
+    if (tab === 'inventory') {
+
     // Equipment
-    html += '<div class="section-title">&#127890; Equipment</div>';
+    html += '<div class="section-title">Equipment</div>';
     const items = ch.inventory || [];
     const usedSlots = items.reduce((s, it) => s + (it.slots || 1), 0);
     html += `<div class="slot-counter">Slots: ${usedSlots} / ${maxSlots}</div>`;
-    html += `<div class="gold-display" style="margin-bottom:8px">&#9798; Gold: <span class="tappable" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;color:var(--gold);font-weight:bold" onclick="app.showAdjust('gold')">${ch.gold ?? 0}</span></div>
+    html += `<div class="gold-display" style="margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="color:var(--ds-gold)">${this.icon('sparkle', 14)}</span> Gold: <span class="tappable" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;color:var(--gold);font-weight:bold" onclick="app.showAdjust('gold')">${ch.gold ?? 0}</span></div>
     <div class="adjust-row" id="adjust-gold" style="display:none;margin-bottom:8px">
       <input type="number" id="adj-gold-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('gold',1)">
       <button class="adj-minus" onclick="app.applyAdjust('gold',-1)">&minus;</button>
       <button class="adj-plus" onclick="app.applyAdjust('gold',1)">&plus;</button>
-      <button class="adj-cancel" onclick="app.hideAdjust('gold')">&#10005;</button>
+      <button class="adj-cancel" onclick="app.hideAdjust('gold')">${this.icon('close', 12)}</button>
     </div>`;
     items.forEach((it, i) => {
       const cat = it.category;
       const canEquip = cat === 'weapon' || cat === 'armor' || cat === 'shield';
       const catBadge = cat ? `<span style="font-size:0.55rem;color:var(--burgundy);text-transform:uppercase;letter-spacing:0.05em;margin-right:6px">${cat}</span>` : '';
-      const equippedBadge = it.equipped ? `<span style="font-size:0.55rem;color:var(--gold);font-weight:bold;margin-right:6px">&#9989; EQUIPPED</span>` : '';
+      const equippedBadge = it.equipped ? `<span style="font-size:0.55rem;color:var(--gold);font-weight:bold;margin-right:6px">${this.icon('check', 12)} EQUIPPED</span>` : '';
       const detail = (() => {
         if (cat === 'weapon' && it.damage) return `<div style="font-size:0.65rem;color:var(--ink-light)">${this.esc(it.damage)}${it.damageType ? ' · ' + this.esc(it.damageType) : ''}${it.properties && it.properties.length ? ' · ' + it.properties.map(p => this.esc(p)).join(', ') : ''}</div>`;
         if (cat === 'armor' && it.formula) {
@@ -2727,13 +3432,13 @@ const app = {
     }
 
     // Homebrew Items
-    html += '<div class="section-title">&#9881; Homebrew Items</div>';
+    html += '<div class="section-title">Homebrew Items</div>';
     const homebrew = ch.homebrew || [];
     homebrew.forEach((hb, i) => {
       html += `
         <div class="homebrew-item">
           ${editMode ? `<div class="homebrew-actions">
-            <button onclick="app.editHomebrew(${i})">&#9998;</button>
+            <button onclick="app.editHomebrew(${i})">${this.icon('edit', 14)}</button>
             <button onclick="app.removeHomebrew(${i})">&#10006;</button>
           </div>` : ''}
           <h4>${this.esc(hb.name)}</h4>
@@ -2745,31 +3450,54 @@ const app = {
       html += `<button class="btn btn-secondary btn-small" style="margin-top:8px" onclick="app.addHomebrewModal()">+ Add Homebrew Item</button>`;
     }
 
-    // Campaign Notes — full-width expandable section
-    html += '<div class="section-title">&#128221; Campaign Notes</div>';
-    html += `<textarea class="notes-area" style="min-height:200px;max-height:60vh;resize:vertical" oninput="app.saveNotes(this.value)" placeholder="Write your session notes, quest details, NPC names, loot, story beats...">${this.esc(ch.notes || '')}</textarea>`;
-
     // Languages
-    html += '<div class="section-title">&#128172; Languages</div>';
+    html += '<div class="section-title">Languages</div>';
     const langs = ch.languages || ['Common'];
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">';
     langs.forEach((l, i) => {
-      html += `<span class="lang-tag" style="display:inline-flex;align-items:center;gap:4px">${this.esc(l)}${editMode ? `<button style="background:none;border:none;color:var(--burgundy);font-size:0.7rem;cursor:pointer;padding:0 2px" onclick="app.removeLanguage(${i})">&#10006;</button>` : ''}</span>`;
+      html += `<span class="lang-tag" style="display:inline-flex;align-items:center;gap:4px">${this.esc(l)}${editMode ? `<button style="background:none;border:none;color:var(--burgundy);font-size:0.7rem;cursor:pointer;padding:0 2px" onclick="app.removeLanguage(${i})">${this.icon('close', 12)}</button>` : ''}</span>`;
     });
     html += '</div>';
     if (editMode) {
       html += `<div style="display:flex;gap:6px;align-items:center">
         <input type="text" id="newLangName" placeholder="Add language..." style="flex:1;padding:6px 8px;font-size:0.8rem">
-        <button class="btn btn-gold btn-small" onclick="app.addLanguage()">+</button>
+        <button class="btn btn-gold btn-small" onclick="app.addLanguage()">${this.icon('plus', 14)}</button>
       </div>`;
     }
 
+    } // ====== END INVENTORY TAB ======
+
+    // ====== NOTES TAB: Motivation + Campaign Notes + Delete ======
+    if (tab === 'notes') {
+
+    // Adventuring Motivation (moved from header area into the Notes tab)
+    if (editMode) {
+      html += `<div class="section-title">Adventuring Motivation</div>
+        <textarea class="notes-area" style="min-height:60px"
+          oninput="app.updateChar({motivation:this.value})"
+          placeholder="Why does your character adventure?">${this.esc(ch.motivation || '')}</textarea>`;
+    } else if (ch.motivation && ch.motivation.trim()) {
+      html += `<div style="margin:16px 0;padding:16px 18px;border-left:3px solid var(--ds-gold);background:var(--ds-gold-soft);border-radius:0 var(--ds-r-md) var(--ds-r-md) 0">
+        <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:#8a6f1d;margin-bottom:6px">Adventuring Motivation</div>
+        <div style="font-family:'Cinzel',Georgia,serif;font-style:italic;color:var(--ds-text);font-size:0.95rem;line-height:1.45">"${this.esc(ch.motivation)}"</div>
+      </div>`;
+    } else {
+      html += `<div class="section-title">Adventuring Motivation</div>
+        <p style="font-size:0.8rem;color:var(--ds-text-muted);padding:8px 0;font-style:italic">No motivation set. Switch on Edit to add one.</p>`;
+    }
+
+    // Campaign Notes
+    html += '<div class="section-title">Campaign Notes</div>';
+    html += `<textarea class="notes-area" style="min-height:240px;max-height:60vh;resize:vertical" oninput="app.saveNotes(this.value)" placeholder="Write your session notes, quest details, NPC names, loot, story beats...">${this.esc(ch.notes || '')}</textarea>`;
+
     // Delete character — only in edit mode
     if (editMode) {
-      html += `<div style="margin-top:32px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.1)">
-        <button class="btn btn-danger" style="width:100%" onclick="app.deleteCharacterFromSheet()">&#128465; Delete Character</button>
+      html += `<div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--ds-border)">
+        <button class="btn btn-danger" style="width:100%" onclick="app.deleteCharacterFromSheet()">${this.icon('trash', 16)} Delete Character</button>
       </div>`;
     }
+
+    } // ====== END NOTES TAB ======
 
     html += '</div>'; // sheet-body
     return html;
@@ -3429,7 +4157,7 @@ const app = {
     ).join('');
 
     this.showModal(`
-      <div class="modal-header"><h2>&#10024; ${this.esc(featureName)}</h2></div>
+      <div class="modal-header"><h2>${this.icon('sparkle', 14)} ${this.esc(featureName)}</h2></div>
       <div class="modal-body">
         <p style="font-size:0.78rem;color:var(--ink);margin-bottom:10px">
           ${this.esc(featureName)} grants <strong>1 cantrip + 1 tiered spell</strong> from the ${this.esc(schoolLabel)} school.
@@ -3504,7 +4232,7 @@ const app = {
       </label>`).join('');
 
     this.showModal(`
-      <div class="modal-header"><h2>&#128293; Infernal Legacy</h2></div>
+      <div class="modal-header"><h2>${this.icon('fire', 14)} Infernal Legacy</h2></div>
       <div class="modal-body">
         <p style="font-size:0.78rem;color:var(--ink);margin-bottom:10px">
           Your ancestry lets you pick one of your neutral saves to become <strong>advantaged</strong>. Your class save (advantaged/disadvantaged) is unchanged.
@@ -3855,7 +4583,7 @@ const app = {
     st.categorized.filter(c => c.type === 'epicBoon').forEach(cat => {
       const current = st.epicBoonChoices[cat.index] || { name: '', description: '' };
       html += `<div style="margin-bottom:16px;padding:10px;background:var(--parchment);border:2px solid var(--gold);border-radius:6px">
-        <div style="font-weight:bold;color:var(--burgundy);margin-bottom:4px">&#127775; ${this.esc(cat.feature.name)}</div>
+        <div style="font-weight:bold;color:var(--burgundy);margin-bottom:4px">${this.icon('sparkle', 14)} ${this.esc(cat.feature.name)}</div>
         <div style="font-size:0.7rem;color:var(--ink-light);margin-bottom:8px">Epic Boons are chosen from the GM's Guide (pg. 23). Ask your GM for the list, then write the boon name and description below.</div>
         <input type="text" placeholder="Boon name (e.g., Boon of Fate)"
           value="${this.esc(current.name)}"
@@ -3917,7 +4645,8 @@ const app = {
 
     // --- Utility Spell Choices (e.g., Shepherd Master of Twilight) ---
     const utilityPool = (data.spells && data.spells.utility) || {};
-    const schoolIcons = { fire: '&#128293;', ice: '&#10052;', lightning: '&#9889;', wind: '&#127744;', radiant: '&#9728;', necrotic: '&#9760;' };
+    const schoolIconNames = { fire: 'fire', ice: 'ice', lightning: 'lightning', wind: 'wind', radiant: 'radiant', necrotic: 'necrotic' };
+    const schoolColors = { fire: '#c44a18', ice: '#3a7ec4', lightning: '#c9a84c', wind: '#7a9d5e', radiant: '#d9b34a', necrotic: '#5c3a6b' };
     st.categorized.filter(c => c.type === 'utilitySpellChoice').forEach(cat => {
       const current = st.utilityChoices[cat.index] || {};
       html += `<div style="margin-bottom:16px">
@@ -3928,9 +4657,9 @@ const app = {
         const chosenForSchool = current[school] || [];
         const alreadyKnown = (ch.spells || []).filter(s => s.isUtility && s.school === school).map(s => s.name);
         const remaining = cat.numPerSchool - chosenForSchool.length;
-        const icon = schoolIcons[school] || '&#10024;';
-        html += `<div style="margin-top:8px;padding:6px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:6px">
-          <div style="font-weight:bold;font-size:0.8rem;text-transform:capitalize;margin-bottom:4px">${icon} ${school} — Pick ${cat.numPerSchool}${remaining > 0 && remaining < cat.numPerSchool ? ` (${remaining} left)` : ''}</div>`;
+        const iconHtml = `<span class="ds-icon" style="color:${schoolColors[school] || 'var(--ds-text-muted)'}">${this.icon(schoolIconNames[school] || 'sparkle', 14)}</span>`;
+        html += `<div style="margin-top:8px;padding:8px 10px;background:var(--ds-surface);border:1px solid var(--ds-border);border-radius:8px">
+          <div style="font-weight:bold;font-size:0.85rem;text-transform:capitalize;margin-bottom:6px;display:flex;align-items:center;gap:6px">${iconHtml} ${school} — Pick ${cat.numPerSchool}${remaining > 0 && remaining < cat.numPerSchool ? ` (${remaining} left)` : ''}</div>`;
         if (spells.length === 0) {
           html += `<div style="font-size:0.7rem;color:var(--ink-light)">No utility spells defined for ${school}.</div>`;
         }
@@ -3989,12 +4718,12 @@ const app = {
       charSchools.forEach(school => {
         const isChosen = chosen.includes(school);
         const alreadyKnown = priorLearned.has(school);
-        const icon = schoolIcons[school] || '&#10024;';
+        const iconHtml = `<span style="color:${schoolColors[school] || 'var(--ds-text-muted)'}">${this.icon(schoolIconNames[school] || 'sparkle', 14)}</span>`;
         const disabled = alreadyKnown && !isChosen;
         html += `<button class="btn btn-small ${isChosen ? 'btn-gold' : 'btn-secondary'}"
           ${disabled ? 'disabled style="opacity:0.4"' : ''}
           onclick="app.toggleUtilitySchoolPick(${cat.index}, '${school}', ${numSchools})">
-          ${icon} ${school.charAt(0).toUpperCase() + school.slice(1)}${alreadyKnown ? ' (already)' : ''}
+          ${iconHtml} ${school.charAt(0).toUpperCase() + school.slice(1)}${alreadyKnown ? ' (already)' : ''}
         </button>`;
       });
       html += `</div></div>`;
@@ -4669,7 +5398,7 @@ const app = {
       const subtitle = st.currentIsStory
         ? `A story event reconciles your character with their original path. You may return to a standard subclass. Preserves level, HP, stats, and skills — only subclass features change.`
         : `Nimble allows story-based subclass transitions at pivotal moments (e.g., losing your patron, breaking your oath). Requires GM approval. Preserves level, HP, stats, and skills — only subclass features change.`;
-      let html = `<h3>&#128260; ${title}</h3>
+      let html = `<h3>${this.icon('refresh', 14)} ${title}</h3>
         <div style="font-size:0.75rem;color:var(--ink-light);margin-bottom:8px">
           Current: <strong style="color:var(--burgundy)">${this.esc(ch.subclass)}</strong>${st.currentIsStory ? ' <span style="background:var(--gold);color:white;font-size:0.55rem;padding:1px 5px;border-radius:3px;margin-left:4px">STORY-BASED</span>' : ''}
         </div>
@@ -4698,7 +5427,7 @@ const app = {
     // --- Confirm step ---
     const newSub = st.allOptions[st.selectedIndex];
     const diff = st.diff;
-    let html = `<h3>&#128260; Switch to: ${this.esc(newSub.name)}</h3>`;
+    let html = `<h3>${this.icon('refresh', 14)} Switch to: ${this.esc(newSub.name)}</h3>`;
 
     if (newSub.description) {
       html += `<div style="font-size:0.75rem;color:var(--ink-light);margin-bottom:12px;padding:8px;background:var(--parchment);border-radius:4px;font-style:italic">${this.esc(newSub.description)}</div>`;
@@ -4730,7 +5459,7 @@ const app = {
     const hasSpellChanges = diff.lostSchools.length > 0 || diff.gainedSchools.length > 0 || csLost.length > 0 || csGained.length > 0;
     if (hasSpellChanges) {
       html += `<div style="margin-bottom:10px;padding:8px;background:var(--parchment-dark);border-radius:4px;font-size:0.75rem">
-        <div style="font-weight:bold;color:var(--burgundy);margin-bottom:4px">&#10024; Spells affected</div>`;
+        <div style="font-weight:bold;color:var(--burgundy);margin-bottom:4px">${this.icon('sparkle', 14)} Spells affected</div>`;
       if (diff.lostSchools.length > 0) {
         html += `<div style="color:var(--burgundy)">&#8854; Lost schools: <strong>${diff.lostSchools.join(', ')}</strong> (spells from these schools will be removed, except utility/homebrew spells)</div>`;
       }
@@ -5300,6 +6029,18 @@ const app = {
     this.render();
   },
 
+  // Sub-tab within the character sheet. Persists in state (not localStorage)
+  // so navigating away and back doesn't lose the player's place.
+  setSheetTab(tab) {
+    this.state.sheetTab = tab;
+    this.render(true);   // scroll to top when switching tabs
+  },
+
+  setCombatTab(tab) {
+    this.state.combatTab = tab;
+    this.render(true);
+  },
+
   uploadImage() {
     const inp = document.getElementById('imageUpload');
     inp.onchange = (e) => {
@@ -5542,10 +6283,10 @@ const app = {
           html += `<div style="font-size:0.65rem;color:var(--gold);margin-top:4px;font-style:italic">&#10003; Already known</div>`;
         }
         if (showSchoolWarning && !known) {
-          html += `<div style="font-size:0.65rem;color:var(--burgundy);margin-top:4px">&#9888; Outside ${this.esc(ch.className)}'s normal schools</div>`;
+          html += `<div style="font-size:0.65rem;color:var(--burgundy);margin-top:4px">${this.icon('warning', 14)} Outside ${this.esc(ch.className)}'s normal schools</div>`;
         }
         if (showClassWarning && !known) {
-          html += `<div style="font-size:0.65rem;color:var(--burgundy);margin-top:2px">&#9888; ${this.esc(sp.class)}-specific spell</div>`;
+          html += `<div style="font-size:0.65rem;color:var(--burgundy);margin-top:2px">${this.icon('warning', 14)} ${this.esc(sp.class)}-specific spell</div>`;
         }
 
         html += '</div>';
@@ -5647,19 +6388,34 @@ const app = {
     const conditions = data.conditions || [];
     const reactions = data.reactions || [];
     const combatActions = data.combatActions || [];
+    const tab = this.state.combatTab || 'turn';
 
     let html = '<div class="combat-view view-padding-bottom">';
 
     if (!ch) {
-      html += '<div class="empty-state"><p>Select a character first to use the combat tracker.</p><button class="btn btn-primary" onclick="app.navigate(\'characters\')">Go to Characters</button></div></div>';
+      html += '<div class="empty-state"><div class="icon">' + this.icon('users', 28) + '</div><p>Select a character first to use the combat tracker.</p><button class="btn btn-primary" onclick="app.navigate(\'characters\')">Go to Characters</button></div></div>';
       return html;
     }
 
-    html += `<div style="text-align:center;margin-bottom:8px;font-family:Georgia,serif;color:var(--burgundy)">${this.esc(ch.name)}</div>`;
+    // Character name header + sub-nav (sticky)
+    html += `
+      <div style="background:var(--ds-leather);color:#f4e4c1;padding:14px 18px;border-bottom:1px solid rgba(0,0,0,0.25)">
+        <div style="font-family:'Cinzel',Georgia,serif;font-weight:600;font-size:1.05rem;letter-spacing:0.02em">${this.esc(ch.name)}</div>
+        <div style="font-size:0.72rem;opacity:0.7;margin-top:2px">${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')} · Level ${ch.level || 1}</div>
+      </div>
+      <div class="sheet-subnav">
+        <button class="${tab === 'turn' ? 'active' : ''}" onclick="app.setCombatTab('turn')">${this.icon('refresh', 14)} Turn</button>
+        <button class="${tab === 'actions' ? 'active' : ''}" onclick="app.setCombatTab('actions')">${this.icon('swords', 14)} Actions</button>
+        <button class="${tab === 'conditions' ? 'active' : ''}" onclick="app.setCombatTab('conditions')">${this.icon('warning', 14)} Conditions</button>
+      </div>
+      <div style="padding:16px">`;
+
+    // ====== TURN TAB: action tokens + reactions + initiative + vitals ======
+    if (tab === 'turn') {
 
     // Action tokens (first round may lock some based on initiative roll)
     const locked = combat.inFirstRound ? (combat.firstRoundLockedActions || 0) : 0;
-    html += '<div class="section-title">&#9876; Actions';
+    html += '<div class="section-title">Actions';
     if (locked > 0) {
       html += ` <span style="font-size:0.7rem;color:var(--ink-light);font-weight:normal">(round 1: ${3 - locked} available)</span>`;
     }
@@ -5676,7 +6432,7 @@ const app = {
     html += '</div>';
 
     // Reactions
-    html += '<div class="section-title">&#9889; Reactions</div>';
+    html += '<div class="section-title">Reactions</div>';
     html += '<div class="reaction-list">';
     reactions.forEach(r => {
       const used = combat.reactions[r.name] ? 'used' : '';
@@ -5698,7 +6454,7 @@ const app = {
     html += '</div>';
 
     // Initiative roller
-    html += '<div class="section-title">&#127922; Initiative</div>';
+    html += '<div class="section-title">Initiative</div>';
     html += `<div style="text-align:center"><button class="btn btn-gold" onclick="app.rollInitiative()">Roll Initiative</button></div>`;
     if (combat.lastInitiative !== null) {
       const val = combat.lastInitiative;
@@ -5713,7 +6469,7 @@ const app = {
     }
 
     // Character Vitals
-    html += '<div class="section-title">&#10084; Vitals</div>';
+    html += '<div class="section-title">Vitals</div>';
     const cStats = ch.stats || {};
     const cHp = ch.hp ?? ch.maxHp ?? 10;
     const cMaxHp = ch.maxHp ?? 10;
@@ -5736,7 +6492,7 @@ const app = {
         <input type="number" id="adj-combatHp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('combatHp',1)">
         <button class="adj-minus" onclick="app.applyAdjust('combatHp',-1)">&minus;</button>
         <button class="adj-plus" onclick="app.applyAdjust('combatHp',1)">&plus;</button>
-        <button class="adj-cancel" onclick="app.hideAdjust('combatHp')">&#10005;</button>
+        <button class="adj-cancel" onclick="app.hideAdjust('combatHp')">${this.icon('close', 12)}</button>
       </div>
       <div class="tracker-row" style="justify-content:center">
         <span class="tracker-label">Temp HP</span>
@@ -5746,18 +6502,18 @@ const app = {
         <input type="number" id="adj-combatTempHp-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('combatTempHp',1)">
         <button class="adj-minus" onclick="app.applyAdjust('combatTempHp',-1)">&minus;</button>
         <button class="adj-plus" onclick="app.applyAdjust('combatTempHp',1)">&plus;</button>
-        <button class="adj-cancel" onclick="app.hideAdjust('combatTempHp')">&#10005;</button>
+        <button class="adj-cancel" onclick="app.hideAdjust('combatTempHp')">${this.icon('close', 12)}</button>
       </div>
       ${ch.maxMana > 0 ? `
         <div class="tracker-row" style="justify-content:center">
-          <span class="tracker-label">&#128293; Mana</span>
+          <span class="tracker-label" style="display:inline-flex;align-items:center;gap:6px"><span style="color:#c44a18">${this.icon('mana', 14)}</span> Mana</span>
           <span class="tracker-value tappable" onclick="app.showAdjust('combatMana')">${ch.mana ?? 0} / ${ch.maxMana}</span>
         </div>
         <div class="tracker-row adjust-row" id="adjust-combatMana" style="display:none;justify-content:center">
           <input type="number" id="adj-combatMana-val" placeholder="0" inputmode="numeric" min="0" onkeydown="if(event.key==='Enter')app.applyAdjust('combatMana',1)">
           <button class="adj-minus" onclick="app.applyAdjust('combatMana',-1)">&minus;</button>
           <button class="adj-plus" onclick="app.applyAdjust('combatMana',1)">&plus;</button>
-          <button class="adj-cancel" onclick="app.hideAdjust('combatMana')">&#10005;</button>
+          <button class="adj-cancel" onclick="app.hideAdjust('combatMana')">${this.icon('close', 12)}</button>
         </div>
       ` : ''}
       <div class="tracker-row" style="justify-content:center"><span class="tracker-label">Wounds${this.getBonusWounds(ch) > 0 ? ` <span style='font-size:0.65rem;color:var(--gold)'>+${this.getBonusWounds(ch)}</span>` : ''}</span><div class="wounds-row">`;
@@ -5774,6 +6530,11 @@ const app = {
     }
     html += '</div></div>';
 
+    } // ====== END TURN TAB ======
+
+    // ====== ACTIONS TAB: attacks + abilities + spells + passives + heroic actions ref ======
+    if (tab === 'actions') {
+
     // --- Active Abilities (quick access) ---
     const chSpells = ch.spells || [];
     const chSpellNames = new Set(chSpells.map(s => s.name));
@@ -5781,7 +6542,7 @@ const app = {
       !chSpellNames.has(a.name) && this.classifyAbilityType(a) === 'active'
     );
     if (combatAbilities.length > 0) {
-      html += '<div class="section-title">&#9876; Active Abilities</div>';
+      html += '<div class="section-title">Active Abilities</div>';
       combatAbilities.forEach((a, i) => {
         html += `<div class="combat-ability-card" onclick="this.classList.toggle('open')">
           <div class="combat-ability-header">
@@ -5794,7 +6555,7 @@ const app = {
 
     // --- Spells (quick access, grouped by tier) ---
     if (chSpells.length > 0) {
-      html += '<div class="section-title">&#10024; Spells</div>';
+      html += '<div class="section-title">Spells</div>';
       const tierLabels = { 0: 'Cantrip', 1: 'T1', 2: 'T2', 3: 'T3', 4: 'T4', 5: 'T5', 6: 'T6', 7: 'T7', 8: 'T8', 9: 'T9' };
       const byTier = {};
       chSpells.forEach(sp => {
@@ -5829,7 +6590,7 @@ const app = {
       !chSpellNames.has(a.name) && this.classifyAbilityType(a) === 'passive'
     );
     if (combatPassives.length > 0) {
-      html += '<div class="section-title">&#128274; Passive Effects</div>';
+      html += '<div class="section-title">Passive Effects</div>';
       combatPassives.forEach(a => {
         html += `<div class="combat-ability-card" onclick="this.classList.toggle('open')">
           <div class="combat-ability-header">
@@ -5843,7 +6604,7 @@ const app = {
     // --- Attacks (equipped weapons + unarmed) ---
     const attacks = this.getCharacterAttacks(ch);
     if (attacks.length > 0) {
-      html += '<div class="section-title">&#127993; Attacks</div>';
+      html += '<div class="section-title">Attacks</div>';
       attacks.forEach(atk => {
         html += `<div class="combat-ability-card" onclick="this.classList.toggle('open')">
           <div class="combat-ability-header">
@@ -5862,8 +6623,8 @@ const app = {
     // --- Heroic Actions reference (collapsible) ---
     if (combatActions.length > 0) {
       html += `<div class="section-title collapsible-header" onclick="app.toggleCollapsible(this)" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
-        <span>&#9876; Heroic Actions</span>
-        <span class="collapsible-arrow">&#9660;</span>
+        <span>${this.icon('swords', 14)} Heroic Actions</span>
+        <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
       </div>
       <div class="collapsible-body">`;
       combatActions.forEach(a => {
@@ -5878,8 +6639,12 @@ const app = {
       html += `</div>`;
     }
 
-    // Conditions
-    html += '<div class="section-title">&#9888; Conditions</div>';
+    } // ====== END ACTIONS TAB ======
+
+    // ====== CONDITIONS TAB: toggle + active descriptions ======
+    if (tab === 'conditions') {
+
+    html += '<div class="section-title">Conditions</div>';
     html += '<div class="conditions-grid">';
     conditions.forEach(c => {
       const active = combat.conditions[c.name] ? 'active' : '';
@@ -5898,9 +6663,14 @@ const app = {
         </div>`;
       });
       html += `</div>`;
+    } else {
+      html += `<p style="font-size:0.85rem;color:var(--ds-text-muted);text-align:center;padding:20px 0;font-style:italic">No active conditions. Tap a tag above to apply one.</p>`;
     }
 
-    html += '</div>';
+    } // ====== END CONDITIONS TAB ======
+
+    html += '</div>'; // close padding wrapper
+    html += '</div>'; // close combat-view
     return html;
   },
 
@@ -6332,7 +7102,7 @@ const app = {
         <div class="rules-section">
           <div class="rules-collapsible-header ${open ? 'open' : ''}" onclick="app.toggleCollapsible(this)">
             <h4>${icon} ${title} <span class="rules-count">(${filtered.length})</span></h4>
-            <span class="collapsible-arrow">&#9660;</span>
+            <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
           </div>
           <div class="rules-collapsible-body ${open ? 'open' : ''}">
             ${filtered.map(itemRenderer).join('')}
@@ -6343,14 +7113,14 @@ const app = {
     const ruleItem = (it) => `<div class="rule-item"><h4>${this.esc(it.name)}${it.cost ? ` <span style="font-size:0.7rem;color:var(--ink-light)">(${this.esc(it.cost)})</span>` : ''}</h4><p>${this.esc(it.description || '')}</p></div>`;
 
     // Section rendering order: most useful during play at the top
-    html += renderSection('&#9888;', 'Conditions', data.conditions || [], ruleItem);
-    html += renderSection('&#9876;', 'Combat Actions', builtin.combatActions, ruleItem);
-    html += renderSection('&#9889;', 'Reactions', builtin.reactions, ruleItem);
-    html += renderSection('&#127769;', 'Resting', builtin.resting, ruleItem);
-    html += renderSection('&#10024;', 'Spellcasting', builtin.spellcasting, ruleItem);
-    html += renderSection('&#128200;', 'Leveling Up', builtin.leveling, ruleItem);
-    html += renderSection('&#128101;', 'Character Creation Guide', builtin.creation, ruleItem);
-    html += renderSection('&#128221;', 'Stats & Skills', builtin.stats, ruleItem);
+    html += renderSection(this.icon('warning', 16), 'Conditions', data.conditions || [], ruleItem);
+    html += renderSection(this.icon('swords', 16), 'Combat Actions', builtin.combatActions, ruleItem);
+    html += renderSection(this.icon('lightning', 16), 'Reactions', builtin.reactions, ruleItem);
+    html += renderSection(this.icon('heart', 16), 'Resting', builtin.resting, ruleItem);
+    html += renderSection(this.icon('sparkle', 16), 'Spellcasting', builtin.spellcasting, ruleItem);
+    html += renderSection(this.icon('arrowUp', 16), 'Leveling Up', builtin.leveling, ruleItem);
+    html += renderSection(this.icon('users', 16), 'Character Creation Guide', builtin.creation, ruleItem);
+    html += renderSection(this.icon('notes', 16), 'Stats & Skills', builtin.stats, ruleItem);
 
     // Empty-state (only when searching)
     if (hasSearch) {
@@ -6396,10 +7166,10 @@ const app = {
     return `
       <div class="gm-view view-padding-bottom">
         <nav class="gm-subnav">
-          ${tab('campaigns',  'Campaigns',  '&#128218;')}
-          ${tab('bestiary',   'Bestiary',   '&#128029;')}
-          ${tab('encounters', 'Encounters', '&#9876;')}
-          ${tab('combat',     'Combat',     '&#128293;')}
+          ${tab('campaigns',  'Campaigns',  this.icon('book', 16))}
+          ${tab('bestiary',   'Bestiary',   this.icon('shield', 16))}
+          ${tab('encounters', 'Encounters', this.icon('swords', 16))}
+          ${tab('combat',     'Combat',     this.icon('target', 16))}
         </nav>
         <div class="gm-subview">${body}</div>
       </div>`;
@@ -6441,7 +7211,7 @@ const app = {
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <button class="btn btn-secondary btn-small" onclick="app.cancelMapPrep()">&larr;</button>
         <div style="flex:1;min-width:0">
-          <h2 style="margin:0;font-size:1rem">&#128506;&#65039; Prepare Map</h2>
+          <h2 style="margin:0;font-size:1rem">${this.icon('mapPin', 14)} Prepare Map</h2>
           <div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(title)}</div>
         </div>
         <button class="btn btn-primary btn-small" style="background:var(--gold);color:var(--leather-dark)" onclick="app.saveMapPrep()">Save</button>
@@ -6449,13 +7219,13 @@ const app = {
 
       <div style="padding:8px 10px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);border-radius:5px;margin-bottom:10px;font-size:0.72rem;color:var(--ink-light);display:flex;gap:8px;align-items:center">
         <div style="flex:1">Position tokens + paint fog / walls. This carries over to combat.</div>
-        <button onclick="app.mapPrepToggleGridType()" class="btn btn-secondary btn-small" style="font-size:0.68rem;padding:4px 8px" title="Toggle square/hex grid">${gridType === 'hex' ? '&#11042; Hex' : '&#9633; Square'}</button>
+        <button onclick="app.mapPrepToggleGridType()" class="btn btn-secondary btn-small" style="font-size:0.68rem;padding:4px 8px" title="Toggle square/hex grid">${gridType === 'hex' ? 'Hex' : 'Square'}</button>
       </div>
 
       <div style="display:flex;gap:6px;margin-bottom:6px">
-        ${modeBtn('select', '&#128273;', 'Select')}
-        ${modeBtn('fog', '&#127787;&#65039;', 'Fog')}
-        ${modeBtn('wall', '&#129721;', 'Wall')}
+        ${modeBtn('select', this.icon('key', 14), 'Select')}
+        ${modeBtn('fog', this.icon('fog', 14), 'Fog')}
+        ${modeBtn('wall', this.icon('wall', 14), 'Wall')}
       </div>
       ${paintExtras}
 
@@ -6483,14 +7253,14 @@ const app = {
            &#10003; Bestiary loaded — ${window.GM_DATA.MONSTERS.length} monsters, ${window.GM_DATA.LEGENDARY_MONSTERS.length} legendary, ${Object.keys(window.GM_DATA.CONDITIONS).length} conditions.
          </div>`
       : `<div style="padding:10px;background:var(--parchment-dark);border-radius:8px;margin-bottom:10px;color:var(--burgundy);font-size:0.75rem;">
-           &#9888; GM data failed to load. Check that <code>gmdata.js</code> is present.
+           ${this.icon('warning', 14)} GM data failed to load. Check that <code>gmdata.js</code> is present.
          </div>`;
 
     if (campaigns.length === 0) {
       return `
         ${dataStatus}
         <div class="empty-state">
-          <div class="icon">&#128218;</div>
+          <div class="icon">${this.icon('book', 14)}</div>
           <p>No campaigns yet.<br>Start your first adventure as GM.</p>
           <button class="btn btn-primary btn-block" onclick="app.createCampaignModal()">+ Create Campaign</button>
         </div>
@@ -6600,27 +7370,27 @@ const app = {
 
     return `
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-        <button class="btn btn-secondary btn-small" onclick="app.backToCampaignList()">&larr;</button>
+        <button class="btn btn-secondary btn-small" onclick="app.backToCampaignList()">${this.icon('arrowLeft', 14)}</button>
         <div style="flex:1;min-width:0">
           <h2 style="margin:0;font-size:1.05rem;line-height:1.2">${this.esc(c.name)}</h2>
           <div style="font-size:0.7rem;color:var(--ink-light)">Party Level ${c.partyLevel || 1}</div>
         </div>
-        <button class="btn btn-secondary btn-small" onclick="app.shareCampaignModal()" title="Share session code">&#128279;</button>
-        <button class="btn btn-secondary btn-small" onclick="app.editCampaignModal()" title="Edit campaign">&#9998;</button>
+        <button class="btn btn-secondary btn-small" onclick="app.shareCampaignModal()" title="Share session code">${this.icon('link', 14)}</button>
+        <button class="btn btn-secondary btn-small" onclick="app.editCampaignModal()" title="Edit campaign">${this.icon('edit', 14)}</button>
       </div>
       ${c.description ? `<p style="margin:0 0 12px;font-size:0.75rem;color:var(--ink);font-style:italic">${this.esc(c.description)}</p>` : ''}
 
       <nav class="gm-subnav" style="margin-top:4px">
-        ${subTab('party',      '&#128107;', 'Party',      linkedCount)}
-        ${subTab('npcs',       '&#127917;', 'NPCs',       npcCount)}
-        ${subTab('encounters', '&#9876;',   'Encounters', (c.encounters || []).length)}
-        ${subTab('notes',      '&#128221;', 'Notes',      null)}
+        ${subTab('party',      this.icon('users', 14), 'Party',      linkedCount)}
+        ${subTab('npcs',       this.icon('user', 14),  'NPCs',       npcCount)}
+        ${subTab('encounters', this.icon('swords', 14),'Encounters', (c.encounters || []).length)}
+        ${subTab('notes',      this.icon('notes', 14), 'Notes',      null)}
       </nav>
 
       <div class="gm-subview">${body}</div>
 
       <div style="margin-top:28px;padding-top:16px;border-top:1px solid var(--parchment-edge)">
-        <button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.deleteCampaignConfirm()">&#128465; Delete Campaign</button>
+        <button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.deleteCampaignConfirm()">${this.icon('trash', 14)} Delete Campaign</button>
       </div>
     `;
   },
@@ -6686,11 +7456,11 @@ const app = {
           <div style="font-size:0.65rem;color:var(--ink-light);margin-bottom:4px">Session code</div>
           <div style="font-family:monospace;font-size:0.85rem;word-break:break-all;user-select:all">${this.esc(code)}</div>
         </div>
-        <button class="btn btn-secondary btn-block" onclick="app.copySessionCode('${this.esc(code)}')">&#128203; Copy Code</button>
+        <button class="btn btn-secondary btn-block" onclick="app.copySessionCode('${this.esc(code)}')">${this.icon('list', 14)} Copy Code</button>
         ${!signedIn
-          ? '<div style="margin-top:12px;padding:8px;background:var(--parchment-dark);border-radius:6px;font-size:0.72rem;color:var(--burgundy)">&#9888; Sign in first so players can actually read the session doc from Firestore.</div>'
+          ? `<div style="margin-top:12px;padding:8px;background:var(--parchment-dark);border-radius:6px;font-size:0.72rem;color:var(--burgundy);display:flex;align-items:center;gap:6px">${this.icon('warning', 14)} Sign in first so players can actually read the session doc from Firestore.</div>`
           : `<div style="margin-top:12px;font-size:0.7rem;color:var(--ink-light);line-height:1.4">
-               Status: ${hasCombat ? '<strong style="color:var(--burgundy)">&#9876; Combat in progress — players will see it live</strong>' : 'No active combat yet — start one from the Encounters tab.'}
+               Status: ${hasCombat ? `<strong style="color:var(--burgundy);display:inline-flex;align-items:center;gap:6px">${this.icon('swords', 14)} Combat in progress — players will see it live</strong>` : 'No active combat yet — start one from the Encounters tab.'}
              </div>`}
       </div>
       <div class="modal-footer">
@@ -6736,7 +7506,7 @@ const app = {
       const hpPct = (ch.maxHp > 0) ? Math.max(0, Math.min(100, (ch.hp / ch.maxHp) * 100)) : 0;
       const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
       const remoteBadge = remote
-        ? `<span title="Joined from their own device" style="display:inline-block;margin-left:6px;padding:1px 6px;font-size:0.55rem;background:var(--gold);color:var(--leather-dark);border-radius:8px;font-weight:bold">&#9729;&#65039; REMOTE</span>`
+        ? `<span title="Joined from their own device" style="display:inline-block;margin-left:6px;padding:1px 6px;font-size:0.55rem;background:var(--gold);color:var(--leather-dark);border-radius:8px;font-weight:bold">${this.icon('refresh', 12)} REMOTE</span>`
         : '';
       const removeBtn = remote
         ? ''   // remote players leave by themselves (Leave Session); GM can't forcibly remove
@@ -6767,7 +7537,7 @@ const app = {
     if (linked.length === 0 && remoteEntries.length === 0) {
       html += `
         <div class="empty-state" style="padding:24px 16px">
-          <div class="icon">&#128107;</div>
+          <div class="icon">${this.icon('users', 14)}</div>
           <p>No player characters linked.<br>Add locally or share your session code so friends can join from their own device.</p>
         </div>`;
     } else {
@@ -6785,7 +7555,7 @@ const app = {
 
     // Remote join hint
     html += `<p style="font-size:0.68rem;color:var(--ink-light);margin-top:14px;line-height:1.4">
-      &#9729;&#65039; Share your campaign code (&#128279; on the header). Players join from their own device and their character appears here automatically.
+      ${this.icon('refresh', 12)} Share your campaign code (${this.icon('link', 14)} on the header). Players join from their own device and their character appears here automatically.
     </p>`;
 
     return html;
@@ -6885,7 +7655,7 @@ const app = {
     if (npcs.length === 0) {
       html += `
         <div class="empty-state" style="padding:24px 16px">
-          <div class="icon">&#127917;</div>
+          <div class="icon">${this.icon('user', 14)}</div>
           <p>No NPCs yet.<br>Add a named ally, villain, or quest-giver.</p>
         </div>`;
     } else {
@@ -6902,7 +7672,7 @@ const app = {
                 <span style="font-size:0.7rem;color:var(--ink-light);margin-left:6px">Lvl ${n.level || '—'} &middot; HP ${n.hp || '?'}/${n.maxHp || '?'}${armor}${size}</span>
               </div>
               <div style="display:flex;gap:4px">
-                <button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem" onclick="app.npcModal(${i})">&#9998;</button>
+                <button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem" onclick="app.npcModal(${i})">${this.icon('edit', 14)}</button>
                 <button class="btn btn-secondary btn-small" style="padding:4px 8px;font-size:0.7rem;color:var(--burgundy)" onclick="app.deleteNPC(${i})">&times;</button>
               </div>
             </div>
@@ -6953,7 +7723,7 @@ const app = {
           <div style="display:flex;gap:8px;margin-top:4px">
             <label style="flex:1;display:flex;align-items:center;gap:6px;padding:8px;background:var(--parchment);border:2px solid ${d.role === 'ally' ? '#4a7c3e' : 'var(--parchment-edge)'};border-radius:5px;cursor:pointer">
               <input type="radio" name="npcRole" value="ally" ${d.role === 'ally' ? 'checked' : ''}>
-              <span style="font-size:0.8rem;font-weight:bold;color:#4a7c3e">&#128100; Ally</span>
+              <span style="font-size:0.8rem;font-weight:bold;color:#4a7c3e">${this.icon('user', 14)} Ally</span>
             </label>
             <label style="flex:1;display:flex;align-items:center;gap:6px;padding:8px;background:var(--parchment);border:2px solid ${d.role === 'enemy' ? 'var(--burgundy)' : 'var(--parchment-edge)'};border-radius:5px;cursor:pointer">
               <input type="radio" name="npcRole" value="enemy" ${d.role === 'enemy' ? 'checked' : ''}>
@@ -7070,7 +7840,7 @@ const app = {
     if (encounters.length === 0) {
       html += `
         <div class="empty-state" style="padding:24px 16px">
-          <div class="icon">&#9876;</div>
+          <div class="icon">${this.icon('swords', 14)}</div>
           <p>No encounters yet.<br>Build your first fight for this party.</p>
         </div>`;
     } else {
@@ -7094,7 +7864,7 @@ const app = {
                 ${diff ? `<span style="background:${color};color:#fff;font-size:0.65rem;padding:3px 8px;border-radius:10px;white-space:nowrap">${diff.tier}</span>` : ''}
               </div>
             </div>
-            <button class="btn btn-primary btn-small" style="margin-top:8px;width:100%;padding:6px;font-size:0.8rem" onclick="event.stopPropagation();app.startCombatFromEncounter('${e.id}')">&#9654; Start Combat</button>
+            <button class="btn btn-primary btn-small" style="margin-top:8px;width:100%;padding:6px;font-size:0.8rem" onclick="event.stopPropagation();app.startCombatFromEncounter('${e.id}')">${this.icon('play', 12)} Start Combat</button>
           </div>`;
       }
       html += '</div>';
@@ -7285,7 +8055,7 @@ const app = {
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <button class="btn btn-secondary btn-small" onclick="app.cancelEncounterEdit()">&larr;</button>
         <h3 style="margin:0;flex:1;font-size:1rem">${isNew ? 'New Encounter' : 'Edit Encounter'}</h3>
-        ${!isNew ? `<button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.deleteEncounter()" title="Delete">&#128465;</button>` : ''}
+        ${!isNew ? `<button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.deleteEncounter()" title="Delete">${this.icon('trash', 14)}</button>` : ''}
       </div>
 
       <label style="display:block;margin-bottom:10px">
@@ -7360,8 +8130,8 @@ const app = {
       </div>
       ${!isNew ? `
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-secondary" style="flex:1" onclick="app.openMapPrep('${d.id}')">&#128506;&#65039; Prepare Map${c.encounters.find(x=>x.id===d.id)?.map ? ' &#10003;' : ''}</button>
-          <button class="btn btn-primary" style="flex:1;background:var(--gold);color:var(--leather-dark)" onclick="app.startCombatFromEncounter('${d.id}')">&#9654; Start Combat</button>
+          <button class="btn btn-secondary" style="flex:1" onclick="app.openMapPrep('${d.id}')">${this.icon('mapPin', 14)} Prepare Map${c.encounters.find(x=>x.id===d.id)?.map ? ` ${this.icon('check', 12)}` : ''}</button>
+          <button class="btn btn-primary" style="flex:1;background:var(--gold);color:var(--leather-dark)" onclick="app.startCombatFromEncounter('${d.id}')">${this.icon('play', 12)} Start Combat</button>
         </div>` : ''}`;
 
     return html;
@@ -8374,13 +9144,13 @@ const app = {
         : (lightR <= 2 ? 'Dark' : lightR <= 5 ? 'Dim' : lightR <= 10 ? 'Bright' : 'Daylight');
       toolbarHtml = `
         <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center">
-          ${toolBtn('select', '&#128273;', 'Select')}
-          ${toolBtn('fog',    '&#127787;&#65039;', 'Fog')}
-          ${toolBtn('wall',   '&#129521;', 'Wall')}
-          <button onclick="app.mapToggleGridType()" class="btn btn-secondary btn-small" style="font-size:0.65rem;padding:4px 6px" title="Toggle grid type">${isHex ? '&#11042;' : '&#9633;'}</button>
+          ${toolBtn('select', this.icon('key', 14), 'Select')}
+          ${toolBtn('fog',    this.icon('fog', 14), 'Fog')}
+          ${toolBtn('wall',   this.icon('wall', 14), 'Wall')}
+          <button onclick="app.mapToggleGridType()" class="btn btn-secondary btn-small" style="font-size:0.65rem;padding:4px 6px" title="Toggle grid type">${isHex ? 'Hex' : 'Sq'}</button>
         </div>
         <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;padding:4px 6px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);border-radius:4px">
-          <span style="font-size:0.7rem">&#128161; Illumination:</span>
+          <span style="font-size:0.7rem">${this.icon('sparkle', 12)} Illumination:</span>
           <button onclick="app.setLightRadius(${lightR - 1})" class="btn btn-secondary btn-small" style="font-size:0.7rem;padding:2px 8px;min-width:26px" title="Decrease radius">&minus;</button>
           <span style="font-size:0.75rem;font-weight:bold;color:var(--gold);min-width:60px;text-align:center">${lightR} sp &middot; ${lightLabel}</span>
           <button onclick="app.setLightRadius(${lightR + 1})" class="btn btn-secondary btn-small" style="font-size:0.7rem;padding:2px 8px;min-width:26px" title="Increase radius">&plus;</button>
@@ -8411,9 +9181,9 @@ const app = {
     if (readOnly) {
       hint = '';
     } else if (paintMode === 'fog') {
-      hint = `<div style="padding:6px 10px;background:#1a1a1a;color:#f4e4c1;font-size:0.72rem;border-radius:4px;margin-bottom:6px;text-align:center">&#127787;&#65039; Fog mode — tap cells to hide them from players.</div>`;
+      hint = `<div style="padding:6px 10px;background:#1a1a1a;color:#f4e4c1;font-size:0.72rem;border-radius:4px;margin-bottom:6px;text-align:center">${this.icon('fog', 14)} Fog mode — tap cells to hide them from players.</div>`;
     } else if (paintMode === 'wall') {
-      hint = `<div style="padding:6px 10px;background:#3d2b1f;color:#f4e4c1;font-size:0.72rem;border-radius:4px;margin-bottom:6px;text-align:center">&#129521; Wall mode — tap cells to mark obstacles.</div>`;
+      hint = `<div style="padding:6px 10px;background:#3d2b1f;color:#f4e4c1;font-size:0.72rem;border-radius:4px;margin-bottom:6px;text-align:center">${this.icon('wall', 14)} Wall mode — tap cells to mark obstacles.</div>`;
     } else if (selectedP) {
       hint = `<div style="padding:6px 10px;background:var(--gold);color:var(--leather-dark);font-size:0.75rem;border-radius:4px;margin-bottom:6px;text-align:center">
                 Selected: <strong>${this.esc(selectedP.name)}</strong> — tap a cell to move, or tap the token again to deselect.
@@ -8473,7 +9243,7 @@ const app = {
             : '';
           const upDisabled = i === 0 ? 'disabled' : '';
           const downDisabled = i === heroes.length - 1 ? 'disabled' : '';
-          const icon = isAlly ? '&#129309;' : '&#128100;';
+          const icon = isAlly ? this.icon('users', 16) : this.icon('user', 16);
           const subtitle = isAlly
             ? `<span style="color:#4a7c3e;font-weight:bold">Ally NPC</span> &middot; GM decides starting actions`
             : `DEX ${dexHint} &middot; roll d20 + DEX`;
@@ -8508,7 +9278,7 @@ const app = {
     return `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;min-width:0">
-          <h2 style="margin:0;font-size:1.05rem;line-height:1.2">&#9876; ${this.esc(combat.encounterName)}</h2>
+          <h2 style="margin:0;font-size:1.05rem;line-height:1.2">${this.icon('swords', 14)} ${this.esc(combat.encounterName)}</h2>
           <div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(campaign?.name || '—')} &middot; Initiative</div>
         </div>
         <button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.endCombatConfirm()" title="Cancel combat">Cancel</button>
@@ -8534,7 +9304,7 @@ const app = {
           <strong>Enemies:</strong> ${enemySummary.join(', ')} (no initiative roll needed)
         </div>` : ''}
 
-      <button class="btn btn-primary btn-block" style="background:var(--gold);color:var(--leather-dark);font-weight:bold" onclick="app.submitInitiatives()">&#9876; Start Combat</button>
+      <button class="btn btn-primary btn-block" style="background:var(--gold);color:var(--leather-dark);font-weight:bold" onclick="app.submitInitiatives()">${this.icon('swords', 14)} Start Combat</button>
     `;
   },
 
@@ -8555,8 +9325,8 @@ const app = {
     if (!combat) {
       return `
         <div class="empty-state" style="padding:30px 16px">
-          <div class="icon">&#128293;</div>
-          <p>No active combat.<br>Open an encounter and tap &#9654; Start Combat to begin.</p>
+          <div class="icon">${this.icon('fire', 14)}</div>
+          <p>No active combat.<br>Open an encounter and tap ${this.icon('play', 12)} Start Combat to begin.</p>
           <button class="btn btn-primary" onclick="app.setGMView('campaigns')">Go to Campaigns</button>
         </div>`;
     }
@@ -8574,19 +9344,19 @@ const app = {
     let html = `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;min-width:0">
-          <h2 style="margin:0;font-size:1.05rem;line-height:1.2">&#9876; ${this.esc(combat.encounterName)}</h2>
+          <h2 style="margin:0;font-size:1.05rem;line-height:1.2">${this.icon('swords', 14)} ${this.esc(combat.encounterName)}</h2>
           <div style="font-size:0.7rem;color:var(--ink-light)">${this.esc(campaign?.name || '—')} &middot; Round ${combat.round}</div>
         </div>
         <button class="btn btn-secondary btn-small" style="color:var(--burgundy)" onclick="app.endCombatConfirm()" title="End combat">End</button>
       </div>
 
       <div style="display:flex;gap:6px;margin-bottom:8px">
-        ${modeBtn('list', '&#128203;', 'List')}
-        ${modeBtn('map',  '&#128506;&#65039;', 'Map')}
+        ${modeBtn('list', this.icon('list', 14), 'List')}
+        ${modeBtn('map',  this.icon('mapPin', 14), 'Map')}
       </div>
 
       <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button class="btn btn-primary" style="flex:1" onclick="app.combatNextTurn()">&#10140; Next Turn</button>
+        <button class="btn btn-primary" style="flex:1" onclick="app.combatNextTurn()">${this.icon('arrowRight', 14)} Next Turn</button>
         <button class="btn btn-secondary" style="flex:1" onclick="app.combatNewRound()">&#8635; New Round</button>
       </div>
     `;
@@ -8653,8 +9423,14 @@ const app = {
     const isAllyNPC = p.kind === 'npc' && p.role === 'ally';
     const isEnemyNPC = p.kind === 'npc' && p.role !== 'ally';
     const kindIcon = isAllyNPC
-      ? '&#129309;' // handshake for ally NPC
-      : { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#128128;', minion: '&#128049;' }[p.kind] || '';
+      ? this.icon('users', 16)
+      : ({
+          pc:        this.icon('user', 16),
+          monster:   this.icon('bug', 16),
+          legendary: this.icon('crown', 16),
+          npc:       this.icon('user', 16),
+          minion:    this.icon('hash', 16)
+        })[p.kind] || '';
     const armorBadge = p.armor ? `<span style="background:var(--leather);color:var(--parchment);font-size:0.6rem;padding:2px 5px;border-radius:3px;margin-left:4px">${this.esc(p.armor)}</span>` : '';
 
     // Nimble GM UX: don't reveal enemy HP numbers. Only a Bloodied badge once below half HP.
@@ -9070,7 +9846,7 @@ const app = {
         <div class="rules-section">
           <div class="rules-collapsible-header" onclick="app.toggleCollapsible(this)">
             <h4>${this.esc(group.name)} <span class="rules-count">(${list.length})</span></h4>
-            <span class="collapsible-arrow">&#9660;</span>
+            <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
           </div>
           <div class="rules-collapsible-body">
             ${group.description ? `<p style="font-size:0.75rem;color:var(--ink-light);font-style:italic;margin:0 0 6px">${this.esc(group.description)}</p>` : ''}
@@ -9084,8 +9860,8 @@ const app = {
     html += `
       <div class="rules-section">
         <div class="rules-collapsible-header" onclick="app.toggleCollapsible(this)">
-          <h4>&#128081; Legendary Monsters <span class="rules-count">(${legend.length})</span></h4>
-          <span class="collapsible-arrow">&#9660;</span>
+          <h4>${this.icon('crown', 14)} Legendary Monsters <span class="rules-count">(${legend.length})</span></h4>
+          <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
         </div>
         <div class="rules-collapsible-body">
           ${legend.map(m => `
@@ -9106,8 +9882,8 @@ const app = {
     html += `
       <div class="rules-section">
         <div class="rules-collapsible-header" onclick="app.toggleCollapsible(this)">
-          <h4>&#9888; Conditions <span class="rules-count">(${Object.keys(conds).length})</span></h4>
-          <span class="collapsible-arrow">&#9660;</span>
+          <h4>${this.icon('warning', 14)} Conditions <span class="rules-count">(${Object.keys(conds).length})</span></h4>
+          <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
         </div>
         <div class="rules-collapsible-body">
           ${Object.entries(conds).map(([name, c]) => `
@@ -9133,7 +9909,7 @@ const app = {
     if (all.length === 0) {
       return `
         <div class="empty-state" style="padding:30px 16px">
-          <div class="icon">&#9876;</div>
+          <div class="icon">${this.icon('swords', 14)}</div>
           <p>No encounters yet.<br>Encounters live inside a campaign — open one and switch to the Encounters tab.</p>
           ${campaigns.length === 0
             ? `<button class="btn btn-primary" onclick="app.setGMView('campaigns')">Go to Campaigns</button>`
@@ -9172,7 +9948,7 @@ const app = {
   renderGMPlaceholder(title, msg) {
     return `
       <div class="empty-state">
-        <div class="icon">&#128736;</div>
+        <div class="icon">${this.icon('edit', 28)}</div>
         <h3 style="margin:10px 0 6px">${this.esc(title)}</h3>
         <p style="font-size:0.78rem;color:var(--ink-light);max-width:360px;margin:0 auto;line-height:1.4">${this.esc(msg)}</p>
       </div>`;
@@ -9978,6 +10754,15 @@ const app = {
     return div.innerHTML;
   },
 
+  // Inline SVG icon. Pass size to override the default 18px.
+  // Returns empty string for unknown names so missing icons fail safe.
+  icon(name, size) {
+    const svg = ICONS[name];
+    if (!svg) return '';
+    const s = size || 18;
+    return svg.replace('<svg ', `<svg width="${s}" height="${s}" `);
+  },
+
   // ==========================================================================
   // CLOUD SYNC (Firebase Auth + Firestore)
   // ==========================================================================
@@ -10318,41 +11103,42 @@ const app = {
   renderSessionBanner() {
     const fb = window.firebaseSync;
     if (!fb) return '';
-    if (!this.user) return '';   // Sign-in is the prerequisite; sync header already nudges
+    if (!this.user) return '';
     if (!this.state.joinedSessionId) {
       return `
-        <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:8px">
-          <div style="flex:1;font-size:0.72rem;color:var(--ink-light);line-height:1.3">
-            <strong style="color:var(--burgundy)">&#128256; Join a GM Session</strong><br>
-            Paste your GM's code to see live combat on this device.
+        <div class="sync-header">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--ds-accent-soft);color:var(--ds-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">${this.icon('link', 18)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:0.9rem;color:var(--ds-text)">Join a GM Session</div>
+            <div style="font-size:0.74rem;color:var(--ds-text-muted);line-height:1.35;margin-top:1px">See live combat from your GM on this device.</div>
           </div>
           <button class="btn btn-secondary btn-small" onclick="app.joinSessionPrompt()">Join</button>
         </div>`;
     }
     const rs = this.state.remoteSession;
     if (!rs) {
-      // Subscribed but no data yet (or session doc doesn't exist)
       return `
-        <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment-dark);border:1px solid var(--parchment-edge);border-radius:8px">
-          <div style="flex:1;font-size:0.72rem;color:var(--ink-light);line-height:1.3">
-            &#128196; Joined session <code style="font-size:0.65rem">${this.esc(this.state.joinedSessionId)}</code><br>
-            <span style="color:var(--burgundy)">Waiting for GM data…</span>
+        <div class="sync-header" style="background:var(--ds-bg-soft)">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--ds-surface);color:var(--ds-text-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0">${this.icon('refresh', 18)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:0.85rem;color:var(--ds-text)">Connecting…</div>
+            <div style="font-size:0.72rem;color:var(--ds-text-muted);margin-top:1px">Waiting for GM data</div>
           </div>
-          <button class="btn btn-secondary btn-small" onclick="app.leaveSession()">Leave</button>
+          <button class="icon-btn" onclick="app.leaveSession()" title="Leave">${this.icon('close', 16)}</button>
         </div>`;
     }
     const combatActive = !!rs.activeCombat;
     return `
-      <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--gold);border-radius:8px">
-        <div style="flex:1;min-width:0;font-size:0.72rem;line-height:1.3">
-          <strong style="color:var(--burgundy)">&#127922; ${this.esc(rs.campaignName || 'GM Session')}</strong>
-          <div style="font-size:0.65rem;color:var(--ink-light);margin-top:2px">
-            GM: ${this.esc(rs.gmDisplayName || '—')} &middot; Party Lvl ${rs.partyLevel || 1}
-            ${combatActive ? ' &middot; <span style="color:var(--burgundy);font-weight:bold">&#9876; Combat active</span>' : ' &middot; idle'}
+      <div class="sync-header" style="border-color:var(--ds-gold)">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--ds-gold-soft);color:#8a6f1d;display:flex;align-items:center;justify-content:center;flex-shrink:0">${this.icon('swords', 18)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="sync-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${this.esc(rs.campaignName || 'GM Session')}</div>
+          <div style="font-size:0.7rem;color:var(--ds-text-muted);margin-top:1px">
+            GM ${this.esc(rs.gmDisplayName || '—')} · Party Lvl ${rs.partyLevel || 1}
           </div>
         </div>
-        ${combatActive ? `<button class="btn btn-primary btn-small" style="padding:5px 10px" onclick="app.openRemoteCombatViewer()">View</button>` : ''}
-        <button class="btn btn-secondary btn-small" style="padding:5px 8px;font-size:0.7rem" onclick="app.leaveSession()" title="Leave">&times;</button>
+        ${combatActive ? `<button class="btn btn-primary btn-small" onclick="app.openRemoteCombatViewer()">View</button>` : `<span class="ds-pill">idle</span>`}
+        <button class="icon-btn" onclick="app.leaveSession()" title="Leave">${this.icon('close', 16)}</button>
       </div>`;
   },
 
@@ -10509,16 +11295,16 @@ const app = {
 
     this.showModal(`
       <div class="modal-header">
-        <h2>&#9876; ${this.esc(combat.encounterName || 'Combat')}</h2>
+        <h2>${this.icon('swords', 14)} ${this.esc(combat.encounterName || 'Combat')}</h2>
       </div>
       <div class="modal-body">
         <div style="font-size:0.7rem;color:var(--ink-light);margin-bottom:8px">
           Round ${combat.round} &middot; <span style="color:var(--burgundy);font-style:italic">Live (read-only)</span>
         </div>
         <div style="display:flex;gap:5px;margin-bottom:10px">
-          ${modeBtn('list', '&#128203;', 'List')}
-          ${modeBtn('map',  '&#128506;&#65039;', 'Map')}
-          ${modeBtn('myactions', '&#9876;', 'My Actions')}
+          ${modeBtn('list', this.icon('list', 14), 'List')}
+          ${modeBtn('map',  this.icon('mapPin', 14), 'Map')}
+          ${modeBtn('myactions', this.icon('swords', 14), 'My Actions')}
         </div>
         ${body}
       </div>
@@ -10558,17 +11344,17 @@ const app = {
 
     // Header card: name + level + HP + mana
     const manaLine = (ch.maxMana && ch.maxMana > 0)
-      ? `<span style="margin-left:10px">&#128293; Mana ${ch.mana ?? ch.maxMana}/${ch.maxMana}</span>`
+      ? `<span style="margin-left:10px">${this.icon('fire', 14)} Mana ${ch.mana ?? ch.maxMana}/${ch.maxMana}</span>`
       : '';
     const header = `
       <div style="padding:10px;background:var(--parchment);border:1px solid var(--gold);border-radius:6px;margin-bottom:10px">
-        <div style="font-weight:bold;font-size:0.95rem">&#128100; ${this.esc(ch.name)}</div>
+        <div style="font-weight:bold;font-size:0.95rem">${this.icon('user', 14)} ${this.esc(ch.name)}</div>
         <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">
           ${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')} &middot; Lvl ${ch.level || 1}
           ${inCombat ? '' : '<span style="margin-left:6px;color:var(--burgundy);font-style:italic">(not in this combat)</span>'}
         </div>
-        <div style="font-size:0.78rem;margin-top:6px">
-          &#10084;&#65039; HP ${ch.hp ?? ch.maxHp}/${ch.maxHp}
+        <div style="font-size:0.78rem;margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="display:inline-flex;align-items:center;gap:4px;color:var(--burgundy)">${this.icon('heart', 14)} HP ${ch.hp ?? ch.maxHp}/${ch.maxHp}</span>
           ${manaLine}
         </div>
       </div>`;
@@ -10577,7 +11363,7 @@ const app = {
     const attacks = this.getCharacterAttacks(ch) || [];
     let attacksSec = '';
     if (attacks.length) {
-      attacksSec = '<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px">&#127993; Attacks</div>';
+      attacksSec = `<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px;display:flex;align-items:center;gap:6px">${this.icon('target', 14)} Attacks</div>`;
       attacksSec += attacks.map(atk => `
         <div style="padding:8px 10px;margin-bottom:4px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:6px">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
@@ -10599,7 +11385,7 @@ const app = {
     );
     let activeSec = '';
     if (activeAbilities.length) {
-      activeSec = '<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px">&#9876; Active Abilities</div>';
+      activeSec = `<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px;display:flex;align-items:center;gap:6px">${this.icon('swords', 14)} Active Abilities</div>`;
       activeSec += activeAbilities.map(a => `
         <details style="padding:8px 10px;margin-bottom:4px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:6px">
           <summary style="cursor:pointer;font-weight:bold;font-size:0.8rem;color:var(--ink)">${this.esc(a.name)}</summary>
@@ -10618,7 +11404,7 @@ const app = {
         if (!byTier[t]) byTier[t] = [];
         byTier[t].push(sp);
       });
-      spellsSec = '<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px">&#10024; Spells</div>';
+      spellsSec = `<div style="font-size:0.75rem;font-weight:bold;color:var(--burgundy);margin:10px 0 4px;display:flex;align-items:center;gap:6px">${this.icon('sparkle', 14)} Spells</div>`;
       const tierKeys = Object.keys(byTier).map(Number).sort((a, b) => a - b);
       for (const t of tierKeys) {
         for (const sp of byTier[t]) {
@@ -10665,8 +11451,14 @@ const app = {
       const isAllyNPC = p.kind === 'npc' && p.role === 'ally';
       const isEnemyNPC = p.kind === 'npc' && p.role !== 'ally';
       const kindIcon = isAllyNPC
-        ? '&#129309;'
-        : { pc: '&#128100;', monster: '&#128029;', legendary: '&#128081;', npc: '&#128128;', minion: '&#128049;' }[p.kind] || '';
+        ? this.icon('users', 14)
+        : ({
+            pc:        this.icon('user', 14),
+            monster:   this.icon('bug', 14),
+            legendary: this.icon('crown', 14),
+            npc:       this.icon('user', 14),
+            minion:    this.icon('hash', 14)
+          })[p.kind] || '';
       const hpPct = p.maxHp > 0 ? Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100)) : 0;
       const hpColor = hpPct < 33 ? 'var(--burgundy)' : (hpPct < 66 ? '#c9a84c' : '#4a7c3e');
       const dead = p.dead || (p.kind === 'legendary' ? p.phase === 'dead' : (!p.isMinion && p.hp <= 0));
@@ -10736,39 +11528,49 @@ const app = {
   renderSyncHeader() {
     const fb = window.firebaseSync;
     if (!fb) {
-      // SDK failed to load — show a small offline note rather than a dead button
-      return `<div style="padding:8px 12px;margin-bottom:10px;background:var(--parchment-dark);border-radius:8px;font-size:0.7rem;color:var(--ink-light);text-align:center">&#9888; Cloud sync unavailable (offline?)</div>`;
+      return `<div class="sync-header" style="justify-content:center;color:var(--ds-text-muted);font-size:0.78rem">
+        <span class="ds-icon" style="color:var(--ds-warning)">${this.icon('info', 16)}</span>
+        Cloud sync unavailable (offline?)
+      </div>`;
     }
     if (!this.user) {
       return `
-        <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:8px">
-          <div style="flex:1;font-size:0.75rem;color:var(--ink-light);line-height:1.3">
-            <div style="font-weight:bold;color:var(--burgundy);margin-bottom:2px">&#9729; Cloud Sync</div>
-            Sign in with Google to sync characters across your devices.
+        <div class="sync-header">
+          <div class="sync-pitch">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--ds-gold-soft);color:#8a6f1d;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                ${this.icon('users', 18)}
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:0.9rem;color:var(--ds-text)">Cloud Sync</div>
+                <div style="font-size:0.74rem;color:var(--ds-text-muted);line-height:1.35;margin-top:1px">Sync characters across your devices.</div>
+              </div>
+              <button class="btn btn-gold btn-small" style="white-space:nowrap" onclick="app.signIn()">
+                ${this.icon('google', 14)} Sign in
+              </button>
+            </div>
           </div>
-          <button class="btn btn-small" style="background:var(--gold);color:var(--ink);border:none;padding:6px 12px;font-weight:bold;white-space:nowrap" onclick="app.signIn()">Sign in</button>
         </div>`;
     }
-    // Signed in: show avatar + name + status pill + sign-out
     const statusMap = {
-      idle:    { label: 'Ready',    color: 'var(--ink-light)' },
-      syncing: { label: 'Syncing…', color: 'var(--gold)' },
-      synced:  { label: '✓ Synced', color: '#2e7d32' },
-      error:   { label: '⚠ Error',  color: 'var(--burgundy)' },
-      offline: { label: 'Offline',  color: 'var(--ink-light)' }
+      idle:    { label: 'Ready',   cls: '' },
+      syncing: { label: 'Syncing', cls: 'gold' },
+      synced:  { label: 'Synced',  cls: 'success' },
+      error:   { label: 'Error',   cls: 'accent' },
+      offline: { label: 'Offline', cls: '' }
     };
     const status = statusMap[this.syncStatus] || statusMap.idle;
     const avatar = this.user.photoURL
-      ? `<img src="${this.user.photoURL}" width="32" height="32" style="border-radius:50%;flex:none" referrerpolicy="no-referrer" alt="">`
-      : `<div style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:bold;flex:none">${this.esc((this.user.displayName || '?').charAt(0).toUpperCase())}</div>`;
+      ? `<img src="${this.user.photoURL}" class="sync-avatar" referrerpolicy="no-referrer" alt="">`
+      : `<div class="sync-avatar" style="background:linear-gradient(135deg,var(--ds-leather),var(--ds-accent));color:var(--ds-gold);display:flex;align-items:center;justify-content:center;font-weight:600;font-family:'Cinzel',serif">${this.esc((this.user.displayName || '?').charAt(0).toUpperCase())}</div>`;
     return `
-      <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;margin-bottom:10px;background:var(--parchment);border:1px solid var(--parchment-edge);border-radius:8px">
+      <div class="sync-header">
         ${avatar}
         <div style="flex:1;min-width:0">
-          <div style="font-size:0.8rem;font-weight:bold;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${this.esc(this.user.displayName)}</div>
-          <div style="font-size:0.65rem;color:${status.color}">${status.label}</div>
+          <div class="sync-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${this.esc(this.user.displayName)}</div>
+          <span class="ds-pill ${status.cls}" style="margin-top:2px">${status.label}</span>
         </div>
-        <button class="btn btn-small btn-secondary" style="padding:4px 10px;font-size:0.7rem;white-space:nowrap" onclick="app.signOutCloud()">Sign out</button>
+        <button class="icon-btn" onclick="app.signOutCloud()" title="Sign out">${this.icon('signOut', 16)}</button>
       </div>`;
   },
 
