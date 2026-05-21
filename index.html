@@ -2281,6 +2281,58 @@ h1, h2, h3, h4 {
 }
 .action-row .btn { flex: 1 1 calc(50% - 4px); min-width: 0; }
 
+/* Image viewer (tap-to-expand character image) */
+.image-viewer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+}
+.image-viewer img {
+  width: 100%;
+  max-width: 480px;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: var(--ds-r-lg);
+  background: var(--ds-leather-2);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+}
+.image-viewer-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+.image-viewer-close:active { transform: scale(0.92); }
+.image-viewer-caption {
+  text-align: center;
+  margin-top: 14px;
+  padding: 0 8px;
+}
+.image-viewer-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--ds-text);
+}
+.image-viewer-sub {
+  font-size: 0.78rem;
+  color: var(--ds-text-muted);
+  margin-top: 2px;
+}
+
 /* Sheet sub-tab nav (under the character header) */
 .sheet-subnav {
   position: sticky;
@@ -2774,7 +2826,7 @@ const app = {
     html += `<div class="ds-label" style="margin:18px 4px 10px"><span class="ds-dot"></span>Your Adventurers · ${chars.length}</div>`;
     chars.forEach(ch => {
       const avatar = ch.image
-        ? `<div class="char-avatar"><img src="${ch.image}" alt="${this.esc(ch.name)}"></div>`
+        ? `<div class="char-avatar" onclick="event.stopPropagation();app.viewCharacterImage('${ch.id}')" title="Tap to view full image"><img src="${ch.image}" alt="${this.esc(ch.name)}"></div>`
         : `<div class="char-avatar">${this.esc((ch.name || '?').charAt(0).toUpperCase())}</div>`;
       html += `
         <div class="card char-card" onclick="app.navigate('sheet', {charId:'${ch.id}'})" ontouchstart="app.swipeStart(event,'${ch.id}')" ontouchmove="app.swipeMove(event,'${ch.id}')" ontouchend="app.swipeEnd(event,'${ch.id}')" id="char-${ch.id}">
@@ -3012,7 +3064,7 @@ const app = {
     html += `
       <div class="sheet-header">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          <div class="sheet-avatar" onclick="app.uploadImage()">${avatarContent}</div>
+          <div class="sheet-avatar" onclick="${ch.image ? `app.viewCharacterImage('${ch.id}')` : 'app.uploadImage()'}" title="${ch.image ? 'Tap to view full image' : 'Tap to add image'}">${avatarContent}</div>
           <div style="flex:1;min-width:0">
             <div class="sheet-name">${this.esc(ch.name)}</div>
             <div class="sheet-subtitle">${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')}${ch.subclass ? ' · ' + this.esc(ch.subclass) : ''}</div>
@@ -6048,19 +6100,21 @@ const app = {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
-        // Resize to reduce storage
+        // Resize while preserving the full image aspect ratio (max 800px on
+        // the longest side) so the expanded view still looks good. Old saves
+        // (square 200x200) will still display, just smaller when expanded.
         const img = new Image();
         img.onload = () => {
+          const MAX = 800;
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
           const canvas = document.createElement('canvas');
-          const size = 200;
-          canvas.width = size;
-          canvas.height = size;
+          canvas.width = w;
+          canvas.height = h;
           const ctx = canvas.getContext('2d');
-          const min = Math.min(img.width, img.height);
-          const sx = (img.width - min) / 2;
-          const sy = (img.height - min) / 2;
-          ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
           app.updateChar({ image: dataUrl });
           app.render();
         };
@@ -6070,6 +6124,27 @@ const app = {
       inp.value = '';
     };
     inp.click();
+  },
+
+  // Image lightbox: open a full-screen view of any character's image.
+  // Pass charId for the list view; falls back to the active sheet character.
+  viewCharacterImage(charId) {
+    const ch = charId
+      ? (this.state.characters || []).find(c => c.id === charId)
+      : this.getChar();
+    if (!ch || !ch.image) return;
+    const editing = this.state.editMode && this.getChar()?.id === ch.id;
+    this.showModal(`
+      <div class="image-viewer">
+        <button class="image-viewer-close" onclick="app.closeModal()" aria-label="Close">${this.icon('close', 22)}</button>
+        <img src="${ch.image}" alt="${this.esc(ch.name)}">
+        <div class="image-viewer-caption">
+          <div class="image-viewer-name">${this.esc(ch.name)}</div>
+          <div class="image-viewer-sub">${this.esc(ch.ancestry || '')} ${this.esc(ch.className || '')} · Level ${ch.level || 1}</div>
+        </div>
+        ${editing ? `<button class="btn btn-gold btn-block" style="margin-top:12px" onclick="app.closeModal();app.uploadImage()">${this.icon('upload', 14)} Change Image</button>` : ''}
+      </div>
+    `);
   },
 
   // Modals
