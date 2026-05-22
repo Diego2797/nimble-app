@@ -2281,6 +2281,24 @@ h1, h2, h3, h4 {
 }
 .action-row .btn { flex: 1 1 calc(50% - 4px); min-width: 0; }
 
+/* Edit/remove buttons inside ability cards (visible in edit mode) */
+.ability-edit-btn {
+  background: transparent;
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ds-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ability-edit-btn:hover { background: var(--ds-surface-hover); color: var(--ds-text); }
+.ability-edit-btn:active { transform: scale(0.92); }
+
 /* Homebrew items — modernized to match v2 design system */
 .homebrew-item {
   background: var(--ds-surface);
@@ -3395,24 +3413,32 @@ const app = {
     // ====== ABILITIES TAB: Abilities + Spells ======
     if (tab === 'abilities') {
 
-    // Abilities (filter out any that are also in the spells list), split by type
+    // Abilities (filter out any that are also in the spells list), split by type.
+    // We track each ability's ORIGINAL index in ch.abilities so edit/remove
+    // buttons can target the right entry after the filter+bucket reshuffle.
     html += '<div class="section-title">Abilities</div>';
     const abilities = ch.abilities || [];
     const spellNames = new Set((ch.spells || []).map(s => s.name));
-    const filteredAbilities = abilities.filter(ab => !spellNames.has(ab.name));
-    if (filteredAbilities.length === 0) {
+    const indexedAbilities = abilities
+      .map((ab, idx) => ({ ab, idx }))
+      .filter(({ ab }) => !spellNames.has(ab.name));
+    if (indexedAbilities.length === 0) {
       html += '<p style="font-size:0.8rem;color:var(--ink-light);padding:8px 0">No abilities recorded.</p>';
     } else {
       // Classify each ability
       const buckets = { active: [], passive: [], reference: [] };
-      filteredAbilities.forEach(ab => {
-        const t = this.classifyAbilityType(ab);
-        buckets[t].push(ab);
+      indexedAbilities.forEach(entry => {
+        const t = this.classifyAbilityType(entry.ab);
+        buckets[t].push(entry);
       });
 
-      const renderAbilityCard = (ab) => `
+      const renderAbilityCard = ({ ab, idx }) => `
         <div class="collapsible-header" onclick="app.toggleCollapsible(this)">
-          <h4>${this.esc(ab.name)}</h4>
+          <h4 style="flex:1;min-width:0">${this.esc(ab.name)}</h4>
+          ${editMode ? `
+            <button class="ability-edit-btn" onclick="event.stopPropagation();app.editAbility(${idx})" title="Edit">${this.icon('edit', 12)}</button>
+            <button class="ability-edit-btn" style="color:var(--ds-accent)" onclick="event.stopPropagation();app.removeAbility(${idx})" title="Remove">${this.icon('close', 12)}</button>
+          ` : ''}
           <span class="collapsible-arrow">${this.icon('chevronDown', 16)}</span>
         </div>
         <div class="collapsible-body">${this.esc(ab.description || '')}</div>`;
@@ -3420,20 +3446,20 @@ const app = {
       // --- Active ---
       if (buckets.active.length > 0) {
         html += `<div class="ability-group-header"><span class="ability-group-icon">${this.icon('swords', 14)}</span> Active <span class="ability-group-count">(${buckets.active.length})</span></div>`;
-        buckets.active.forEach(ab => { html += renderAbilityCard(ab); });
+        buckets.active.forEach(entry => { html += renderAbilityCard(entry); });
       }
 
       // --- Passive ---
       if (buckets.passive.length > 0) {
         html += `<div class="ability-group-header"><span class="ability-group-icon">${this.icon('shield', 14)}</span> Passive <span class="ability-group-count">(${buckets.passive.length})</span></div>`;
-        buckets.passive.forEach(ab => { html += renderAbilityCard(ab); });
+        buckets.passive.forEach(entry => { html += renderAbilityCard(entry); });
       }
 
       // --- Reference (collapsed by default) ---
       if (buckets.reference.length > 0) {
         html += `<div class="ability-group-header ref-collapsible" onclick="app.toggleCollapsible(this)"><span class="ability-group-icon">${this.icon('book', 14)}</span> Reference <span class="ability-group-count">(${buckets.reference.length})</span><span class="collapsible-arrow" style="margin-left:auto">${this.icon('chevronDown', 14)}</span></div>`;
         html += `<div class="collapsible-body">`;
-        buckets.reference.forEach(ab => { html += renderAbilityCard(ab); });
+        buckets.reference.forEach(entry => { html += renderAbilityCard(entry); });
         html += `</div>`;
       }
     }
@@ -6320,25 +6346,52 @@ const app = {
     this._remotePlayerSelectedPid = null;
   },
 
-  addAbilityModal() {
+  // Add or edit a character ability. Pass editIndex to edit an existing one.
+  addAbilityModal(editIndex) {
+    const ch = this.getChar();
+    const hasEdit = editIndex !== undefined && editIndex >= 0;
+    const existing = hasEdit ? (ch.abilities || [])[editIndex] : null;
+    const idx = hasEdit ? editIndex : -1;
     this.showModal(`
-      <h3>Add Ability</h3>
-      <input class="creation-input" id="abilityName" placeholder="Ability name">
-      <textarea class="notes-area" id="abilityDesc" placeholder="Description" style="min-height:80px"></textarea>
+      <h3>${existing ? 'Edit' : 'Add'} Ability</h3>
+      <input class="creation-input" id="abilityName" placeholder="Ability name" value="${this.esc(existing?.name || '')}">
+      <textarea class="notes-area" id="abilityDesc" placeholder="Description" style="min-height:100px">${this.esc(existing?.description || '')}</textarea>
       <div class="modal-buttons">
         <button class="btn btn-secondary" onclick="app.closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="app.saveAbility()">Save</button>
+        <button class="btn btn-primary" onclick="app.saveAbility(${idx})">Save</button>
       </div>
     `);
   },
 
-  saveAbility() {
+  editAbility(idx) { this.addAbilityModal(idx); },
+
+  removeAbility(idx) {
+    const ch = this.getChar();
+    const abilities = ch.abilities || [];
+    const ab = abilities[idx];
+    if (!ab) return;
+    if (!confirm(`Remove "${ab.name}"? This cannot be undone.`)) return;
+    abilities.splice(idx, 1);
+    this.updateChar({ abilities });
+    this.render();
+    this.toast('Ability removed');
+  },
+
+  // Saves an ability. If idx >= 0, replaces; otherwise pushes a new one.
+  // Preserves any extra metadata fields on the existing object (subclass,
+  // grant info, etc.) so editing only updates name + description.
+  saveAbility(idx) {
     const name = document.getElementById('abilityName').value.trim();
     const desc = document.getElementById('abilityDesc').value.trim();
     if (!name) return;
     const ch = this.getChar();
     const abilities = ch.abilities || [];
-    abilities.push({ name, description: desc });
+    if (idx !== undefined && idx >= 0) {
+      const existing = abilities[idx] || {};
+      abilities[idx] = { ...existing, name, description: desc };
+    } else {
+      abilities.push({ name, description: desc });
+    }
     this.updateChar({ abilities });
     this.closeModal();
     this.render();
