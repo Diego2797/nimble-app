@@ -2281,6 +2281,125 @@ h1, h2, h3, h4 {
 }
 .action-row .btn { flex: 1 1 calc(50% - 4px); min-width: 0; }
 
+/* Homebrew items — modernized to match v2 design system */
+.homebrew-item {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-left: 3px solid var(--ds-gold);
+  border-radius: var(--ds-r-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--ds-shadow-card);
+}
+.homebrew-item h4 {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  color: var(--ds-text);
+}
+.homebrew-item p {
+  font-size: 0.82rem;
+  color: var(--ds-text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+.homebrew-item .effect {
+  font-size: 0.75rem;
+  color: var(--ds-accent);
+  font-style: italic;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--ds-border);
+}
+
+/* Multi-ability sub-cards inside a homebrew item */
+.hb-abilities {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ds-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hb-ability {
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-sm);
+  padding: 10px 12px;
+}
+.hb-ability-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.hb-ability-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--ds-text);
+}
+.hb-ability-meta {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ds-text-muted);
+  letter-spacing: 0.02em;
+}
+.hb-ability-meta .dmg { color: var(--ds-accent); }
+.hb-ability-meta .heal { color: var(--ds-success); }
+.hb-ability-desc {
+  font-size: 0.78rem;
+  color: var(--ds-text);
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+/* Inside the add/edit homebrew modal — sub-ability row form */
+.hb-ability-row {
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-r-sm);
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.hb-ability-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+.hb-ability-row input, .hb-ability-row textarea {
+  width: 100%;
+  font-size: 0.78rem;
+  padding: 6px 8px;
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  background: var(--ds-surface);
+  font-family: 'Inter', sans-serif;
+}
+.hb-ability-row textarea { resize: vertical; min-height: 50px; }
+.hb-ability-row .hb-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 6px;
+}
+.hb-ability-row .remove-btn {
+  background: transparent;
+  border: 1px solid var(--ds-border);
+  color: var(--ds-accent);
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 /* Image viewer (tap-to-expand character image) */
 .image-viewer {
   position: relative;
@@ -3487,15 +3606,39 @@ const app = {
     html += '<div class="section-title">Homebrew Items</div>';
     const homebrew = ch.homebrew || [];
     homebrew.forEach((hb, i) => {
+      // Sub-abilities: render each as a mini stat block. The meta line
+      // shows cost · range · damage · uses (only fields that have a value).
+      const abilities = hb.abilities || [];
+      const abilitiesHtml = abilities.length === 0 ? '' : `
+        <div class="hb-abilities">
+          ${abilities.map(a => {
+            const isHeal = /heal|cure|restore/i.test(a.damage || '');
+            const meta = [
+              a.cost  ? this.esc(a.cost)  : null,
+              a.range ? this.esc(a.range) : null,
+              a.damage ? `<span class="${isHeal ? 'heal' : 'dmg'}">${this.esc(a.damage)}</span>` : null,
+              a.uses  ? this.esc(a.uses)  : null
+            ].filter(Boolean).join(' · ');
+            return `
+              <div class="hb-ability">
+                <div class="hb-ability-header">
+                  <span class="hb-ability-name">${this.esc(a.name || 'Ability')}</span>
+                  ${meta ? `<span class="hb-ability-meta">${meta}</span>` : ''}
+                </div>
+                ${a.description ? `<div class="hb-ability-desc">${this.esc(a.description)}</div>` : ''}
+              </div>`;
+          }).join('')}
+        </div>`;
       html += `
         <div class="homebrew-item">
           ${editMode ? `<div class="homebrew-actions">
             <button onclick="app.editHomebrew(${i})">${this.icon('edit', 14)}</button>
-            <button onclick="app.removeHomebrew(${i})">&#10006;</button>
+            <button onclick="app.removeHomebrew(${i})">${this.icon('close', 14)}</button>
           </div>` : ''}
           <h4>${this.esc(hb.name)}</h4>
-          <p>${this.esc(hb.description || '')}</p>
+          ${hb.description ? `<p>${this.esc(hb.description)}</p>` : ''}
           ${hb.effect ? '<div class="effect">Effect: ' + this.esc(hb.effect) + '</div>' : ''}
+          ${abilitiesHtml}
         </div>`;
     });
     if (editMode) {
@@ -6413,36 +6556,142 @@ const app = {
     this.render();
   },
 
+  // Homebrew item form. Items may carry an optional `abilities` array — each
+  // ability is a mini stat block (name + cost + range + damage + uses + desc).
+  // We use a transient `_hbDraft` so add/remove ability rows can re-render
+  // the modal without losing what's in the other inputs.
   addHomebrewModal(editIndex) {
     const ch = this.getChar();
     const existing = editIndex !== undefined ? (ch.homebrew || [])[editIndex] : null;
+    this._hbDraft = {
+      editIndex: editIndex !== undefined ? editIndex : -1,
+      name: existing?.name || '',
+      description: existing?.description || '',
+      effect: existing?.effect || '',
+      abilities: (existing?.abilities || []).map(a => ({ ...a })),
+    };
+    this._renderHomebrewModal();
+  },
+
+  _renderHomebrewModal() {
+    const d = this._hbDraft;
+    if (!d) return;
+    const isEdit = d.editIndex >= 0;
+    // Capture current input values before re-rendering so we don't lose them
+    const captureInputs = () => {
+      const n = document.getElementById('hbName');
+      const desc = document.getElementById('hbDesc');
+      const eff = document.getElementById('hbEffect');
+      if (n) d.name = n.value;
+      if (desc) d.description = desc.value;
+      if (eff) d.effect = eff.value;
+      (d.abilities || []).forEach((a, i) => {
+        const get = (k) => document.getElementById(`hbA_${i}_${k}`);
+        if (get('name')) a.name = get('name').value;
+        if (get('cost')) a.cost = get('cost').value;
+        if (get('range')) a.range = get('range').value;
+        if (get('damage')) a.damage = get('damage').value;
+        if (get('uses')) a.uses = get('uses').value;
+        if (get('desc')) a.description = get('desc').value;
+      });
+    };
+    // Save the captured values onto the draft so the next render shows them
+    if (document.getElementById('hbName')) captureInputs();
+
+    const abilitiesHtml = (d.abilities || []).map((a, i) => `
+      <div class="hb-ability-row">
+        <div class="hb-row-header">
+          <strong style="font-size:0.78rem;color:var(--ds-text-muted)">Ability ${i + 1}</strong>
+          <button class="remove-btn" onclick="app._hbRemoveAbility(${i})" title="Remove">${this.icon('close', 12)}</button>
+        </div>
+        <input id="hbA_${i}_name" placeholder="Name (e.g., Snapmaw Lily)" value="${this.esc(a.name || '')}">
+        <div class="hb-ability-row-grid">
+          <input id="hbA_${i}_cost"   placeholder="Cost (e.g., 1 action)" value="${this.esc(a.cost || '')}">
+          <input id="hbA_${i}_range"  placeholder="Range (e.g., Melee, 6 spaces)" value="${this.esc(a.range || '')}">
+          <input id="hbA_${i}_damage" placeholder="Damage / Heal (e.g., 2d6 Poison)" value="${this.esc(a.damage || '')}">
+          <input id="hbA_${i}_uses"   placeholder="Uses (e.g., 2/Safe Rest)" value="${this.esc(a.uses || '')}">
+        </div>
+        <textarea id="hbA_${i}_desc" placeholder="Description / mechanics" style="margin-top:6px">${this.esc(a.description || '')}</textarea>
+      </div>
+    `).join('');
+
     this.showModal(`
-      <h3>${existing ? 'Edit' : 'Add'} Homebrew Item</h3>
-      <input class="creation-input" id="hbName" placeholder="Item name" value="${this.esc(existing?.name || '')}">
-      <textarea class="notes-area" id="hbDesc" placeholder="Description" style="min-height:60px">${this.esc(existing?.description || '')}</textarea>
-      <input class="creation-input" id="hbEffect" placeholder="Mechanical effect" value="${this.esc(existing?.effect || '')}">
-      <div class="modal-buttons">
-        <button class="btn btn-secondary" onclick="app.closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="app.saveHomebrew(${editIndex !== undefined ? editIndex : -1})">Save</button>
+      <h3>${isEdit ? 'Edit' : 'Add'} Homebrew Item</h3>
+      <input class="creation-input" id="hbName" placeholder="Item name (e.g., Greenthumb's Signet)" value="${this.esc(d.name || '')}">
+      <textarea class="notes-area" id="hbDesc" placeholder="Description / flavor" style="min-height:60px">${this.esc(d.description || '')}</textarea>
+      <input class="creation-input" id="hbEffect" placeholder="Overall effect (optional, free-form)" value="${this.esc(d.effect || '')}">
+
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ds-text-muted)">Abilities / Summons</div>
+        <button class="btn btn-secondary btn-small" onclick="app._hbAddAbility()">${this.icon('plus', 12)} Add ability</button>
+      </div>
+      <div style="margin-top:8px">${abilitiesHtml || '<p style="font-size:0.75rem;color:var(--ds-text-muted);font-style:italic;padding:8px 0">No sub-abilities yet. Add one for items that have multiple summons / charges / spells.</p>'}</div>
+
+      <div class="modal-buttons" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="app._hbDraft=null;app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="app.saveHomebrew()">Save</button>
       </div>
     `);
   },
 
+  _hbAddAbility() {
+    if (!this._hbDraft) return;
+    this._hbDraft.abilities = this._hbDraft.abilities || [];
+    this._hbDraft.abilities.push({ name: '', cost: '', range: '', damage: '', uses: '', description: '' });
+    this._renderHomebrewModal();
+  },
+
+  _hbRemoveAbility(i) {
+    if (!this._hbDraft) return;
+    (this._hbDraft.abilities || []).splice(i, 1);
+    this._renderHomebrewModal();
+  },
+
   editHomebrew(i) { this.addHomebrewModal(i); },
 
-  saveHomebrew(idx) {
-    const name = document.getElementById('hbName').value.trim();
-    if (!name) return;
+  saveHomebrew() {
+    const d = this._hbDraft;
+    if (!d) return;
+    // Capture latest inputs one more time
+    const cap = (id) => document.getElementById(id);
+    if (cap('hbName')) d.name = cap('hbName').value;
+    if (cap('hbDesc')) d.description = cap('hbDesc').value;
+    if (cap('hbEffect')) d.effect = cap('hbEffect').value;
+    (d.abilities || []).forEach((a, i) => {
+      const get = (k) => cap(`hbA_${i}_${k}`);
+      if (get('name'))   a.name = get('name').value;
+      if (get('cost'))   a.cost = get('cost').value;
+      if (get('range'))  a.range = get('range').value;
+      if (get('damage')) a.damage = get('damage').value;
+      if (get('uses'))   a.uses = get('uses').value;
+      if (get('desc'))   a.description = get('desc').value;
+    });
+
+    const name = (d.name || '').trim();
+    if (!name) { this.toast('Item needs a name'); return; }
     const ch = this.getChar();
     const hb = ch.homebrew || [];
+    // Strip out empty abilities (no name AND no description)
+    const cleanAbilities = (d.abilities || [])
+      .map(a => ({
+        name: (a.name || '').trim(),
+        cost: (a.cost || '').trim(),
+        range: (a.range || '').trim(),
+        damage: (a.damage || '').trim(),
+        uses: (a.uses || '').trim(),
+        description: (a.description || '').trim(),
+      }))
+      .filter(a => a.name || a.description);
     const item = {
       name,
-      description: document.getElementById('hbDesc').value.trim(),
-      effect: document.getElementById('hbEffect').value.trim(),
+      description: (d.description || '').trim(),
+      effect: (d.effect || '').trim(),
+      abilities: cleanAbilities,
     };
-    if (idx >= 0) hb[idx] = item;
+    if (d.editIndex >= 0) hb[d.editIndex] = item;
     else hb.push(item);
     this.updateChar({ homebrew: hb });
+    this._hbDraft = null;
     this.closeModal();
     this.render();
   },
