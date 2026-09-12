@@ -1804,7 +1804,8 @@ Subclass (Circle of Sky & Storm) may grant Ice or Radiant at level 3.
 - **Chimeric Boon.** Choose 2 Chimeric Boons. Whenever you shapeshift into a Direbeast form, you may modify it with 1 Chimeric Boon you know.
 - **Expert Shifter.** Gain 1 additional use of Beastshift per Safe Rest.
 - **Tier 3 Spells.** You may now cast tier 3 spells and upcast spells at tier 3.
-- **Be Wild.** Whenever you spend a day with wild animals during a Safe Rest, you may choose different Stormshifter options available to you.
+
+> **Be Wild.** Whenever you spend a day with wild animals during a Safe Rest, you may choose different Stormshifter options available to you.
 
 ### Level 7
 - **Subclass.** Gain your Stormshifter subclass feature.
@@ -1928,7 +1929,7 @@ Transform into any Tiny beast or insect (provided it is *horrible*). Gain the St
 
 **Level 11:**
 - **Master of Forms.** Your shapeshift forms can have 2 Chimeric Boons at a time.
-- **Venomous Gaze.** (1/encounter) Action: Spend 2 mana to shift into a Beast of Nightmares. Then entice a creature within 12 spaces to move 2 x WIL spaces closer to you on a failed WIL save with disadvantage (they roll with disadvantage and must repeat until they save or can move no further). If they end up in the same space as you, you may Sting them for free.
+- **Venomous Gaze.** (1/encounter) Action: Spend 3 mana to shift into a Beast of Nightmares. Then entice a creature within 12 spaces to move 2 × WIL spaces closer to you on a failed WIL save (they roll with disadvantage and must repeat until they save or can move no further). If they end up in the same space as you, you may Sting them for free.
 
 **Level 15:**
 - **Master of Forms (2).** You can Beastshift 2 additional times per Safe Rest. Choose 2 additional Chimeric Boons. Your Direbeast forms can have 3 at a time.

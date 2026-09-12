@@ -1371,7 +1371,8 @@ window.GAME_DATA = {
       levels: {
         1: [
           { name: "Master of Storms", description: "You know cantrips from the Lightning and Wind schools." },
-          { name: "Beastshift", description: "Action: Transform into a harmless beast (squirrel, pigeon, etc.). While transformed, you can speak with animals. This form lasts until you drop to 0 HP, cast a spell, or you end it on your turn for free. DEX charges per Safe Rest." }
+          { name: "Beastshift", description: "Action: You can transform into a harmless beast (squirrel, pigeon, etc.). While transformed, you can speak with animals. This form lasts until you drop to 0 HP, cast a spell, or if you end it on your turn for free. You have DEX Beastshift charges; they reset on a Safe Rest." },
+          { name: "Tiny Beasts", description: "Whenever you shapeshift into a Tiny beast, attacks against you are made with disadvantage, but ANY damage ends that shapeshift form." }
         ],
         2: [
           { name: "Direbeast Form", description: "You can Beastshift into a Fearsome Beast (Large)." },
@@ -1394,8 +1395,7 @@ window.GAME_DATA = {
         6: [
           { name: "Chimeric Boon", description: "Choose 2 Chimeric Boons. Whenever you shapeshift into a Direbeast form, you may modify it with 1 Chimeric Boon you know." },
           { name: "Expert Shifter", description: "Gain 1 additional use of Beastshift per Safe Rest." },
-          { name: "Tier 3 Spells", description: "You may now cast tier 3 spells and upcast spells at tier 3." },
-          { name: "Be Wild", description: "Whenever you spend a day with wild animals during a Safe Rest, you may choose different Stormshifter options available to you." }
+          { name: "Tier 3 Spells", description: "You may now cast tier 3 spells and upcast spells at tier 3." }
         ],
         7: [
           { name: "Subclass Feature", description: "Gain your Stormshifter subclass feature." },
@@ -2196,6 +2196,7 @@ window.GAME_DATA = {
       {
         name: "Circle of Sky & Storm",
         className: "Stormshifter",
+        description: "Master of tempests and heavenly lights. Cast lightning, wind, and one additional school (Ice or Radiant) with primal fury.",
         features: {
           3:  [
             { name: "Deepening Study", description: "Choose the Ice or Radiant school to learn." },
@@ -2210,6 +2211,7 @@ window.GAME_DATA = {
       {
         name: "Circle of Fang & Claw",
         className: "Stormshifter",
+        description: "Bestial shapeshifter. Move fluidly between Direbeast forms and unleash the raw fury of the wild.",
         features: {
           3:  [
             { name: "Swiftshift", description: "When you roll Initiative, you may Beastshift or move for free. While transformed, you may shift between different Direbeast forms for free (and as a reaction by spending 1 mana); however, Beastshifting for free does not grant any temp HP." },
@@ -2222,7 +2224,7 @@ window.GAME_DATA = {
           ],
           11: [
             { name: "Master of Forms", description: "Your shapeshift forms can have 2 Chimeric Boons at a time." },
-            { name: "Venomous Gaze", description: "(1/encounter) Action: Spend 2 mana to shift into a Beast of Nightmares. Then entice a creature within 12 spaces to move 2 × WIL spaces closer to you on a failed WIL save with disadvantage (they roll with disadvantage and must repeat until they save or can move no further). If they end up in the same space as you, you may Sting them for free." }
+            { name: "Venomous Gaze", description: "(1/encounter) Action: Spend 3 mana to shift into a Beast of Nightmares. Then entice a creature within 12 spaces to move 2 × WIL spaces closer to you on a failed WIL save (they roll with disadvantage and must repeat until they save or can move no further). If they end up in the same space as you, you may Sting them for free." }
           ],
           15: [{ name: "Master of Forms (2)", description: "You can Beastshift 2 additional times per Safe Rest. Choose 2 additional Chimeric Boons. Your Direbeast forms can have 3 at a time." }]
         }
