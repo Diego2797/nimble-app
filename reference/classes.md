@@ -1181,7 +1181,7 @@ Gain Spellshaper abilities as you level up. You may use 1/turn.
 | **Starting HP** | 17 |
 | **Saves** | STR+ (advantaged), DEX- (disadvantaged) |
 | **Armor Proficiencies** | All Armor |
-| **Weapon Proficiencies** | STR Weapons |
+| **Weapon Proficiencies** | Melee STR Weapons |
 | **Starting Gear** | Mace, Rusty Mail, Wooden Buckler, Manacles |
 
 ## Mana / Resource System
@@ -1190,13 +1190,11 @@ Gain Spellshaper abilities as you level up. You may use 1/turn.
 
 Gained at Level 2. Recharges on a Safe Rest.
 
-**Judgment Dice** - Whenever an enemy attacks you, if you have no Judgment Dice, roll your Judgment Dice (2d6 at level 1). On your next melee attack this encounter, if you hit, deal that much additional radiant damage. The dice are expended whether you hit or miss.
+**Judgment Dice** — Whenever an enemy attacks you, roll and set aside 2d6 Judgment Dice (if you currently have none). They are expended on your next attack this encounter, dealing their total as extra radiant damage (they are lost on a miss).
 
-**Lay on Hands** - A magical pool of healing power. Maximum = 5 x LVL. Recharges on a Safe Rest. Action: Touch a target and spend any amount of remaining healing power to restore that many HP.
+**Lay on Hands** — A magical pool of healing power. Maximum = 5×LVL. Recharges on a Safe Rest. Action: Touch a target and spend any amount of remaining healing power to restore that many HP.
 
-**Zealot** - Whenever you attack with a melee weapon, you may spend mana (up to your highest unlocked spell tier) to choose one for each mana spent:
-- **Condemning Strike.** Deal +5 radiant damage.
-- **Blessed Aim.** Decrease your target's armor by 1 step for this attack.
+**Zealot** — Whenever you hit with a melee weapon, you may spend mana to deal +5 damage for each mana spent (up to the spell tier you've unlocked).
 
 ### Judgment Dice Progression
 
@@ -1230,25 +1228,24 @@ Gained at Level 2. Recharges on a Safe Rest.
 ## Level Features (1-20)
 
 ### Level 1
-- **Radiant Judgment.** Whenever an enemy attacks you, if you have no Judgment Dice, roll your Judgment dice (2d6). On your next melee attack this encounter, if you hit, deal that much additional radiant damage. The dice are expended whether you hit or miss.
-- **Lay on Hands.** Gain a magical pool of healing power. This pool's maximum is always equal to 5 x LVL and recharges on a Safe Rest. Action: Touch a target and spend any amount of remaining healing power to restore that many HP.
+- **Radiant Judgment.** Whenever an enemy attacks you, roll and set aside 2d6 Judgment Dice (if you currently have none). They are expended on your next attack this encounter, dealing their total as extra radiant damage (they are lost on a miss).
+- **Lay on Hands.** Gain a magical pool of healing power. This pool's max is always equal to 5×LVL and recharges on a Safe Rest. Action: Touch a target and spend any amount of remaining healing power to restore that many HP.
 
 ### Level 2
-- **Mana and Radiant Spellcasting.** You know Radiant cantrips, tier 1 Radiant spells, and gain a mana pool. Your mana pool is equal to WIL + LVL and recharges on a Safe Rest.
-- **Zealot.** Whenever you attack with a melee weapon, you may spend mana (up to your highest unlocked spell tier) to choose one for each mana spent:
-  - Condemning Strike: Deal +5 radiant damage.
-  - Blessed Aim: Decrease your target's armor by 1 step for this attack.
+- **Mana and Radiant Spellcasting.** You know Radiant cantrips and tier 1 spells, and gain a mana pool. Your mana pool is equal to WIL + LVL and recharges on a Safe Rest.
+- **Zealot.** Whenever you hit with a melee weapon, you may spend mana to deal +5 damage for each mana spent (up to the spell tier you've unlocked).
 - **Paragon of Virtue.** Advantage on Influence checks to convince someone when you are forthrightly telling the truth, disadvantage when misleading.
 
 ### Level 3
-- **Subclass.** Commit yourself to an Oath and gain its benefits.
+- **Subclass.** Commit yourself to an Oath and gain its benefits: Oath of Vengeance, Oath of Refuge, Oath of Valor, or Oath of Roaring Thunder.
 - **Radiant Judgment (2).** Your Judgment Dice are d8s.
 - **Sacred Decree.** Learn 1 Sacred Decree.
-- **Serve Selflessly.** Whenever you perform a notable selfless act during a Safe Rest, you may choose different Oathsworn options available to you.
+
+> **Serve Selflessly.** Whenever you perform a notable selfless act during a Safe Rest, you may choose different Oathsworn options available to you.
 
 ### Level 4
 - **My Life, for My Friends.** You can Interpose for free.
-- **Tier 2 Spells.** You may now cast tier 2 spells and upcast spells at tier 2.
+- **Tier 2 Spells.** You may now cast spells up to tier 2.
 - **Key Stat Increase.** +1 STR or WIL.
 
 ### Level 5
@@ -1307,7 +1304,7 @@ Gained at Level 2. Recharges on a Safe Rest.
 - **Secondary Stat Increase.** +1 DEX or INT.
 
 ### Level 18
-- **Unending Judgment.** While you have no Judgment Dice, gain +5 damage to melee attacks.
+- **Unending Judgment.** +5 damage to melee attacks while you have no Judgment Dice.
 
 ### Level 19
 - **Epic Boon.** Choose an Epic Boon (see pg. 23 of the GM's Guide).
@@ -1318,26 +1315,86 @@ Gained at Level 2. Recharges on a Safe Rest.
 
 ## Sacred Decrees
 
-- **Blinding Aura.** (1/Safe Rest) Action: Enemies in your aura are Blinded until the end of their next turn.
-- **Courage!** (1/encounter) When you or an ally in your aura would drop to 0 HP, set their HP to 1 instead.
-- **Explosive Judgment.** (1/encounter) 2 actions: Expend your Judgment Dice, deal that much radiant damage to all enemies in your aura.
-- **Improved Aura.** +2 aura Reach.
-- **Radiant Aura.** Action: End any single harmful condition or effect on yourself or another willing creature within your aura. You may use this ability WIL times/Safe Rest. (Harmful Conditions: Ending "Dying" grants 1 HP, ending "Dazed" grants 1 action, etc.)
-- **Reliable Justice.** Whenever you roll Judgment Dice, roll with advantage (roll one extra and drop the lowest).
-- **Shining Mandate.** The first time each round you are attacked while you already have Judgment Dice, select an ally within your aura to roll one and apply it to their next attack. You have advantage on skill checks to see through illusions.
-- **Stand Fast, Friends!** When you roll Initiative, grant allies temp HP equal to your STR+WIL. You and allies within your aura have advantage against fear and effects that would move or knock Prone.
-- **Unstoppable Protector.** Gain +1 speed. You may Interpose even if you are restrained, stunned, or otherwise incapacitated. If you Interpose for a non-combatant NPC, you may Interpose again this round.
-- **Well Armored.** Whenever you Interpose, gain temp HP equal to your STR.
+- **Blinding Aura.** 1 Action. (1/Safe Rest) Enemies in your aura are Blinded until the end of their next turn.
+- **Courage!** 0 Actions. (1/Encounter) When you or an ally in your aura would drop to 0 HP, set their HP to 1 instead.
+- **Explosive Judgment.** 2 Actions. (1/Encounter) Expend your Judgment Dice, deal that much radiant damage to all enemies within Reach 2.
+- **Improved Aura.** (Passive) +2 aura Reach.
+- **Radiant Aura.** 1 Action. (WIL/Safe Rest) End any single harmful condition or effect on yourself or another willing creature within your aura (ending "Dying" grants 1 HP, ending "Dazed" grants 1 action, etc.).
+- **Reliable Justice.** (Passive) Whenever you roll Judgment Dice, roll with advantage (roll one extra and drop the lowest).
+- **Shining Mandate.** (Passive) (1/Round) When you are attacked while you already have Judgment Dice, an ally within your aura gains a Judgment Die (roll a new one, they add it to their next attack). Gain advantage on checks to see through illusions.
+- **Stand Fast, Friends!** (Passive) Whenever you roll Initiative, grant allies temp HP equal to your STR+WIL. You and allies within your aura have advantage against fear and effects that would move or knock Prone.
+- **Unstoppable Protector.** (Passive) Gain +2 Speed. Nothing can stop you from Interposing for an ally within your aura. If you Interpose for a noncombatant NPC, you may Interpose again this round.
+- **Well Armored.** (Passive) Whenever you Interpose, gain STR Temp HP.
 
 ## Subclasses
 
 ### Oath of Vengeance
+**Subclass Complexity: 2/4**
 
-*(Details from PDF pages for Oathsworn subclasses not fully shown in extracted pages -- these subclasses exist but specific level features were not visible in the page images provided. The Oathbreaker story-based subclass IS documented below in Story-Based Subclasses.)*
+> Empower your judgement dice and strike down your enemies with explosive retribution.
+
+**Level 3:**
+- **Aura of Zeal.** Whenever you roll Judgment Dice, roll 1 more. Gain an aura with a Reach of 4. Your Radiant Judgment also triggers when an ally within your aura is attacked while you have no Judgment Dice.
+
+**Level 7:**
+- **Avenger.** Whenever you or an ally within your aura gain any Wounds, change up to that many Judgment Dice to their max. Then, move up to half your Speed for free.
+
+**Level 11:**
+- **Unerring Judgment.** Increase your Primary Die rolls on melee attacks by 1 whenever you have Judgment Dice.
+
+**Level 15:**
+- **Maximum Judgment.** Whenever you are attacked, set a Judgment Die to its max.
 
 ### Oath of Refuge
+**Subclass Complexity: 2/4**
 
-*(Same note as above.)*
+> Raise your shield to protect your allies, and interpose with greater strength and purpose.
+
+**Level 3:**
+- **Aura of Refuge.** Your shields gain +WIL Defense and count as your spellcasting focus. Gain an aura with a Reach of 4; you can Interpose for an ally anywhere within your aura.
+
+**Level 7:**
+- **Face Me, Foul Creature!** When you Interpose, the attacking enemy is also Taunted by you until the end of their next turn.
+
+**Level 11:**
+- **Glorious Reprieve.** You and allies in your aura do not lose actions from Dying. (1/Round) You or an ally in your aura can ignore 1 Wound gained while Dying.
+
+**Level 15:**
+- **Divine Grace.** You are resistant to all damage while Interposing.
+
+### Oath of Valor
+**Subclass Complexity: 2/4**
+
+> The Valorsworn, is a knight with a selfless heart, courageous hand, and an unyielding will in the face of danger.
+
+**Level 3:**
+- **Aura of Valor.** You are immune to Fear; gain an aura with a Reach of 4, allies in this area are as well. When you Interpose, the protected creature gains advantage on their next roll this encounter.
+
+**Level 7:**
+- **Exemplar of Courage.** Whenever you survive an attack, grant an ally in your aura advantage on their next roll. When you Interpose for a Dying creature, grant them 1 additional action.
+
+**Level 11:**
+- **Balm for the Downcast.** When using Lay on Hands, you may choose another creature within your aura to be healed the same amount.
+
+**Level 15:**
+- **No Greater Love...** When you Interpose while Dying, you suffer 1 fewer Wounds and all allies in your Aura gain 1 Action.
+
+### Oath of Roaring Thunder
+**Subclass Complexity: 2/4**
+
+> With the power of thunder smash your foes across the battlefield, and with the swiftness of lightning you dash after them to strike them dead.
+
+**Level 3:**
+- **Aura of Gales.** Gain an aura with a Reach of 4. Allies can move freely within your aura.
+
+**Level 7:**
+- **Thunderous Strike.** When you use Zealot, you can first teleport WIL spaces for each mana spent. If your target is a medium or smaller creature knock them Prone as well.
+
+**Level 11:**
+- **Thunderous Judgment.** (1 Mana, Reach 12) Exchange places with an ally outside your aura that is being attacked (this counts as Interposing).
+
+**Level 15:**
+- **Stormstrike.** (1/Encounter) Action: Exchange places with a willing creature within Reach 12, then deal lightning damage to enemies within your aura equal to a roll of your Judgment Dice.
 
 ---
 

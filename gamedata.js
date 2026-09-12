@@ -867,7 +867,7 @@ window.GAME_DATA = {
       startingHP: 17,
       saves: { advantaged: "STR", disadvantaged: "DEX" },
       armorProficiency: "All Armor",
-      weaponProficiency: "STR Weapons",
+      weaponProficiency: "Melee STR Weapons",
       startingGear: ["Mace", "Rusty Mail", "Wooden Buckler", "Manacles"],
       retrainFeature: {
         name: "Serve Selflessly",
@@ -876,36 +876,35 @@ window.GAME_DATA = {
       },
       retrainArrays: ["sacredDecrees"],
       sacredDecrees: [
-        { name: "Blinding Aura", description: "(1/Safe Rest) Action: Enemies in your aura are Blinded until the end of their next turn." },
-        { name: "Courage!", description: "(1/encounter) When you or an ally in your aura would drop to 0 HP, set their HP to 1 instead." },
-        { name: "Explosive Judgment", description: "(1/encounter) 2 actions: Expend your Judgment Dice, deal that much radiant damage to all enemies in your aura." },
-        { name: "Improved Aura", description: "+2 aura Reach." },
-        { name: "Radiant Aura", description: "Action: End any single harmful condition or effect on yourself or another willing creature within your aura. You may use this ability WIL times per Safe Rest." },
-        { name: "Reliable Justice", description: "Whenever you roll Judgment Dice, roll with advantage (roll one extra and drop the lowest)." },
-        { name: "Shining Mandate", description: "The first time each round you are attacked while you already have Judgment Dice, select an ally within your aura to roll one and apply it to their next attack. You have advantage on skill checks to see through illusions." },
-        { name: "Stand Fast, Friends!", description: "When you roll Initiative, grant allies temp HP equal to your STR+WIL. You and allies within your aura have advantage against fear and effects that would move or knock Prone." },
-        { name: "Unstoppable Protector", description: "Gain +1 speed. You may Interpose even if you are restrained, stunned, or otherwise incapacitated. If you Interpose for a non-combatant NPC, you may Interpose again this round." },
-        { name: "Well Armored", description: "Whenever you Interpose, gain temp HP equal to your STR." }
+        { name: "Blinding Aura", description: "1 Action. (1/Safe Rest) Enemies in your aura are Blinded until the end of their next turn." },
+        { name: "Courage!", description: "0 Actions. (1/Encounter) When you or an ally in your aura would drop to 0 HP, set their HP to 1 instead." },
+        { name: "Explosive Judgment", description: "2 Actions. (1/Encounter) Expend your Judgment Dice, deal that much radiant damage to all enemies within Reach 2." },
+        { name: "Improved Aura", description: "Passive. +2 aura Reach." },
+        { name: "Radiant Aura", description: "1 Action. (WIL/Safe Rest) End any single harmful condition or effect on yourself or another willing creature within your aura (ending \"Dying\" grants 1 HP, ending \"Dazed\" grants 1 action, etc.)." },
+        { name: "Reliable Justice", description: "Passive. Whenever you roll Judgment Dice, roll with advantage (roll one extra and drop the lowest)." },
+        { name: "Shining Mandate", description: "Passive. (1/Round) When you are attacked while you already have Judgment Dice, an ally within your aura gains a Judgment Die (roll a new one, they add it to their next attack). Gain advantage on checks to see through illusions." },
+        { name: "Stand Fast, Friends!", description: "Passive. Whenever you roll Initiative, grant allies temp HP equal to your STR+WIL. You and allies within your aura have advantage against fear and effects that would move or knock Prone." },
+        { name: "Unstoppable Protector", description: "Passive. Gain +2 Speed. Nothing can stop you from Interposing for an ally within your aura. If you Interpose for a noncombatant NPC, you may Interpose again this round." },
+        { name: "Well Armored", description: "Passive. Whenever you Interpose, gain STR Temp HP." }
       ],
       levels: {
         1: [
-          { name: "Radiant Judgment", description: "Whenever an enemy attacks you, if you have no Judgment Dice, roll your Judgment Dice (2d6). On your next melee attack this encounter, if you hit, deal that much additional radiant damage. The dice are expended whether you hit or miss." },
-          { name: "Lay on Hands", description: "Gain a magical pool of healing power equal to 5 x LVL, recharges on a Safe Rest. Action: Touch a target and spend any amount of remaining healing power to restore that many HP." }
+          { name: "Radiant Judgment", description: "Whenever an enemy attacks you, roll and set aside 2d6 Judgment Dice (if you currently have none). They are expended on your next attack this encounter, dealing their total as extra radiant damage (they are lost on a miss)." },
+          { name: "Lay on Hands", description: "Gain a magical pool of healing power. This pool's max is always equal to 5×LVL and recharges on a Safe Rest. Action: Touch a target and spend any amount of remaining healing power to restore that many HP." }
         ],
         2: [
-          { name: "Mana and Radiant Spellcasting", description: "You know Radiant cantrips and tier 1 Radiant spells and gain a mana pool equal to WIL + LVL, recharges on a Safe Rest." },
-          { name: "Zealot", description: "Whenever you attack with a melee weapon, you may spend mana (up to your highest unlocked spell tier) to choose one for each mana spent: Condemning Strike (+5 radiant damage) or Blessed Aim (decrease target's armor by 1 step for this attack)." },
-          { name: "Paragon of Virtue", description: "Advantage on Influence checks to convince someone when you are forthrightly telling the truth; disadvantage when misleading." }
+          { name: "Mana and Radiant Spellcasting", description: "You know Radiant cantrips and tier 1 spells, and gain a mana pool. Your mana pool is equal to WIL + LVL and recharges on a Safe Rest." },
+          { name: "Zealot", description: "Whenever you hit with a melee weapon, you may spend mana to deal +5 damage for each mana spent (up to the spell tier you've unlocked)." },
+          { name: "Paragon of Virtue", description: "Advantage on Influence checks to convince someone when you are forthrightly telling the truth, disadvantage when misleading." }
         ],
         3: [
-          { name: "Subclass", description: "Commit yourself to an Oath: Oath of Vengeance or Oath of Refuge." },
+          { name: "Subclass", description: "Commit yourself to an Oath and gain its benefits. Options: Oath of Vengeance, Oath of Refuge, Oath of Valor, or Oath of Roaring Thunder." },
           { name: "Radiant Judgment (2)", description: "Your Judgment Dice are d8s." },
-          { name: "Sacred Decree", description: "Learn 1 Sacred Decree." },
-          { name: "Serve Selflessly", description: "Whenever you perform a notable selfless act during a Safe Rest, you may choose different Oathsworn options available to you." }
+          { name: "Sacred Decree", description: "Learn 1 Sacred Decree." }
         ],
         4: [
           { name: "My Life, for My Friends", description: "You can Interpose for free." },
-          { name: "Tier 2 Spells", description: "You may now cast tier 2 spells and upcast spells at tier 2." },
+          { name: "Tier 2 Spells", description: "You may now cast spells up to tier 2." },
           { name: "Key Stat Increase", description: "+1 STR or WIL." }
         ],
         5: [
@@ -964,7 +963,7 @@ window.GAME_DATA = {
           { name: "Secondary Stat Increase", description: "+1 DEX or INT." }
         ],
         18: [
-          { name: "Unending Judgment", description: "While you have no Judgment Dice, gain +5 damage to melee attacks." }
+          { name: "Unending Judgment", description: "+5 damage to melee attacks while you have no Judgment Dice." }
         ],
         19: [
           { name: "Epic Boon", description: "Choose an Epic Boon." }
@@ -2250,15 +2249,45 @@ window.GAME_DATA = {
       {
         name: "Oath of Vengeance",
         className: "Oathsworn",
+        description: "Empower your judgement dice and strike down your enemies with explosive retribution.",
         features: {
-          3:  [{ name: "Oath of Vengeance (placeholder)", description: "Source pending: specific subclass features for Oath of Vengeance were not fully included in the available Nimble source material. Consult your GM or the Nimble Heroes PDF for the canonical features, and add them manually as you level up." }]
+          3:  [{ name: "Aura of Zeal", description: "Whenever you roll Judgment Dice, roll 1 more. Gain an aura with a Reach of 4. Your Radiant Judgment also triggers when an ally within your aura is attacked while you have no Judgment Dice." }],
+          7:  [{ name: "Avenger", description: "Whenever you or an ally within your aura gain any Wounds, change up to that many Judgment Dice to their max. Then, move up to half your Speed for free." }],
+          11: [{ name: "Unerring Judgment", description: "Increase your Primary Die rolls on melee attacks by 1 whenever you have Judgment Dice." }],
+          15: [{ name: "Maximum Judgment", description: "Whenever you are attacked, set a Judgment Die to its max." }]
         }
       },
       {
         name: "Oath of Refuge",
         className: "Oathsworn",
+        description: "Raise your shield to protect your allies, and interpose with greater strength and purpose.",
         features: {
-          3:  [{ name: "Oath of Refuge (placeholder)", description: "Source pending: specific subclass features for Oath of Refuge were not fully included in the available Nimble source material. Consult your GM or the Nimble Heroes PDF for the canonical features, and add them manually as you level up." }]
+          3:  [{ name: "Aura of Refuge", description: "Your shields gain +WIL Defense and count as your spellcasting focus. Gain an aura with a Reach of 4; you can Interpose for an ally anywhere within your aura." }],
+          7:  [{ name: "Face Me, Foul Creature!", description: "When you Interpose, the attacking enemy is also Taunted by you until the end of their next turn." }],
+          11: [{ name: "Glorious Reprieve", description: "You and allies in your aura do not lose actions from Dying. (1/Round) You or an ally in your aura can ignore 1 Wound gained while Dying." }],
+          15: [{ name: "Divine Grace", description: "You are resistant to all damage while Interposing." }]
+        }
+      },
+      {
+        name: "Oath of Valor",
+        className: "Oathsworn",
+        description: "The Valorsworn, is a knight with a selfless heart, courageous hand, and an unyielding will in the face of danger.",
+        features: {
+          3:  [{ name: "Aura of Valor", description: "You are immune to Fear; gain an aura with a Reach of 4, allies in this area are as well. When you Interpose, the protected creature gains advantage on their next roll this encounter." }],
+          7:  [{ name: "Exemplar of Courage", description: "Whenever you survive an attack, grant an ally in your aura advantage on their next roll. When you Interpose for a Dying creature, grant them 1 additional action." }],
+          11: [{ name: "Balm for the Downcast", description: "When using Lay on Hands, you may choose another creature within your aura to be healed the same amount." }],
+          15: [{ name: "No Greater Love...", description: "When you Interpose while Dying, you suffer 1 fewer Wounds and all allies in your Aura gain 1 Action." }]
+        }
+      },
+      {
+        name: "Oath of Roaring Thunder",
+        className: "Oathsworn",
+        description: "With the power of thunder smash your foes across the battlefield, and with the swiftness of lightning you dash after them to strike them dead.",
+        features: {
+          3:  [{ name: "Aura of Gales", description: "Gain an aura with a Reach of 4. Allies can move freely within your aura." }],
+          7:  [{ name: "Thunderous Strike", description: "When you use Zealot, you can first teleport WIL spaces for each mana spent. If your target is a medium or smaller creature knock them Prone as well." }],
+          11: [{ name: "Thunderous Judgment", description: "(1 Mana, Reach 12) Exchange places with an ally outside your aura that is being attacked (this counts as Interposing)." }],
+          15: [{ name: "Stormstrike", description: "(1/Encounter) Action: Exchange places with a willing creature within Reach 12, then deal lightning damage to enemies within your aura equal to a roll of your Judgment Dice." }]
         }
       }
     ],
@@ -2605,7 +2634,7 @@ window.GAME_DATA = {
           ],
           7:  [{ name: "Torment", description: "Your Lay on Hands heals you for twice as much, and others for half as much. When you deal damage, you can expend healing power from your Lay on Hands pool to increase the damage dealt by an amount equal to the points spent (ignoring armor)." }],
           11: [{ name: "Exploit", description: "Reaction (whenever an ally within your aura Defends): You may expend your Judgment Dice to force an enemy within your Aura to Interpose (a creature cannot interpose against its own attack)." }],
-          15: [{ name: "Bloody Terror", description: "Attacks against you gain 1 instance of disadvantage for each Wound you have (max 3)." }]
+          15: [{ name: "Bloody Terror", description: "Attacks against you gain disadvantage for each Wound you have (max 3)." }]
         }
       },
       {
