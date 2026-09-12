@@ -2558,7 +2558,7 @@ h1, h2, h3, h4 {
 
 <input type="file" id="imageUpload" class="hidden-input" accept="image/*">
 
-<script src="gamedata.js?v=v0.9-sm0.2-tc0.2"></script>
+<script src="gamedata.js?v=v0.9-sm0.2-tc0.2-sh0.2"></script>
 <script src="gmdata.js"></script>
 <script>
 /* =============================================================
@@ -4198,8 +4198,16 @@ const app = {
   getCharacterSchools(ch) {
     const prog = this.SPELL_PROGRESSION[ch.className];
     if (!prog) return [];
-    const schools = [...prog.baseSchools];
-    // Subclass schools
+    let schools = [...prog.baseSchools];
+    // Subclass may replace a base school (e.g., Shepherd Luminary of the Forge swaps Necrotic → Fire).
+    // Check the subclass data for a `replacesBaseSchool: { from, to }` field.
+    const subData = this.getSubclassData ? this.getSubclassData(ch) : null;
+    if (subData?.replacesBaseSchool) {
+      const { from, to } = subData.replacesBaseSchool;
+      schools = schools.filter(s => s !== from);
+      if (to && !schools.includes(to)) schools.push(to);
+    }
+    // Subclass schools (additive)
     if (ch.subclass && prog.subclassSchools[ch.subclass]) {
       prog.subclassSchools[ch.subclass].forEach(s => { if (!schools.includes(s)) schools.push(s); });
     }
@@ -5580,6 +5588,21 @@ const app = {
     const lostSchools = oldSchools.filter(s => !newSchools.includes(s));
     const gainedSchools = newSchools.filter(s => !oldSchools.includes(s));
 
+    // Base-school replacement (e.g., Shepherd Luminary of the Forge swaps Necrotic → Fire)
+    const oldReplace = oldSub?.replacesBaseSchool;
+    const newReplace = newSub?.replacesBaseSchool;
+    if (newReplace) {
+      if (!lostSchools.includes(newReplace.from)) lostSchools.push(newReplace.from);
+      if (newReplace.to && !gainedSchools.includes(newReplace.to)) gainedSchools.push(newReplace.to);
+    }
+    // Reverting away from a replacement subclass: restore the base school we dropped and drop the replacement
+    if (oldReplace && (!newReplace || oldReplace.from !== newReplace.from)) {
+      if (!gainedSchools.includes(oldReplace.from)) gainedSchools.push(oldReplace.from);
+      if (oldReplace.to && !lostSchools.includes(oldReplace.to) && oldReplace.to !== newReplace?.to) {
+        lostSchools.push(oldReplace.to);
+      }
+    }
+
     // Class-specific spell block/grant diff (e.g., Reaver loses Shadow Blast, gains Bonescythe)
     const normalizeBlocks = b => Array.isArray(b) ? b.slice() : (b === true ? 'all' : []);
     const oldBlocks = normalizeBlocks(oldSub?.blocksClassSpecific);
@@ -5840,6 +5863,11 @@ const app = {
     // Old spell name → new name (or null to remove entirely)
     'Greater Shadow': null   // Removed in v0.9; T4 slot became Vigor Mortis with different mechanics
   },
+  // Spells whose stats were rewritten in v0.9 (name stays, tier/damage/description change).
+  // On migrate, remove the stale entry so autoLoadSpells can re-add the fresh one from GAME_DATA.
+  _v0_9_SPELL_REFRESH: [
+    'Lifebinding Spirit'  // Shepherd v0.2: was Tier 1 radiant spell, now Tier 0 class-specific cantrip
+  ],
   _v0_9_ITEM_RENAMES: {
     'Mithril Plate': 'Adamantine Plate'
   },
@@ -5872,6 +5900,15 @@ const app = {
           const target = this._v0_9_SPELL_RENAMES[sp.name];
           return target ? `${sp.name} → ${target}` : `${sp.name} (removed in v0.9)`;
         }).join('; ')
+      });
+    }
+
+    // Spells whose stats were rewritten — the stale entry gets dropped so autoLoadSpells re-adds fresh data
+    const refreshHits = (ch.spells || []).filter(sp => this._v0_9_SPELL_REFRESH.includes(sp.name));
+    if (refreshHits.length) {
+      items.push({
+        label: 'Spell refresh',
+        detail: refreshHits.map(sp => `${sp.name} (stat block updated in v0.9)`).join('; ')
       });
     }
 
@@ -5918,18 +5955,29 @@ const app = {
     }
 
     // Apply spell renames (Greater Shadow → null = drop the entry)
+    // and refresh spells whose stat block changed (Lifebinding Spirit) by dropping the stale entry.
+    // autoLoadSpells (invoked next render / next combat / next level-up) then re-adds the fresh data.
     if (Array.isArray(ch.spells)) {
       const renames = this._v0_9_SPELL_RENAMES;
+      const refresh = this._v0_9_SPELL_REFRESH;
       patch.spells = ch.spells.reduce((out, sp) => {
         if (Object.prototype.hasOwnProperty.call(renames, sp.name)) {
           const target = renames[sp.name];
           if (target === null) return out; // dropped
           out.push({ ...sp, name: target });
+        } else if (refresh.includes(sp.name)) {
+          // Drop the stale entry — the fresh cantrip will auto-load
+          return out;
         } else {
           out.push(sp);
         }
         return out;
       }, []);
+      // Re-run autoLoadSpells so Lifebinding Spirit (now a cantrip) is repopulated immediately
+      if (refresh.some(name => (ch.spells || []).some(sp => sp.name === name))) {
+        const tempChar = { ...ch, spells: patch.spells };
+        patch.spells = this.autoLoadSpells(tempChar);
+      }
     }
 
     // Apply inventory renames and weapon damage refresh

@@ -1384,62 +1384,55 @@ Gained at Level 2. Recharges on a Safe Rest.
 
 ## Spell School Access
 
-- **Level 1:** Radiant and Necrotic cantrips.
+- **Level 1:** Radiant and Necrotic cantrips (+ Lifebinding Spirit cantrip).
 - **Level 2:** Tier 1 Radiant and Necrotic spells.
 - **Level 3:** 1 Necrotic and 1 Radiant Utility Spell (Master of Twilight).
 - **Level 6:** 2nd Necrotic and Radiant Utility Spell (Master of Twilight 2).
 - **Level 11:** All Necrotic and Radiant Utility Spells (Master of Twilight 3).
+- Luminary of the Forge (story-based) exchanges Necrotic for Fire.
 
 ## Level Features (1-20)
 
 ### Level 1
-- **Keeper of Life & Death.** You know Radiant and Necrotic cantrips.
-- **Searing Light.** (WIL times/Safe Rest) Action: Heal or Inflict grievous injuries:
-  - Heal WIL d8 HP to a Dying creature within Reach 6. OR:
-  - Inflict WIL d8 radiant damage to an undead or Bloodied enemy within Reach 6.
+- **Keeper of Life & Death.** You know the Radiant & Necrotic cantrips.
+- **My Buddy!** Learn the Lifebinding Spirit cantrip.
 
 ### Level 2
-- **Mana and Unlock Tier 1 Spells.** You unlock tier 1 Radiant and Necrotic spells and gain a mana pool to cast these spells. This mana pool's maximum is always equal to (WIL x 3)+LVL and recharges on a Safe Rest.
-- **Lifebinding Spirit.** (Radiant Spell, Tier 1)
-  - Action: Summon a spirit companion that follows you and is immune to harm. It lasts until you cast this spell again, take a Safe Rest, or it heals a number of times equal to the mana spent summoning it.
-  - Action: It attacks or heals a creature within Reach 4. It attacks for 1d6+WIL radiant damage (ignoring armor), or heals for the same amount.
-  - **Upcasting:** Increment its die size by 1 (max d12), +1 healing use.
-
-**Flavor is Free.** Your Lifebinding Spirit can take the form of any small/tiny friendly animal or similar creature (dog, lamb, rabbit, sparrow, etc.).
-
-**Rushed Attacks and My Companion?** You and your companion use the same action pool, but count as different creatures. So you can each attack once without Rushed Attacks every round.
+- **Mana and Unlock Tier 1 Spells.** You unlock tier 1 Radiant & Necrotic spells and gain a mana pool to cast them. This mana pool's max is always equal to (WIL×3)+LVL and recharges on a Safe Rest.
 
 ### Level 3
-- **Subclass.** Choose a Shepherd subclass.
+- **Subclass.** Choose a Shepherd subclass: Luminary of Mercy, Luminary of Malice, or Luminary of Protection.
 - **Master of Twilight.** Choose 1 Necrotic and 1 Radiant Utility Spell.
 
 ### Level 4
-- **Tier 2 Spells.** You may now cast tier 2 spells and upcast spells at tier 2.
+- **Sacred Grace.** Choose 1 Sacred Grace.
+- **Tier 2 Spells.** You may now cast spells up to tier 2.
 - **Key Stat Increase.** +1 WIL or STR.
 
 ### Level 5
+- **Assist Me, My Friend!** Instead of your spirit attacking this round, you may add its damage to one of your melee weapon attacks.
 - **Secondary Stat Increase.** +1 INT or DEX.
 - **Upgraded Cantrips.** Your cantrips grow stronger.
-- **Sacred Grace.** Choose 2 Sacred Graces.
-- **Serve.** After spending a day tending to a sacred place or serving others during a Safe Rest, you may choose different Shepherd options available to you.
+
+> **Serve.** After spending a day tending to a sacred place or serving others during a Safe Rest, you may choose different Shepherd options available to you.
 
 ### Level 6
-- **Tier 3 Spells.** You may now cast tier 3 spells and upcast spells at tier 3.
-- **Master of Twilight (2).** Choose a 2nd Necrotic and Radiant Utility Spell.
+- **Tier 3 Spells.** You may now cast spells up to tier 3.
+- **Master of Twilight (2).** Choose a 2nd Necrotic and a 2nd Radiant Utility Spell.
 
 ### Level 7
 - **Subclass.** Gain your Shepherd subclass feature.
 
 ### Level 8
-- **Tier 4 Spells.** You may now cast tier 4 spells and upcast spells at tier 4.
+- **Tier 4 Spells.** You may now cast spells up to tier 4.
 - **Key Stat Increase.** +1 WIL or STR.
 
 ### Level 9
-- **Sacred Grace (2).** Choose a 3rd Sacred Grace.
+- **Sacred Grace (2).** Choose a 2nd Sacred Grace.
 - **Secondary Stat Increase.** +1 INT or DEX.
 
 ### Level 10
-- **Tier 5 Spells.** You may now cast tier 5 spells and upcast spells at tier 5.
+- **Tier 5 Spells.** You may now cast spells up to tier 5.
 - **Upgraded Cantrips.** Your cantrips grow stronger.
 
 ### Level 11
@@ -1447,30 +1440,30 @@ Gained at Level 2. Recharges on a Safe Rest.
 - **Master of Twilight (3).** You know all Necrotic and Radiant Utility Spells.
 
 ### Level 12
-- **Tier 6 Spells.** You may now cast tier 6 spells and upcast spells at tier 6.
+- **Tier 6 Spells.** You may now cast spells up to tier 6.
 - **Key Stat Increase.** +1 WIL or STR.
 
 ### Level 13
-- **Sacred Grace (3).** Choose a 4th Sacred Grace.
+- **Sacred Grace (3).** Choose a 3rd Sacred Grace.
 - **Secondary Stat Increase.** +1 INT or DEX.
 
 ### Level 14
-- **Tier 7 Spells.** You may now cast tier 7 spells and upcast spells at tier 7.
+- **Tier 7 Spells.** You may now cast spells up to tier 7.
 
 ### Level 15
 - **Subclass.** Gain your Shepherd subclass feature.
 - **Upgraded Cantrips.** Your cantrips grow stronger.
 
 ### Level 16
-- **Tier 8 Spells.** You may now cast tier 8 spells and upcast spells at tier 8.
+- **Tier 8 Spells.** You may now cast spells up to tier 8.
 - **Key Stat Increase.** +1 WIL or STR.
 
 ### Level 17
-- **Revitalizing Blessing.** (1/round) Whenever you roll a 6 or higher on one or more healing die, the target may recover one Wound.
+- **Revitalizing Blessing.** (1/round) Whenever you roll a 6+ on one or more healing dice, the target may recover one Wound.
 - **Secondary Stat Increase.** +1 INT or DEX.
 
 ### Level 18
-- **Tier 9 Spells.** You may now cast tier 9 spells and upcast spells at tier 9.
+- **Tier 9 Spells.** You may now cast spells up to tier 9.
 
 ### Level 19
 - **Epic Boon.** Choose an Epic Boon (see pg. 23 of the GM's Guide).
@@ -1479,48 +1472,83 @@ Gained at Level 2. Recharges on a Safe Rest.
 - **Twilight Sage.** +1 to any 2 of your stats. Your Lifebinding Spirit rolls twice as many dice.
 - **Upgraded Cantrips.** Your cantrips grow stronger.
 
+## Lifebinding Spirit (Shepherd-only Cantrip)
+
+**1 Action.** Summon a spirit companion that follows you and is immune to harm (max 1). It can:
+- **Harm.** 1 Action: (Reach 4) It attacks for 1d8+STR (ignoring Armor).
+- **Mend.** 1 Action: (WIL/Safe Rest, Reach 4) It restores WIL d20 HP to a Dying creature.
+
+**High Levels:** +STR damage every 5 levels.
+
+**Flavor is Free.** Your Lifebinding Spirit can take the form of any small/tiny friendly creature (dog, lamb, rabbit, sparrow, etc.). Give your little buddy a name, too!
+
+**Rushed Attacks and My Companion?** You and your companion use the same action pool, but count as different creatures. So you can each attack once without the Rushed Attack penalty every round.
+
 ## Sacred Graces
 
-- **Assist Me, My Friend!** Whenever you make your first melee attack each round, you may add your Lifebinding Spirit's damage to the attack.
-- **Empowered Companion.** Whenever you spend mana to call forth your Lifebinding Spirit, you cast it as if you spent 1 additional mana (ignoring the typical spell tier restrictions). The maximum die size is now a d20.
-- **Guiding Spirit.** When your Lifebinding Spirit rolls a 6 or higher on its damage die, the target begins to glow with radiant light. The next attack against that target has advantage.
-- **Hasty Companion.** +4 Reach for your Lifebinding Spirit. It can also act for free when summoned.
-- **Illuminate Soul.** Action: A creature within 6 spaces begins to glow with radiant light. For 1 Round, attacks against them are made with your choice of advantage or disadvantage. You may do this WIL times per Safe Rest.
-- **Light Bearer.** Regain 1 use of Searing Light when you roll Initiative (this expires if unspent at the end of combat).
-- **Not Beyond MY Reach.** You may target creatures who have been dead less than 1 round for healing. For every 10 HP a dead creature is healed this way, you may have them recover 1 Wound instead (you must heal at least 1 Wound to revive them).
-- **Vengeful Spirit.** Action: Your Lifebinding Spirit sacrifices itself to transform into a swirling vortex of radiant light. At the end of your turn, it damages all enemies within 3 spaces of you, ignoring armor and cover. This lasts for a number of rounds equal to the healing charges left on the Lifebinding Spirit. This effect ends early if you summon your spirit again.
+- **Dark Benediction.** (Passive) Your Lifebinding Spirit can now cast Entice and Withering Touch.
+- **Empowered Companion.** (Passive) Your Lifebinding Spirit gains +STR damage vs Undead and +WIL healing.
+- **Guiding Spirit.** (Passive) Whenever your Lifebinding Spirit rolls a 6+ on its damage die, the next attack against that target has advantage.
+- **Hasty Companion.** (Passive) +4 Reach for your Lifebinding Spirit. It can also act for free when summoned.
+- **Illuminate Soul.** 1 Action. (WIL times/Safe Rest, Reach 6) Make a creature glow with radiant light for 1 round. Attacks against them are made with your choice of advantage or disadvantage.
+- **Light Bearer.** (Passive) Your Lifebinding Spirit can cast Heal. Whenever you roll Initiative, regain 1 use of Mend (it expires when combat ends if unused).
+- **Not Beyond MY Reach.** (Passive) You may heal creatures that have been dead for less than 1 round. For every 10 HP a dead creature is healed this way, you may have them recover 1 Wound instead (you must heal at least 1 Wound to revive them).
+- **Vengeful Spirit.** 1 Action. (AoE Reach 2) Your Lifebinding Spirit sacrifices itself to deal its Harm damage to all enemies within Reach.
 
 ## Subclasses
 
 ### Luminary of Mercy
+**Subclass Complexity: 2/4**
+
+> Save the dying, wield the light, embody your virtue. Your compassion makes you a worthy vessel for radiant energy.
 
 **Level 3:**
-- **Merciful Healing.** When an effect caused by you heals a Dying creature, they are healed for twice as much. (1/round) Your Lifebinding Spirit can act for free while you are Dying.
+- **Merciful Healing.** You can use Mend on non-Dying creatures. While you are Dying, your Lifebinding Spirit can act 1/Round without spending an action.
 - **Life is Beautiful.** Harmless and lovely creatures such as butterflies and humming birds are attracted to your presence and often follow you. Flowers bloom more vibrantly in your presence.
 
 **Level 7:**
-- **Conduit of Light.** When an effect caused by you would heal HP, you may expend 1 use of Searing Light to heal (or damage, ignoring armor) another target within 6 spaces of yourself for the same amount.
+- **Searing Light.** 1 Action: (Reach 6) Whenever you heal HP, you may expend 1 use of Mend to damage another target for the amount of HP recovered.
 
 **Level 11:**
-- **Powerful Healer.** (WIL times/Safe Rest) Whenever you would roll dice to heal damage, you may instead heal the max amount you could roll, or give that many temp HP.
+- **Powerful Healer.** (WIL/Safe Rest) Whenever you would heal HP, you may instead give that many temp HP, OR heal the max amount you could roll.
 
 **Level 15:**
-- **Empowered Conduit.** Your Conduit of Light may target 1 additional creature. Regain 1 charge of Searing Light when you roll Initiative (this expires if unspent at the end of combat).
+- **Lifebinder's Embrace.** Your Mend may heal 1 additional creature. Regain 1 charge of Mend when you roll Initiative (this expires if unspent at the end of combat).
 
 ### Luminary of Malice
+**Subclass Complexity: 2/4**
+
+> With death as your companion, you can unleash dark powers on your foes.
 
 **Level 3:**
-- **Soul Reaper.** When you use Searing Light to harm an enemy, make a 2nd enemy within range take the same amount of damage (ignoring armor).
-- **Harbinger of Decay.** Vibrant colors and lovely smells are suppressed near you. Foods spoil more rapidly in your presence, and you frequently awaken to flies wherever you lodge. You may have your Lifebinding Spirit shift into a deathly version of itself (a zombie dog, a devious imp, etc.) and have its damage type become necrotic.
+- **Soul Reaper.** (1/Round) Your companion's attacks can target a 2nd adjacent enemy.
+- **Harbinger of Decay.** Vibrant colors and lovely smells are suppressed near you. Foods spoil more rapidly in your presence, and you frequently awaken to flies wherever you lodge. You may have your Lifebinding Spirit shift to a deathly version of itself (a zombie dog, a devious imp, etc.) and have its damage type become necrotic.
 
 **Level 7:**
-- **Veilwalker's Blessing.** (1/Safe Rest) Reaction (when you would drop to 0 HP): Drop to 1 HP instead and force an enemy within 6 spaces to make a STR save. On a failure, they become Bloodied, or if they are already Bloodied, they drop to 0 HP.
+- **Veilwalker's Blessing.** (1/Safe Rest) Reaction (when you would drop to 0 HP): Drop to 1 HP instead and crit the attacker back.
 
 **Level 11:**
-- **Deathbringer's Touch.** Your first melee attack each round against a Bloodied creature is an automatic critical hit. Your Lifebinding Spirit deals additional damage equal to your STR.
+- **Deathbringer's Touch.** Your Lifebinding Spirit and Withering Touch crit on 1 as well.
 
 **Level 15:**
-- **Conduit of Death.** Your Veilwalker's Blessing ability recharges when you roll Initiative. This charge is lost if unspent at the end of combat.
+- **Conduit of Death.** Your Veilwalker's Blessing ability recharges when you roll Initiative.
+
+### Luminary of Protection
+**Subclass Complexity: 1/4**
+
+> "An ounce of prevention is worth a pound of cure. Why wait for your friends to get hurt to heal them when you could prevent them from being hurt in the first place?"
+
+**Level 3:**
+- **Guardian Spirit.** Whenever you Interpose, you may have your Lifebinding Spirit do so instead by spending one of its Mend charges.
+
+**Level 7:**
+- **Ready For Danger.** +WIL Initiative. You may give this bonus to 1 ally as well (after they roll).
+
+**Level 11:**
+- **Shield of Light.** You may have your healing spells grant Temp HP instead. (1/encounter) You can use Mend without spending a charge.
+
+**Level 15:**
+- **Ever Vigilant.** Gain advantage on Initiative. You and 1 ally gain +1 action at the start of each encounter.
 
 ---
 
@@ -2572,6 +2600,29 @@ These are special subclasses chosen at pivotal moments in a story, at the GM's d
 - **Go for the Throat!** (1/encounter) Costs 2 TotH charges, 2 actions: Your companion attacks your quarry for 1d12+(4 x LVL) damage (ignoring armor). If that creature dies, you may deal half as much to another creature within Reach 4. Level 11: 2/encounter.
 
 **Note:** Your companion's attacks count as your own for gaining TotH charges. Abilities that spend TotH charges cannot miss nor can they generate new charges. Unused charges are lost when combat ends.
+
+---
+
+## LUMINARY OF THE FORGE (Shepherd)
+*"Your Lifebinding Spirit is the furnace's flame incarnate."*
+
+**Story-based.** Exchange knowledge of the Necrotic spell school for Fire. Any Necrotic spells you know are lost; refresh with Fire spells at your current tier.
+
+### Level 3
+- **Flameworker.** Exchange knowledge of the Necrotic spell school for Fire. Your Lifebinding Spirit inflicts Smoldering on crit.
+- **Seasoned Journeyman.** Whenever you Safe Rest, choose one:
+  - **Weaponsmith.** Your weapons gain +STR damage until your next Safe Rest.
+  - **Armorsmith.** Your armor gains +STR Defense until your next Safe Rest.
+
+### Level 7
+- **Lightforged.** Mend also grants WIL+STR Temp HP and 1 action.
+- **Living Ember.** Your Lifebinding Spirit deals 2× damage to Smoldering targets, ending the condition.
+
+### Level 11
+- **Masterwork.** +WIL to Weaponsmith and Armorsmith; you may choose twice.
+
+### Level 15
+- **Quench the Blaze.** (1/encounter) When a Smoldering enemy loses the condition, you may Restrain them until the end of their next turn.
 
 ---
 

@@ -1130,37 +1130,36 @@ window.GAME_DATA = {
       },
       retrainArrays: ["sacredGraces"],
       sacredGraces: [
-        { name: "Assist Me, My Friend!", description: "Whenever you make your first melee attack each round, you may add your Lifebinding Spirit's damage to the attack." },
-        { name: "Empowered Companion", description: "Whenever you spend mana to summon your Lifebinding Spirit, you cast it as if you spent 1 additional mana (ignoring typical spell tier restrictions). The maximum die size is now a d20." },
-        { name: "Guiding Spirit", description: "When your Lifebinding Spirit rolls a 6 or higher on its damage die, the target begins to glow with radiant light. The next attack against that target has advantage." },
-        { name: "Hasty Companion", description: "+4 Reach for your Lifebinding Spirit. It can also act for free when summoned." },
-        { name: "Illuminate Soul", description: "Action: A creature within 6 spaces begins to glow with radiant light. For 1 round, attacks against them are made with your choice of advantage or disadvantage. WIL times per Safe Rest." },
-        { name: "Light Bearer", description: "Regain 1 use of Searing Light when you roll Initiative (this expires if unspent at the end of combat)." },
-        { name: "Not Beyond MY Reach", description: "You may target creatures who have been dead less than 1 round for healing. For every 10 HP a dead creature is healed this way, you may have them recover 1 Wound instead (you must heal at least 1 Wound to revive them)." },
-        { name: "Vengeful Spirit", description: "Action: Your Lifebinding Spirit sacrifices itself to transform into a swirling vortex of radiant light. At the end of your turn, it damages all enemies within 3 spaces of you, ignoring armor and cover. This lasts for a number of rounds equal to the healing charges left on the Lifebinding Spirit. Ends early if you summon your spirit again." }
+        { name: "Dark Benediction", description: "Passive. Your Lifebinding Spirit can now cast Entice and Withering Touch." },
+        { name: "Empowered Companion", description: "Passive. Your Lifebinding Spirit gains +STR damage vs Undead and +WIL healing." },
+        { name: "Guiding Spirit", description: "Passive. Whenever your Lifebinding Spirit rolls a 6+ on its damage die, the next attack against that target has advantage." },
+        { name: "Hasty Companion", description: "Passive. +4 Reach for your Lifebinding Spirit. It can also act for free when summoned." },
+        { name: "Illuminate Soul", description: "1 Action. (WIL times/Safe Rest, Reach 6) Make a creature glow with radiant light for 1 round. Attacks against them are made with your choice of advantage or disadvantage." },
+        { name: "Light Bearer", description: "Passive. Your Lifebinding Spirit can cast Heal. Whenever you roll Initiative, regain 1 use of Mend (it expires when combat ends if unused)." },
+        { name: "Not Beyond MY Reach", description: "Passive. You may heal creatures that have been dead for less than 1 round. For every 10 HP a dead creature is healed this way, you may have them recover 1 Wound instead (you must heal at least 1 Wound to revive them)." },
+        { name: "Vengeful Spirit", description: "1 Action. (AoE Reach 2) Your Lifebinding Spirit sacrifices itself to deal its Harm damage to all enemies within Reach." }
       ],
       levels: {
         1: [
-          { name: "Keeper of Life & Death", description: "You know Radiant and Necrotic cantrips." },
-          { name: "Searing Light", description: "(WIL times/Safe Rest) Action: Reach 6. Heal WIL d8 HP to a Dying creature OR inflict WIL d8 radiant damage to an undead or Bloodied enemy." }
+          { name: "Keeper of Life & Death", description: "You know the Radiant & Necrotic cantrips." },
+          { name: "My Buddy!", description: "Learn the Lifebinding Spirit cantrip." }
         ],
         2: [
-          { name: "Mana and Unlock Tier 1 Spells", description: "You unlock tier 1 Radiant and Necrotic spells and gain a mana pool. Mana maximum = (WIL x 3) + LVL. Recharges on a Safe Rest." },
-          { name: "Lifebinding Spirit", description: "Radiant Spell, Tier 1. Action: Summon a spirit companion immune to harm. Lasts until recast, Safe Rest, or it heals a number of times equal to mana spent. Action: It attacks or heals a creature within Reach 4 for 1d6+WIL radiant damage (ignoring armor), or heals for the same amount. Upcasting: +1 die size (max d12), +1 healing use." }
+          { name: "Mana and Unlock Tier 1 Spells", description: "You unlock tier 1 Radiant & Necrotic spells and gain a mana pool to cast them. This mana pool's max is always equal to (WIL×3)+LVL and recharges on a Safe Rest." }
         ],
         3: [
-          { name: "Subclass", description: "Choose Luminary of Mercy or Luminary of Malice." },
+          { name: "Subclass", description: "Choose a Shepherd subclass: Luminary of Mercy, Luminary of Malice, or Luminary of Protection." },
           { name: "Master of Twilight", description: "Choose 1 Necrotic and 1 Radiant Utility Spell." }
         ],
         4: [
-          { name: "Tier 2 Spells", description: "You may now cast tier 2 spells and upcast spells at tier 2." },
+          { name: "Sacred Grace", description: "Choose 1 Sacred Grace." },
+          { name: "Tier 2 Spells", description: "You may now cast spells up to tier 2." },
           { name: "Key Stat Increase", description: "+1 WIL or STR." }
         ],
         5: [
+          { name: "Assist Me, My Friend!", description: "Instead of your spirit attacking this round, you may add its damage to one of your melee weapon attacks." },
           { name: "Secondary Stat Increase", description: "+1 INT or DEX." },
-          { name: "Upgraded Cantrips", description: "Your cantrips grow stronger." },
-          { name: "Sacred Grace", description: "Choose 2 Sacred Graces from the Sacred Graces list." },
-          { name: "Serve", description: "After spending a day tending to a sacred place or serving others during a Safe Rest, you may choose different Shepherd options available to you." }
+          { name: "Upgraded Cantrips", description: "Your cantrips grow stronger." }
         ],
         6: [
           { name: "Tier 3 Spells", description: "You may now cast tier 3 spells and upcast spells at tier 3." },
@@ -1174,7 +1173,7 @@ window.GAME_DATA = {
           { name: "Key Stat Increase", description: "+1 WIL or STR." }
         ],
         9: [
-          { name: "Sacred Grace (2)", description: "Choose a 3rd Sacred Grace." },
+          { name: "Sacred Grace (2)", description: "Choose a 2nd Sacred Grace." },
           { name: "Secondary Stat Increase", description: "+1 INT or DEX." }
         ],
         10: [
@@ -1190,7 +1189,7 @@ window.GAME_DATA = {
           { name: "Key Stat Increase", description: "+1 WIL or STR." }
         ],
         13: [
-          { name: "Sacred Grace (3)", description: "Choose a 4th Sacred Grace." },
+          { name: "Sacred Grace (3)", description: "Choose a 3rd Sacred Grace." },
           { name: "Secondary Stat Increase", description: "+1 INT or DEX." }
         ],
         14: [
@@ -2134,27 +2133,40 @@ window.GAME_DATA = {
       {
         name: "Luminary of Mercy",
         className: "Shepherd",
+        description: "Save the dying, wield the light, embody your virtue. Your compassion makes you a worthy vessel for radiant energy.",
         features: {
           3:  [
-            { name: "Merciful Healing", description: "When an effect caused by you heals a Dying creature, they are healed for twice as much. (1/round) Your Lifebinding Spirit can act for free while you are Dying." },
-            { name: "Life is Beautiful", description: "Harmless and lovely creatures such as butterflies and hummingbirds are attracted to your presence and often follow you. Flowers bloom more vibrantly in your presence." }
+            { name: "Merciful Healing", description: "You can use Mend on non-Dying creatures. While you are Dying, your Lifebinding Spirit can act 1/Round without spending an action." },
+            { name: "Life is Beautiful", description: "Harmless and lovely creatures such as butterflies and humming birds are attracted to your presence and often follow you. Flowers bloom more vibrantly in your presence." }
           ],
-          7:  [{ name: "Conduit of Light", description: "When an effect caused by you would heal HP, you may expend 1 use of Searing Light to heal (or damage, ignoring armor) another target within 6 spaces of yourself for the same amount." }],
-          11: [{ name: "Powerful Healer", description: "(WIL times/Safe Rest) Whenever you would roll dice to heal damage, you may instead heal the max amount you could roll, or give that many temp HP." }],
-          15: [{ name: "Empowered Conduit", description: "Your Conduit of Light may target 1 additional creature. Regain 1 charge of Searing Light when you roll Initiative (this expires if unspent at the end of combat)." }]
+          7:  [{ name: "Searing Light", description: "1 Action: (Reach 6) Whenever you heal HP, you may expend 1 use of Mend to damage another target for the amount of HP recovered." }],
+          11: [{ name: "Powerful Healer", description: "(WIL/Safe Rest) Whenever you would heal HP, you may instead give that many temp HP, OR heal the max amount you could roll." }],
+          15: [{ name: "Lifebinder's Embrace", description: "Your Mend may heal 1 additional creature. Regain 1 charge of Mend when you roll Initiative (this expires if unspent at the end of combat)." }]
         }
       },
       {
         name: "Luminary of Malice",
         className: "Shepherd",
+        description: "With death as your companion, you can unleash dark powers on your foes.",
         features: {
           3:  [
-            { name: "Soul Reaper", description: "When you use Searing Light to harm an enemy, make a 2nd enemy within range take the same amount of damage (ignoring armor)." },
-            { name: "Harbinger of Decay", description: "Vibrant colors and lovely smells are suppressed near you. Foods spoil more rapidly in your presence, and you frequently awaken to flies wherever you lodge. You may have your Lifebinding Spirit shift into a deathly version of itself (a zombie dog, a devious imp, etc.) and have its damage type become necrotic." }
+            { name: "Soul Reaper", description: "(1/Round) Your companion's attacks can target a 2nd adjacent enemy." },
+            { name: "Harbinger of Decay", description: "Vibrant colors and lovely smells are suppressed near you. Foods spoil more rapidly in your presence, and you frequently awaken to flies wherever you lodge. You may have your Lifebinding Spirit shift to a deathly version of itself (a zombie dog, a devious imp, etc.) and have its damage type become necrotic." }
           ],
-          7:  [{ name: "Veilwalker's Blessing", description: "(1/Safe Rest) Reaction (when you would drop to 0 HP): Drop to 1 HP instead and force an enemy within 6 spaces to make a STR save. On a failure, they become Bloodied, or if they are already Bloodied, they drop to 0 HP." }],
-          11: [{ name: "Deathbringer's Touch", description: "Your first melee attack each round against a Bloodied creature is an automatic critical hit. Your Lifebinding Spirit deals additional damage equal to your STR." }],
-          15: [{ name: "Conduit of Death", description: "Your Veilwalker's Blessing ability recharges when you roll Initiative. This charge is lost if unspent at the end of combat." }]
+          7:  [{ name: "Veilwalker's Blessing", description: "(1/Safe Rest) Reaction (when you would drop to 0 HP): Drop to 1 HP instead and crit the attacker back." }],
+          11: [{ name: "Deathbringer's Touch", description: "Your Lifebinding Spirit and Withering Touch crit on 1 as well." }],
+          15: [{ name: "Conduit of Death", description: "Your Veilwalker's Blessing ability recharges when you roll Initiative." }]
+        }
+      },
+      {
+        name: "Luminary of Protection",
+        className: "Shepherd",
+        description: "\"An ounce of prevention is worth a pound of cure. Why wait for your friends to get hurt to heal them when you could prevent them from being hurt in the first place?\"",
+        features: {
+          3:  [{ name: "Guardian Spirit", description: "Whenever you Interpose, you may have your Lifebinding Spirit do so instead by spending one of its Mend charges." }],
+          7:  [{ name: "Ready For Danger", description: "+WIL Initiative. You may give this bonus to 1 ally as well (after they roll)." }],
+          11: [{ name: "Shield of Light", description: "You may have your healing spells grant Temp HP instead. (1/encounter) You can use Mend without spending a charge." }],
+          15: [{ name: "Ever Vigilant", description: "Gain advantage on Initiative. You and 1 ally gain +1 action at the start of each encounter." }]
         }
       }
     ],
@@ -2377,6 +2389,27 @@ window.GAME_DATA = {
         }
       },
       {
+        name: "Luminary of the Forge",
+        className: "Shepherd",
+        description: "Your Lifebinding Spirit is the furnace's flame incarnate. The Necrotic school is exchanged for Fire.",
+        // Exchange Necrotic for Fire per Flameworker (L3). getCharacterSchools honors this,
+        // so switching into Forge auto-drops necrotic spells and loads fire spells at the
+        // character's current tier.
+        replacesBaseSchool: { from: 'necrotic', to: 'fire' },
+        features: {
+          3:  [
+            { name: "Flameworker", description: "Exchange knowledge of the Necrotic spell school for Fire. Your Lifebinding Spirit inflicts Smoldering on crit." },
+            { name: "Seasoned Journeyman", description: "Whenever you Safe Rest, choose one: Weaponsmith — Your weapons gain +STR damage until your next Safe Rest. Armorsmith — Your armor gains +STR Defense until your next Safe Rest." }
+          ],
+          7:  [
+            { name: "Lightforged", description: "Mend also grants WIL+STR Temp HP and 1 action." },
+            { name: "Living Ember", description: "Your Lifebinding Spirit deals 2× damage to Smoldering targets, ending the condition." }
+          ],
+          11: [{ name: "Masterwork", description: "+WIL to Weaponsmith and Armorsmith; you may choose twice." }],
+          15: [{ name: "Quench the Blaze", description: "(1/encounter) When a Smoldering enemy loses the condition, you may Restrain them until the end of their next turn." }]
+        }
+      },
+      {
         name: "The Honorseeker",
         className: "The Cheat",
         description: "\"No more tricks. Honest.\" A former Cheat who has given up sneak attacks and cheating in exchange for the courage to fight fair.",
@@ -2509,7 +2542,7 @@ window.GAME_DATA = {
         { name: "Command Shadows", tier: 0, actions: 1, range: "N/A", damage: "None", description: "(Shadowmancer) 1/turn. ALL your Shadows move 6 then attack.", type: "single", class: "Shadowmancer" },
         { name: "Bonescythe", tier: 0, actions: 1, reach: "2 spaces", damage: "2d12 slashing + DEX necrotic per die", description: "(Shadowmancer — Reaver) Summon a magical Bonescythe. 2d12 slashing+DEX necrotic damage to EACH die. On hit (or when combat ends): it shatters and must be resummoned to use again. Invocations affecting Shadow Blast affect your Bonescythe instead. +1 extra damage die every 5 levels.", type: "single", class: "Shadowmancer", requiresSubclass: "Reaver" },
         { name: "Vicious Mockery", tier: 0, actions: 1, range: "12 spaces", damage: "1d4+INT Psychic (ignoring armor)", description: "(Songweaver) On hit: target is Taunted during their next turn. +2 damage every 5 levels.", type: "single", class: "Songweaver" },
-        { name: "Lifebinding Spirit", tier: 1, actions: 1, range: "Self", damage: "None", description: "(Shepherd) Summon a spirit companion, immune to harm. Lasts until recast, Safe Rest, or heals equal to mana spent. Action: attacks or heals within Reach 4 for 1d6+WIL radiant (ignoring armor). Upcast: increment die (max d12), +1 healing use.", type: "single", class: "Shepherd" }
+        { name: "Lifebinding Spirit", tier: 0, actions: 1, range: "Self", damage: "None", description: "(Shepherd) Summon a spirit companion that follows you and is immune to harm (max 1). It can: Harm — 1 Action (Reach 4): It attacks for 1d8+STR (ignoring Armor). Mend — 1 Action (WIL/Safe Rest, Reach 4): It restores WIL d20 HP to a Dying creature. High Levels: +STR damage every 5 levels.", type: "single", class: "Shepherd" }
       ]
     },
     hexbinder: {
