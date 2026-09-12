@@ -241,7 +241,8 @@ No mana. The Cheat relies on Sneak Attack and Underhanded Abilities.
 ### Level 4
 - **Key Stat Increase.** +1 DEX or INT.
 - **Underhanded Ability.** Choose an Underhanded Ability.
-- **Trade Secrets.** Whenever you spend a night talking shop with other roguish types during a Safe Rest, you may choose different Cheat options available to you.
+
+> **Trade Secrets.** Whenever you spend a night talking shop with other roguish types during a Safe Rest, you may choose different Cheat options available to you.
 
 ### Level 5
 - **Twist the Blade.** Action: Change one of your Sneak Attack dice to whatever you like.
@@ -307,48 +308,97 @@ No mana. The Cheat relies on Sneak Attack and Underhanded Abilities.
 
 ## Underhanded Abilities
 
-- **"Creative" Accounting.** Steal up to INT actions from your next turn (Gain up to INT actions now. The next time you would gain actions, subtract the number stolen). You cannot use this 2 turns in a row.
-- **Exploit Weakness.** Action: Make a contested INT check against an enemy. If you win, you can use Vicious Opportunist against them, even if they are not Distracted. This lasts for 1 minute or until you use this ability against another target.
-- **Feinting Attack.** If you miss for the 2nd time in a single round, you may change the primary die roll to any result instead.
-- **How'd YOU get here?!** 2 actions: "Teleport" up to 4 spaces away, adjacent to a Distracted target, and make a melee attack against them. If you crit, you may "teleport" again.
-- **I'm Outta Here!** When an ally within 4 spaces is crit, you may turn invisible until the end of your next turn and then move up to half your speed for free.
-- **Misdirection.** Gain INT armor. Whenever you Defend, you may halve the damage instead.
-- **Steal Tempo.** When you land a critical hit for the second time on a turn, your target loses 1 action and you gain 1 action.
-- **Sunder Armor (Medium).** Action: When you crit an enemy with medium armor, sunder their armor. Until the start of your next turn, ALL melee attacks against that target ignore its armor.
-- **Sunder Armor (Heavy).** Req: Sunder Armor (Medium). Your Sunder Armor ability now also applies to enemies wearing heavy armor.
-- **Trickshot.** When you throw a dagger, it returns back to your hand at the end of your turn. On a hit, it ricochets to another creature within 2 spaces, dealing half as much damage to them.
+- **"Creative" Accounting.** (Passive) Steal up to INT actions from your next turn (Gain up to INT actions now. The next time you would gain actions, subtract the number stolen). You cannot use this 2 turns in a row.
+- **Exploit Weakness.** (Passive) Whenever you successfully Assess: Create an Opening against a creature, you can use Vicious Opportunist against them, even if they are not Distracted. This lasts for 1 minute or until you use it against another target.
+- **Feinting Attack.** (Passive) If you miss for the 2nd time in a single round, you may change the Primary Die roll to any result instead.
+- **How'd YOU get here?!** 2 Actions. (Reach 12) "Teleport" adjacent to a Distracted target, and make a melee attack against them. If you crit, you may "teleport" again.
+- **I'm Outta Here!** (Passive) When an ally within Reach 4 is crit, you may turn invisible until the end of your next turn and then move up to half your speed for free.
+- **Misdirection.** (Passive) Gain INT armor. Whenever you Defend, you may halve the damage instead.
+- **Steal Tempo.** (Passive) When you crit for the second time in a round, your target loses 1 action and you give an ally 1 action.
+- **Sunder Armor.** 1 Action. After you crit an armored creature, sunder their armor: give the next non-crit Primary Die rolled against them +2.
+- **Tangling Wire.** (Passive) Whenever you Grapple, you may Restrain instead.
+- **The Setup.** 1 Action. Reaction (when an ally misses a creature adjacent to you): You can make an Opportunity Attack against them, treating them as Distracted.
+- **Trickshot.** (Passive) You can use Vicious Opportunist on thrown weapon attacks (but you can't use Twist the Blade on them). Whenever you throw a weapon, you may spend an additional action to have it hit another creature within Reach 2 of it, dealing half as much damage to them.
 
 ## Subclasses
 
 ### Tools of the Silent Blade
+**Subclass Complexity: 1/4**
+
+> Kill, kill, kill.
 
 **Level 3:**
 - **Amidst All This Commotion...** If a creature dies while you Sneak Attack them, you may turn Invisible until you attack again or until the beginning of your next turn.
 - **Leave No Trace.** Advantage on Stealth checks when you are at full health.
 
 **Level 7:**
-- **Cunning Strike.** (2/encounter) When you land a Sneak Attack, you may force the target to make a STR save (DC 10+INT). On a failure, instead of rolling your Sneak Attack dice, they deal the maximum amount of damage (if your target saves, regain 1 use).
+- **Cunning Strike.** Deal +2×INT damage whenever you crit.
 
 **Level 11:**
 - **Professional Skulker.** Gain a climbing speed and advantage on Stealth checks (replaces Leave No Trace).
 
 **Level 15:**
-- **KILL.** When you crit an enemy with fewer max HP than you, it dies.
+- **KILL.** When you Sneak Attack an enemy with fewer max HP than you, it dies.
 
 ### Tools of the Scoundrel
+**Subclass Complexity: 2/4**
+
+> Stay alive, fight dirty.
 
 **Level 3:**
-- **Low Blow.** When you Sneak Attack, you may spend 2 additional actions to Incapacitate your target for their next turn on a failed STR save (DC 10+INT). Save or fail, they are Taunted by you until you drop to 0 HP.
+- **Low Blow.** When you Sneak Attack, spend 1 additional action to roll 1d4, they are:
+  1. Taunted by you for the rest of this encounter.
+  2. Knocked Prone, then Taunted by you for the rest of this encounter.
+  3. Dazed, then Taunted by you for the rest of this encounter.
+  4. Incapacitated until the end of next hero's turn.
 - **Sweet Talk.** You may gain advantage on all Influence checks with NPCs you've just met for the first time. This lasts until you fail an Influence check with them or until you meet a 2nd time. You have disadvantage on Influence checks with them after you use this ability (until you get back on their good side).
 
 **Level 7:**
-- **Pocket Sand.** (2/encounter--you've got to collect more sand!) When you Defend against a melee attack, Blind the attacker until the start of their next turn and force them to reroll the attack (Blinded creatures attack with disadvantage).
+- **Pocket Sand.** (2/encounter — you've got to collect more sand!) When you Defend against a melee attack, Blind the attacker until the start of their next turn and force them to reroll the attack (Blinded creatures attack with disadvantage).
 
 **Level 11:**
 - **Escape Plan.** (1/Safe Rest) When you would drop to 0 HP or gain a Wound, you don't. Instead, you turn Invisible for 1 minute or until you attack.
 
 **Level 15:**
 - **Heads I Win, Tails You Lose.** (1/encounter) Attacks you make this round don't miss, you crit on 1 less than normally needed, and you gain LVL temp HP.
+
+### Tools of the Serpent
+**Subclass Complexity: 2/4**
+
+> You have harnessed the terrible fangs of nature to her deadly array of poisons.
+
+**Level 3:**
+- **Viper's Kiss.** Creatures you damage become Poisoned until the end of their next turn. Creatures Poisoned this way are also Distracted.
+- **I've Tried This One Before.** You have advantage on saves against poison. Additionally, you can identify any poison you inspect.
+
+**Level 7:**
+- **Noxious Cloud.** (1/encounter, Reach 4) Action: Enemies in a 2×2 area take INT d6 damage (ignoring armor) and become Poisoned. Creatures already Poisoned are also Dazed.
+
+**Level 11:**
+- **Cruel Dose.** Creatures poisoned by you are also Slowed and their attack Range is halved.
+
+**Level 15:**
+- **Volatile Toxins.** Noxious Cloud can be used twice each encounter. Whenever a creature Poisoned by you dies, their body erupts into a Noxious Cloud.
+
+### Tools of the Gambler
+**Subclass Complexity: 1/4**
+
+> Trust me — this time it's a SURE THING. Choose this subclass if you want to risk it all with dangerous plays and walk the line of ruin.
+
+**Level 3:**
+- **All In.** When you Sneak Attack, you may go *All In*: Roll a single All In die; if it rolls higher than average, maximize ALL of your sneak attack dice; otherwise minimize them.
+- **That was Just a Practice Roll.** (1/encounter) You may reroll ANY die.
+- **It's All Fun and Games.** If you're caught cheating at a game, competition, or wager, you gain advantage on skill checks to get out of the consequences.
+
+**Level 7:**
+- **Pocket Aces!** (1/Safe Rest) You can set a friendly creature's Initiative roll to 20.
+- **Double Or Nothing!** When you lose your "All In" roll, you may try once more. If you succeed, add 1 additional maximized Sneak Attack die. If you fail, your attack misses entirely and your turn ends.
+
+**Level 11:**
+- **Play the Odds.** (1/round) When a creature hits you, you may force them to reroll their Primary Die. If the roll is lower, the attack misses; otherwise, it crits.
+
+**Level 15:**
+- **Odds Maker.** You may use *That Was Just a Practice Roll* 2/encounter and you may instead change the die to any other face.
 
 ---
 
@@ -2522,6 +2572,48 @@ These are special subclasses chosen at pivotal moments in a story, at the GM's d
 - **Go for the Throat!** (1/encounter) Costs 2 TotH charges, 2 actions: Your companion attacks your quarry for 1d12+(4 x LVL) damage (ignoring armor). If that creature dies, you may deal half as much to another creature within Reach 4. Level 11: 2/encounter.
 
 **Note:** Your companion's attacks count as your own for gaining TotH charges. Abilities that spend TotH charges cannot miss nor can they generate new charges. Unused charges are lost when combat ends.
+
+---
+
+## THE HONORSEEKER (The Cheat)
+*"No more tricks. Honest."*
+
+**Honorseeker.** You give up Sneak Attack, Vicious Opportunist, Underhanded Abilities, and Twist the Blade, in exchange gain:
+- **Honorable Gambits.** For every Underhanded Ability you would have (except for your *Old Habits...*), choose an Honorable Gambit instead.
+- **Worthy Underdog.** When enemies have The Upper Hand, attacks miss you on 2 or less.
+- **Tenacious Fighter.** (1/turn) When you HIT an enemy that has The Upper Hand you may change the Primary Die roll to whatever you like and deal +1d6 damage (this increases as your Sneak Attack dice would).
+
+> **The Upper Hand.** Whenever there are more of them adjacent to you than allies.
+
+### Level 3
+- **Prove Your Worth!** (Reach 12, 1/turn) Taunt an enemy for free (lasts until they damage you). Gain DEX damage reduction vs enemies Taunted by you.
+
+### Level 5
+- **Even the Odds.** When attacking or being attacked by an enemy with The Upper Hand, you may spend an action to change a die up or down 1 face (replaces Twist the Blade and improves as it would).
+
+### Level 7
+- **Old Habits...** Choose 1 Underhanded Ability.
+
+### Level 11
+- **Right Where I Want You.** You have advantage on attacks and +10 Defense as long as enemies have The Upper Hand.
+
+### Level 15
+- **Turn the Tables.** When an enemy with The Upper Hand misses you in melee, you may spend an action attacking them in return.
+
+### Level 20
+- **Supreme Underdog.** (Replaces Supreme Execution...) You take 10 less damage from all attacks by creatures with The Upper Hand.
+
+### Honorable Gambits
+
+- **Deft Parry.** You take -INT damage from enemies while they have The Upper Hand.
+- **Down, Not Out!** While Dying, reduce all Primary Dice rolled against you by 1, and you gain advantage on Saves.
+- **Frightful Confidence.** While Bloodied, when you are attacked with advantage their lowest die is Primary.
+- **Mark of Deflection.** If you've already Defended this round, attacks against you are rolled with disadvantage.
+- **Nowhere to Flee!** Gain +INT speed when moving toward enemies Taunted by you. Your Opportunity Attacks also Slow Medium or smaller targets on hit.
+- **Redemption Arc.** Reaction (when an enemy with The Upper Hand attacks an ally): You may first Taunt them (the attack is rolled again, choose either result), this lasts until the end of their next turn.
+- **Riposte.** When you Defend against a melee attacker, you may immediately make an Opportunity Attack against them.
+- **Say That to My Face!** Action: (Reach 12) "Teleport" adjacent to a Taunted enemy.
+- **Victor's Confidence.** When you kill a Taunted enemy, give an Ally advantage on their next attack.
 
 ---
 
