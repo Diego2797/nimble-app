@@ -463,19 +463,19 @@ No mana. The Cheat relies on Sneak Attack and Underhanded Abilities.
 | **Saves** | STR+ (advantaged), DEX- (disadvantaged) |
 | **Armor Proficiencies** | Mail Armor, Shields |
 | **Weapon Proficiencies** | All Martial Weapons |
-| **Starting Gear** | Hand Axe, Javelins (4), Rusty Mail |
+| **Starting Gear** | Short Sword, Javelins (4), Rusty Mail |
 
 ## Mana / Resource System
 
-No mana pool. The Commander uses **Combat Dice** (gained at level 4).
+No mana pool. The Commander uses **Combat Dice** (gained at level 2).
 
-**Combat Dice** - When you roll Initiative, gain STR Combat Dice (each a d6 at first). (1/attack) You may expend a Combat Die to perform a special Combat Tactic maneuver. Combat Dice are lost when combat ends.
+**Combat Dice** — When you roll Initiative, gain STR Combat Dice (each a d6 at first). (1/attack) You may expend a Combat Die to perform a special Combat Tactic maneuver. Combat Dice are lost when combat ends.
 
 ### Combat Dice Progression
 
 | Level | Combat Die Size |
 |---|---|
-| 4 | d6 |
+| 2 | d6 |
 | 5 | d8 |
 | 9 | d10 |
 | 13 | d12 |
@@ -484,28 +484,28 @@ No mana pool. The Commander uses **Combat Dice** (gained at level 4).
 ## Level Features (1-20)
 
 ### Level 1
-- **Coordinated Strike!** Gain the Coordinated Strike! Commander's Order.
+- **Coordinated Strike!** (1/encounter) You and an ally within Reach 6 both immediately make a weapon/unarmed attack or cast a cantrip for free.
 
 ### Level 2
-- **Commander's Orders.** Choose 2 Commander's Orders.
+- **Fit for Any Battlefield.** Choose a Combat Tactic. When you roll Initiative, gain STR Combat Dice (each a d6); they are lost when combat ends if unspent.
 - **Field Medic.** Roll 1 additional die for any health potion you administer. Whenever you or an ally spends any number of Hit Dice to recover HP, if you spent at least ten minutes examining their wounds, they can add your Examination bonus to the HP recovered.
-- **Rigorous Training.** Whenever you train with your party or other soldiers during a Safe Rest, you may choose different Commander options available to you.
 
 ### Level 3
 - **Subclass.** Choose a Commander subclass.
 
 ### Level 4
-- **Fit for Any Battlefield.** Choose a Combat Tactic. When you roll Initiative, gain STR Combat Dice, each a d6. (1/attack) You may expend a Combat Die to perform a special maneuver. Combat Dice are lost when combat ends.
+- **Commander's Orders.** Choose 2 Commander's Orders.
 - **Key Stat Increase.** +1 STR or INT.
 
+> **Rigorous Training.** Whenever you train with your party or other soldiers during a Safe Rest, you may choose different Commander options available to you.
+
 ### Level 5
-- **Master Commander.** When you roll Initiative, regain 1 spent use of Coordinated Strike (it is lost if not spent during that encounter). Attacks made from your Coordinated Strikes also now ignore disadvantage.
-- **Combat Tactics.** Your Combat Dice are now d8s.
+- **Master Commander.** Your Combat Dice are now d8s. You gain an additional pool of INT uses of Coordinated Strike to use per Safe Rest (you may use Coordinated Strike only 1/round). Attacks made from your Coordinated Strikes also now ignore disadvantage.
 - **Secondary Stat Increase.** +1 DEX or WIL.
 
 ### Level 6
 - **Fit for Any Battlefield (2).** Choose another Combat Ability or gain +1 max Combat Dice.
-- **Weapon Mastery.** You may sheathe a weapon and draw a different one 2x/round for free. Choose a weapon type to specialize in.
+- **Weapon Mastery.** You may sheathe a weapon and draw a different one 2×/round for free. Choose a Weapon Mastery.
 
 ### Level 7
 - **Subclass.** Gain your Commander subclass feature.
@@ -515,13 +515,12 @@ No mana pool. The Commander uses **Combat Dice** (gained at level 4).
 - **Key Stat Increase.** +1 STR or INT.
 
 ### Level 9
-- **Master Commander (2).** +1 use of Coordinated Strike/Safe Rest.
-- **Combat Tactics (2).** Your Combat Dice are now d10s.
+- **Master Commander (2).** Your Combat Dice are now d10s. +1 use of Coordinated Strike.
 - **Secondary Stat Increase.** +1 DEX or WIL.
 
 ### Level 10
 - **Fit for Any Battlefield (4).** Choose another Combat Ability or gain +1 max Combat Dice.
-- **Weapon Mastery (2).** Choose a 2nd weapon type to specialize in.
+- **Weapon Mastery (2).** Choose a 2nd Weapon Mastery.
 
 ### Level 11
 - **Subclass.** Gain your Commander subclass feature.
@@ -531,8 +530,7 @@ No mana pool. The Commander uses **Combat Dice** (gained at level 4).
 - **Key Stat Increase.** +1 STR or INT.
 
 ### Level 13
-- **Master Commander (3).** +1 use of Coordinated Strike/Safe Rest.
-- **Combat Tactics (3).** Your Combat Dice are now d12s.
+- **Master Commander (3).** Your Combat Dice are now d12s. +1 use of Coordinated Strike.
 - **Secondary Stat Increase.** +1 DEX or WIL.
 
 ### Level 14
@@ -546,8 +544,7 @@ No mana pool. The Commander uses **Combat Dice** (gained at level 4).
 - **Key Stat Increase.** +1 STR or INT.
 
 ### Level 17
-- **Master Commander (4).** +1 use of Coordinated Strike/Safe Rest.
-- **Combat Tactics (4).** Your Combat Dice are now d20s.
+- **Master Commander (4).** Your Combat Dice are now d20s. +1 use of Coordinated Strike.
 - **Secondary Stat Increase.** +1 DEX or WIL.
 
 ### Level 18
@@ -557,65 +554,130 @@ No mana pool. The Commander uses **Combat Dice** (gained at level 4).
 - **Epic Boon.** Choose an Epic Boon (see pg. 23 of the GM's Guide).
 
 ### Level 20
-- **Captain of Legions.** +1 to any 2 of your stats. The first time each encounter you use Coordinated Strike, EVERY ally within 12 spaces gains +1 action (replaces Unparalleled Tactics).
+- **Captain of Legions.** +1 to any 2 of your stats. The 1st time each encounter you use Coordinated Strike, INT allies gain +1 action (replaces Unparalleled Tactics).
 
-## Combat Abilities
+## Commander's Orders
 
-### Commander's Orders
-- **Coordinated Strike!** (1/round) Free action: you and an ally within 6 spaces both immediately make a weapon attack or cast a cantrip for free. You can do this INT times/Safe Rest.
-- **Face Me!** Reaction (after an ally within 12 spaces is crit): Taunt that enemy until you drop to 0 HP.
-- **Hold the Line!** (1/encounter) Reaction (when an ally drops to 0 HP): Command them to continue the fight! Set their HP to 3x your LVL. Additionally, they gain that many temp HP. Enemies who reduce this temp HP in melee have their speed halved until the end of their next turn.
-- **I Can Do This ALL DAY!** (1/encounter) Reaction (when you would drop to 0 HP): You may expend any number of Hit Dice and set your HP to the sum rolled instead (do not add your STR).
-- **Move it! Move it!** When you roll Initiative you may give yourself and an ally advantage on the roll, +3 speed, and the ability to fly for 1 round. Then, you both can also move for free.
-- **Reposition!** Action/Reaction (on an ally's turn): Command 1 ally to move up to their speed (or 2 allies up to half their speed) for free. You may exchange places with one of them.
+- **Commanding Presence.** 1 Action. (1/encounter) Make an Influence check, and Command an enemy to perform a single simple action and they spend their entire next turn obeying it:
+  - **1–9: Move!** The creature moves to a place you choose.
+  - **10–19: Kneel!** Move them, then they are considered Prone.
+  - **20+: Strike!** They move and attack a target of your choice.
+- **Face Me!** 0 Actions. After an enemy crits or attacks a dying ally, you may Taunt them. Lasts until you drop to 0 HP.
+- **Hold the Line!** 1 Action. (1/encounter) Reaction (when an ally drops to 0 HP): Command them to continue the fight! Set their HP to 3× your LVL.
+- **I Can Do This ALL DAY!** 1 Action. (1/encounter) Reaction (when you would drop to 0 HP): Expend any number of Hit Dice and set your HP to the sum rolled instead (do not add your STR).
+- **Move it! Move it!** Passive. When you roll Initiative, give yourself and an ally advantage on the roll and +3 speed for 1 round.
+- **Reposition!** 1 Action. Command 1 ally to move up to their speed (or 2 allies up to half their speed) for free. You may use this as a reaction on an ally's turn.
 
-### Combat Tactics
-(1/attack, you can expend a Combat Die to add one of the following effects to your attack.)
+## Combat Tactics
 
-- **Commanding Presence.** Action: Shout a command up to 2 words long at an enemy. On a failed WIL save (DC 10+STR), they must spend their entire next turn obeying it to the best of their ability, provided it is not obviously harmful to themselves. They then become immune to this effect for 1 day.
-- **Heavy Strike.** When you hit, push a Medium creature STR spaces and deal extra damage equal to a roll of your Combat Die. A Small creature is pushed twice as far; Large, pushed half as far (round down).
-- **Inerrant Strike.** Reroll a missed attack, add 1 to the Primary Die, and deal extra damage equal to a roll of your Combat Die.
-- **Lunging Strike.** Gain +1 Reach on an attack and deal extra damage equal to 2x a roll of your Combat Die.
-- **Sweeping Strike.** 2 actions: Select any contiguous area within your weapon's Reach and damage ALL targets there. This attack does not miss on a 1.
+Whenever you attack, you may expend a Combat Die to add a special effect (max 1/attack).
+
+- **Heavy Strike.** When you hit, knockback your target STR spaces and deal extra damage equal to a roll of your Combat Die.
+- **Inerrant Strike.** When you miss, reroll the attack, add 1 to the Primary Die, and deal extra damage equal to a roll of your Combat Die.
+- **Lunging Strike.** Gain +1 Reach on an attack and deal extra damage equal to 2× a roll of your Combat Die.
+- **Sweeping Strike.** Select any contiguous area within your weapon's Reach and damage ALL targets there (AoE attacks do not miss on a 1, nor crit on the max).
 
 ## Weapon Mastery
 
-Choose a weapon mastery at levels 6, 10, and 14:
+Choose a Weapon Mastery at levels 6, 10, and 14.
 
-- **Slashing.** Your attacks with slashing weapons cannot miss unarmored enemies.
-- **Bludgeoning.** When your primary die rolls a 7 or higher with a bludgeoning weapon, ignore Heavy Armor.
-- **Piercing.** Your attacks with piercing weapons ignore Medium Armor.
+- **Slashing.** (1/turn) Your attacks with slashing weapons can strike 1 additional creature adjacent to you and your target.
+- **Bludgeoning.** (1/turn) Your attacks with bludgeoning weapons deal +10 damage vs Armored foes.
+- **Piercing.** (1/turn) Your attacks with piercing weapons can strike another creature behind your target within Reach.
 
 ## Subclasses
 
 ### Champion of the Bulwark
+**Subclass Complexity: 2/4**
+
+> Become an iron-clad juggernaut and boost your party with defensive prowess.
 
 **Level 3:**
 - **Armor Master.** You are proficient with plate armor.
-- **Shield Expert.** While wearing a shield, you may Defend 2x each round. The first time each round you block all of the damage from an attack, you may make an opportunity attack against the attacker for free.
+- **Shield Expert.** While equipped with a shield you can Defend for free; when you do, you may deal damage to an adjacent enemy equal to your shield's Defense.
 
 **Level 7:**
-- **Juggernaut.** When you use Coordinated Strike, you deal extra damage equal to your armor, and you can add 1 to your primary die.
+- **Juggernaut.** When you use Coordinated Strike, you can spend an additional action to add 1 to your Primary Die and deal extra damage equal to your Defense.
 
 **Level 11:**
-- **Taunting Strike.** (1/turn) You may Taunt a creature you hit until the end of their next turn.
+- **Taunting Strike.** (1/turn) You may Taunt a creature you attack until the end of their next turn.
 
 **Level 15:**
-- **Shield Wall.** Allies within 2 spaces gain ALL the benefits of the shield you have equipped.
+- **Shield Wall.** (Reach 2) Your shields gain +2 Defense. Your allies can also use your shield's Defense when they Defend.
 
 ### Champion of the Vanguard
+**Subclass Complexity: 2/4**
+
+> A forward-charging general who leads from the front!
 
 **Level 3:**
-- **Advance!** (1/round) After you move toward an enemy, gain advantage on the first melee attack you make against it. When you use your Coordinated Strike, you and all allies within 12 spaces can first move up to half their speed for free.
+- **Advance!** (Reach 12) Whenever you use your Coordinated Strike, you and all allies can first move up to half their speed for free. Gain advantage on the first melee attack you make against enemies you moved toward this turn.
 
 **Level 7:**
-- **Experienced Commander.** Your Coordinated Strike may target 1 additional ally. Gain +1 use of Coordinated Strike/Safe Rest.
+- **Experienced Commander.** Your Coordinated Strike may target 1 additional ally.
 
 **Level 11:**
 - **Survey the Battlefield.** When you roll Initiative, regain 1 use of Coordinated Strike. +1 max Combat Dice.
 
 **Level 15:**
-- **As One!** Attacks made with your Coordinated Strike also grant advantage and ignore all disadvantage. Your chosen allies gain 1 additional action to use on their next turn.
+- **As One!** All attacks made with your Coordinated Strike are made with advantage.
+
+### Champion of the Phalanx
+**Subclass Complexity: 2/4**
+
+> "Together we stand, divided, we fall!"
+
+**Level 3:**
+- **Polearm Mastery.** Weapons with Reach 2 gain +1 Reach; OR can be wielded one-handed with a Shield.
+- **Skewer.** You can perform Opportunity Attacks against enemies that enter the Reach of your weapon. If the movement was forced, attack with advantage instead of disadvantage.
+
+**Level 7:**
+- **Formation March.** Whenever you move, allies within Reach of your weapon may move with you for free.
+
+**Level 11:**
+- **Together We Stand.** Add 1 to your Combat Die rolls for each ally within your weapon's Reach.
+
+**Level 15:**
+- **Shoulder to Shoulder.** Allies within your weapon's Reach gain +1 Reach to their weapons and gain the benefits of your Weapon Masteries.
+
+### Champion of the Arena
+**Subclass Complexity: 1/4**
+
+> A simple, single-minded fighter who goes for the glory!
+
+**Level 3:**
+- **Single-minded Fighter.** You forego all Commander's Orders. Whenever you would choose one, you gain +1 max Combat Die instead.
+- **Showstopping Strike.** (1/Safe Rest) When you use Coordinated Strike, you and your ally both automatically crit.
+- **Glory Seeker.** (1/round) Whenever an ally crits, your next attack is made with advantage.
+
+**Level 7:**
+- **Pushed to the Brink.** Showstopping Strike refreshes the first time each encounter you gain the Dying condition.
+- **Remarkable Strategy.** (1/encounter) When Assessing with an INT skill, you may roll a Combat Die and add it to the result (without expending it).
+
+**Level 11:**
+- **Superior Striker.** Gain +STR Initiative. Showstopping Strike refreshes when you roll Initiative.
+
+**Level 15:**
+- **Outlast, Outmatch.** Your Coordinated Strike also grants you and your ally temp HP equal to the max value of your Combat Die.
+
+### Champion of the Siege-Breaker
+**Subclass Complexity: 2/4**
+
+> Unleash aggressive combat tactics to disrupt your enemies. Leave the shield behind, it'll only weigh you down.
+
+**Level 3:**
+- **Siege Veteran.** +STR Defense when wielding a weapon with 2 hands.
+- **Mighty Cleave.** Whenever your damage dice on a melee attack sum to 8+, you may select 1 additional target within your weapon's Reach.
+
+**Level 7:**
+- **Shatter Formation.** (New Combat Tactic) Action: Roll a Combat Die and deal that much damage to up to STR targets within your weapon's Reach, and knockback 2. You may use this ability while moving.
+
+**Level 11:**
+- **Relentless Assault.** +2 Max Combat Dice. You roll Combat Dice with advantage.
+- **Tear Asunder.** (New Combat Tactic) Strike an armored foe and deal extra damage equal to a roll of your Combat Die. The next non-critical attack against them ignores armor.
+
+**Level 15:**
+- **Against the Hordes.** If there are 2+ enemies within your weapon's Reach, your melee attacks have advantage and always trigger Mighty Cleave.
 
 ---
 
@@ -2665,10 +2727,10 @@ These are special subclasses chosen at pivotal moments in a story, at the GM's d
 - **Hold the Line! (Crystalline Armor).** (1/encounter) Reaction (when an ally drops to 0 HP): Command them to continue the fight! Set their HP to 3x your LVL. Additionally, they gain that many temp HP. Enemies who reduce this temp HP in melee have their speed halved until the end of their next turn.
 - **Reposition! (Flashstep).** Action/Reaction (on an ally's turn): Command 1 ally to move up to their speed (or 2 allies up to half their speed) for free. You may exchange places with one of them.
 - **I Can Do This ALL DAY! (Rising Phoenix).** (1/encounter) Reaction (when you would drop to 0 HP): You may expend any number of Hit Dice, set your HP to the sum rolled instead, and deal that much fire damage to each enemy within 2 spaces of you. They gain the Smoldering condition.
-- **Coordinated Strike! (Withering Strike).** Any attacks made this way deal additional Necrotic damage equal to the max value of your Combat Die. An enemy damaged this way is considered undead for 1 round.
+- **Commanding Presence (Withering Presence).** Creatures you Command suffer Necrotic damage equal to the max value of your Combat Die (ignoring armor) and are considered undead for 1 round.
 
 ### Level 3
-- **Firebrand.** When you roll Initiative you may cast Enchant Weapon for free (can be upcast as normal by spending additional mana).
+- **Spellforge.** When you roll Initiative you may cast Enchant Weapon for free (can be upcast as normal by spending additional mana).
 - **Deep Knowledge (1).** Choose any tier 1 (or lower) spell and any Utility Spell.
 
 ### Level 7

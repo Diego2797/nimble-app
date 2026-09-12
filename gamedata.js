@@ -537,109 +537,103 @@ window.GAME_DATA = {
       saves: { advantaged: "STR", disadvantaged: "DEX" },
       armorProficiency: "Mail, Shields",
       weaponProficiency: "All Martial",
-      startingGear: ["Hand Axe", "Javelins (4)", "Rusty Mail"],
+      startingGear: ["Short Sword", "Javelins (4)", "Rusty Mail"],
       retrainFeature: {
         name: "Rigorous Training",
         description: "Whenever you train with your party or other soldiers during a Safe Rest, you may choose different Commander options available to you.",
         icon: "✠"
       },
-      retrainArrays: ["commandersOrders", "combatTactics"],
+      retrainArrays: ["commandersOrders", "combatTactics", "weaponMastery"],
       commandersOrders: [
-        { name: "Coordinated Strike!", description: "1/round, Free action: You and an ally within 6 spaces both make a weapon attack or cast a cantrip for free. Usable INT times per Safe Rest." },
-        { name: "Face Me!", description: "Reaction (when an ally within 12 spaces is critically hit): Taunt that enemy, forcing them to target you until you drop to 0 HP." },
-        { name: "Hold the Line!", description: "1/encounter, Reaction (when an ally drops to 0 HP): Set their HP to 3×LVL and grant that many temporary HP. Enemies who reduce the temporary HP in melee have their speed halved." },
-        { name: "I Can Do This ALL DAY!", description: "1/encounter, Reaction (when you would drop to 0 HP): Expend any number of Hit Dice and set your HP to the sum rolled." },
-        { name: "Move it! Move it!", description: "On Initiative, you and an ally gain advantage on the Initiative roll, +3 speed, and the ability to fly for 1 round. Both of you move for free." },
-        { name: "Reposition!", description: "Action or Reaction: 1 ally moves their full speed for free, or 2 allies each move half their speed for free. Allies may exchange places with each other." }
+        { name: "Commanding Presence", description: "1 Action. (1/encounter) Make an Influence check, and Command an enemy to perform a single simple action and they spend their entire next turn obeying it: 1-9 Move! (the creature moves to a place you choose). 10-19 Kneel! (Move them, then they are considered Prone). 20+ Strike! (They move and attack a target of your choice)." },
+        { name: "Face Me!", description: "0 Actions. After an enemy crits or attacks a dying ally, you may Taunt them. Lasts until you drop to 0 HP." },
+        { name: "Hold the Line!", description: "1 Action. (1/encounter) Reaction (when an ally drops to 0 HP): Command them to continue the fight! Set their HP to 3× your LVL." },
+        { name: "I Can Do This ALL DAY!", description: "1 Action. (1/encounter) Reaction (when you would drop to 0 HP): Expend any number of Hit Dice and set your HP to the sum rolled instead (do not add your STR)." },
+        { name: "Move it! Move it!", description: "Passive. When you roll Initiative, give yourself and an ally advantage on the roll and +3 speed for 1 round." },
+        { name: "Reposition!", description: "1 Action. Command 1 ally to move up to their speed (or 2 allies up to half their speed) for free. You may use this as a reaction on an ally's turn." }
       ],
       combatTactics: [
-        { name: "Commanding Presence", description: "Action: Issue a 2-word command to an enemy. The target must make a WIL save (DC 10 + your STR) or obey the command on their next turn. A target is immune for 1 day after being affected." },
-        { name: "Heavy Strike", description: "On a hit, push a Medium creature STR spaces and deal additional damage equal to your Combat Die. Small creatures are pushed 2× the distance. Large creatures are pushed half." },
-        { name: "Inerrant Strike", description: "Reroll a missed attack with +1 to the Primary Die and add your Combat Die to the damage." },
-        { name: "Lunging Strike", description: "Gain +1 Reach for this attack and deal additional damage equal to 2× your Combat Die." },
-        { name: "Sweeping Strike", description: "2 actions: Attack all targets in a contiguous area within your Reach. This attack cannot miss on a roll of 1." }
+        { name: "Heavy Strike", description: "When you hit, knockback your target STR spaces and deal extra damage equal to a roll of your Combat Die." },
+        { name: "Inerrant Strike", description: "When you miss, reroll the attack, add 1 to the Primary Die, and deal extra damage equal to a roll of your Combat Die." },
+        { name: "Lunging Strike", description: "Gain +1 Reach on an attack and deal extra damage equal to 2× a roll of your Combat Die." },
+        { name: "Sweeping Strike", description: "Select any contiguous area within your weapon's Reach and damage ALL targets there (AoE attacks do not miss on a 1, nor crit on the max)." }
       ],
       weaponMastery: [
-        { name: "Slashing", description: "Your slashing attacks cannot miss unarmored enemies." },
-        { name: "Bludgeoning", description: "When your Primary Die is 7 or higher, your bludgeoning attacks ignore Heavy Armor." },
-        { name: "Piercing", description: "Your piercing attacks ignore Medium Armor." }
+        { name: "Slashing", description: "(1/turn) Your attacks with slashing weapons can strike 1 additional creature adjacent to you and your target." },
+        { name: "Bludgeoning", description: "(1/turn) Your attacks with bludgeoning weapons deal +10 damage vs Armored foes." },
+        { name: "Piercing", description: "(1/turn) Your attacks with piercing weapons can strike another creature behind your target within Reach." }
       ],
       levels: {
         1: [
-          { name: "Coordinated Strike!", description: "1/round, Free action: You and an ally within 6 spaces both make a weapon attack or cast a cantrip for free. You can use this INT times per Safe Rest." }
+          { name: "Coordinated Strike!", description: "(1/encounter) You and an ally within Reach 6 both immediately make a weapon/unarmed attack or cast a cantrip for free." }
         ],
         2: [
-          { name: "Commander's Orders", description: "Choose 2 Commander's Orders abilities." },
-          { name: "Field Medic", description: "Roll 1 extra die when using health potions. Add your Examination bonus to Hit Dice healing after 10 minutes of rest." },
-          { name: "Rigorous Training", description: "Whenever you train with your party or other soldiers during a Safe Rest, you may choose different Commander options available to you." }
+          { name: "Fit for Any Battlefield", description: "Choose a Combat Tactic. When you roll Initiative, gain STR Combat Dice (each a d6); they are lost when combat ends if unspent." },
+          { name: "Field Medic", description: "Roll 1 additional die for any health potion you administer. Whenever you or an ally spends any number of Hit Dice to recover HP, if you spent at least ten minutes examining their wounds, they can add your Examination bonus to the HP recovered." }
         ],
         3: [
-          { name: "Subclass", description: "Choose a Commander subclass: Champion of the Bulwark or Champion of the Vanguard." }
+          { name: "Subclass", description: "Choose a Commander subclass: Champion of the Bulwark, Vanguard, Phalanx, Arena, or Siege-Breaker." }
         ],
         4: [
-          { name: "Fit for Any Battlefield", description: "Choose a Combat Tactic. You gain STR Combat Dice (d6s) on Initiative. 1/attack, you may expend a Combat Die to perform the chosen maneuver." },
-          { name: "Key Stat Increase", description: "+1 to STR or INT." }
+          { name: "Commander's Orders", description: "Choose 2 Commander's Orders." },
+          { name: "Key Stat Increase", description: "+1 STR or INT." }
         ],
         5: [
-          { name: "Master Commander", description: "Regain 1 use of Coordinated Strike on Initiative. Attacks made from Coordinated Strike ignore disadvantage." },
-          { name: "Combat Tactics", description: "Combat Dice are now d8s." },
-          { name: "Secondary Stat Increase", description: "+1 to DEX or WIL." }
+          { name: "Master Commander", description: "Your Combat Dice are now d8s. You gain an additional pool of INT uses of Coordinated Strike to use per Safe Rest (you may use Coordinated Strike only 1/round). Attacks made from your Coordinated Strikes also now ignore disadvantage." },
+          { name: "Secondary Stat Increase", description: "+1 DEX or WIL." }
         ],
         6: [
-          { name: "Fit for Any Battlefield (2)", description: "Choose another Combat Tactic or gain +1 max Combat Dice." },
-          { name: "Weapon Mastery", description: "You may sheathe and draw weapons up to 2 times per round for free. Choose a weapon damage type to master." }
+          { name: "Fit for Any Battlefield (2)", description: "Choose another Combat Ability or gain +1 max Combat Dice." },
+          { name: "Weapon Mastery", description: "You may sheathe a weapon and draw a different one 2×/round for free. Choose a Weapon Mastery." }
         ],
         7: [
-          { name: "Subclass Feature", description: "Gain a feature from your chosen subclass." }
+          { name: "Subclass", description: "Gain your Commander subclass feature." }
         ],
         8: [
-          { name: "Fit for Any Battlefield (3)", description: "Choose another Combat Tactic or gain +1 max Combat Dice." },
-          { name: "Key Stat Increase", description: "+1 to STR or INT." }
+          { name: "Fit for Any Battlefield (3)", description: "Choose another Combat Ability or gain +1 max Combat Dice." },
+          { name: "Key Stat Increase", description: "+1 STR or INT." }
         ],
         9: [
-          { name: "Master Commander (2)", description: "Gain +1 use of Coordinated Strike per Safe Rest." },
-          { name: "Combat Tactics (2)", description: "Combat Dice are now d10s." },
-          { name: "Secondary Stat Increase", description: "+1 to DEX or WIL." }
+          { name: "Master Commander (2)", description: "Your Combat Dice are now d10s. +1 use of Coordinated Strike." },
+          { name: "Secondary Stat Increase", description: "+1 DEX or WIL." }
         ],
         10: [
-          { name: "Fit for Any Battlefield (4)", description: "Choose another Combat Tactic or gain +1 max Combat Dice." },
-          { name: "Weapon Mastery (2)", description: "Choose a 2nd weapon damage type to master." }
+          { name: "Fit for Any Battlefield (4)", description: "Choose another Combat Ability or gain +1 max Combat Dice." },
+          { name: "Weapon Mastery (2)", description: "Choose a 2nd Weapon Mastery." }
         ],
         11: [
-          { name: "Subclass Feature", description: "Gain a feature from your chosen subclass." }
+          { name: "Subclass", description: "Gain your Commander subclass feature." }
         ],
         12: [
-          { name: "Fit for Any Battlefield (5)", description: "Choose another Combat Tactic or gain +1 max Combat Dice." },
-          { name: "Key Stat Increase", description: "+1 to STR or INT." }
+          { name: "Fit for Any Battlefield (5)", description: "Choose another Combat Ability or gain +1 max Combat Dice." },
+          { name: "Key Stat Increase", description: "+1 STR or INT." }
         ],
         13: [
-          { name: "Master Commander (3)", description: "Gain +1 use of Coordinated Strike per Safe Rest." },
-          { name: "Combat Tactics (3)", description: "Combat Dice are now d12s." },
-          { name: "Secondary Stat Increase", description: "+1 to DEX or WIL." }
+          { name: "Master Commander (3)", description: "Your Combat Dice are now d12s. +1 use of Coordinated Strike." },
+          { name: "Secondary Stat Increase", description: "+1 DEX or WIL." }
         ],
         14: [
-          { name: "Weapon Mastery (3)", description: "You now have mastery of all weapon damage types." }
+          { name: "Weapon Mastery (3)", description: "You have complete mastery of all weapon types." }
         ],
         15: [
-          { name: "Subclass Feature", description: "Gain a feature from your chosen subclass." }
+          { name: "Subclass", description: "Gain your Commander subclass feature." }
         ],
         16: [
-          { name: "Fit for Any Battlefield (6)", description: "Choose another Combat Tactic or gain +1 max Combat Dice." },
-          { name: "Key Stat Increase", description: "+1 to STR or INT." }
+          { name: "Fit for Any Battlefield (6)", description: "Choose another Combat Ability or gain +1 max Combat Dice." },
+          { name: "Key Stat Increase", description: "+1 STR or INT." }
         ],
         17: [
-          { name: "Master Commander (4)", description: "Gain +1 use of Coordinated Strike per Safe Rest." },
-          { name: "Combat Tactics (4)", description: "Combat Dice are now d20s." },
-          { name: "Secondary Stat Increase", description: "+1 to DEX or WIL." }
+          { name: "Master Commander (4)", description: "Your Combat Dice are now d20s. +1 use of Coordinated Strike." },
+          { name: "Secondary Stat Increase", description: "+1 DEX or WIL." }
         ],
         18: [
-          { name: "Unparalleled Tactics", description: "The first Coordinated Strike each encounter also grants the chosen ally 1 additional action on their next turn." }
+          { name: "Unparalleled Tactics", description: "The first time each encounter you use Coordinated Strike, an ally who can hear you also gains 1 action to use on their next turn." }
         ],
         19: [
-          { name: "Epic Boon", description: "Gain an Epic Boon of your choice." }
+          { name: "Epic Boon", description: "Choose an Epic Boon (see pg. 23 of the GM's Guide)." }
         ],
         20: [
-          { name: "Captain of Legions", description: "+1 to any 2 stats. The first Coordinated Strike each encounter gives EVERY ally within 12 spaces +1 action on their next turn (replaces Unparalleled Tactics)." }
+          { name: "Captain of Legions", description: "+1 to any 2 of your stats. The 1st time each encounter you use Coordinated Strike, INT allies gain +1 action (replaces Unparalleled Tactics)." }
         ]
       }
     },
@@ -1988,24 +1982,77 @@ window.GAME_DATA = {
       {
         name: "Champion of the Bulwark",
         className: "Commander",
+        description: "Become an iron-clad juggernaut and boost your party with defensive prowess.",
         features: {
           3:  [
             { name: "Armor Master", description: "You are proficient with plate armor." },
-            { name: "Shield Expert", description: "While wearing a shield, you may Defend 2x each round. The first time each round you block all of the damage from an attack, you may make an opportunity attack against the attacker for free." }
+            { name: "Shield Expert", description: "While equipped with a shield you can Defend for free; when you do, you may deal damage to an adjacent enemy equal to your shield's Defense." }
           ],
-          7:  [{ name: "Juggernaut", description: "When you use Coordinated Strike, you deal extra damage equal to your armor, and you can add 1 to your primary die." }],
-          11: [{ name: "Taunting Strike", description: "(1/turn) You may Taunt a creature you hit until the end of their next turn." }],
-          15: [{ name: "Shield Wall", description: "Allies within 2 spaces gain ALL the benefits of the shield you have equipped." }]
+          7:  [{ name: "Juggernaut", description: "When you use Coordinated Strike, you can spend an additional action to add 1 to your Primary Die and deal extra damage equal to your Defense." }],
+          11: [{ name: "Taunting Strike", description: "(1/turn) You may Taunt a creature you attack until the end of their next turn." }],
+          15: [{ name: "Shield Wall", description: "(Reach 2) Your shields gain +2 Defense. Your allies can also use your shield's Defense when they Defend." }]
         }
       },
       {
         name: "Champion of the Vanguard",
         className: "Commander",
+        description: "A forward-charging general who leads from the front!",
         features: {
-          3:  [{ name: "Advance!", description: "(1/round) After you move toward an enemy, gain advantage on the first melee attack you make against it. When you use your Coordinated Strike, you and all allies within 12 spaces can first move up to half their speed for free." }],
-          7:  [{ name: "Experienced Commander", description: "Your Coordinated Strike may target 1 additional ally. Gain +1 use of Coordinated Strike/Safe Rest." }],
+          3:  [{ name: "Advance!", description: "(Reach 12) Whenever you use your Coordinated Strike, you and all allies can first move up to half their speed for free. Gain advantage on the first melee attack you make against enemies you moved toward this turn." }],
+          7:  [{ name: "Experienced Commander", description: "Your Coordinated Strike may target 1 additional ally." }],
           11: [{ name: "Survey the Battlefield", description: "When you roll Initiative, regain 1 use of Coordinated Strike. +1 max Combat Dice." }],
-          15: [{ name: "As One!", description: "Attacks made with your Coordinated Strike also grant advantage and ignore all disadvantage. Your chosen allies gain 1 additional action to use on their next turn." }]
+          15: [{ name: "As One!", description: "All attacks made with your Coordinated Strike are made with advantage." }]
+        }
+      },
+      {
+        name: "Champion of the Phalanx",
+        className: "Commander",
+        description: "\"Together we stand, divided, we fall!\" A polearm-and-shield formation fighter who protects allies through Reach.",
+        features: {
+          3:  [
+            { name: "Polearm Mastery", description: "Weapons with Reach 2 gain +1 Reach; OR can be wielded one-handed with a Shield." },
+            { name: "Skewer", description: "You can perform Opportunity Attacks against enemies that enter the Reach of your weapon. If the movement was forced, attack with advantage instead of disadvantage." }
+          ],
+          7:  [{ name: "Formation March", description: "Whenever you move, allies within Reach of your weapon may move with you for free." }],
+          11: [{ name: "Together We Stand", description: "Add 1 to your Combat Die rolls for each ally within your weapon's Reach." }],
+          15: [{ name: "Shoulder to Shoulder", description: "Allies within your weapon's Reach gain +1 Reach to their weapons and gain the benefits of your Weapon Masteries." }]
+        }
+      },
+      {
+        name: "Champion of the Arena",
+        className: "Commander",
+        description: "A simple, single-minded fighter who goes for the glory!",
+        // Arena replaces Commander's Orders picks with +1 max Combat Die each
+        removesClassAbilities: ["Commander's Orders"],
+        features: {
+          3:  [
+            { name: "Single-minded Fighter", description: "You forego all Commander's Orders. Whenever you would choose one, you gain +1 max Combat Die instead." },
+            { name: "Showstopping Strike", description: "(1/Safe Rest) When you use Coordinated Strike, you and your ally both automatically crit." },
+            { name: "Glory Seeker", description: "(1/round) Whenever an ally crits, your next attack is made with advantage." }
+          ],
+          7:  [
+            { name: "Pushed to the Brink", description: "Showstopping Strike refreshes the first time each encounter you gain the Dying condition." },
+            { name: "Remarkable Strategy", description: "(1/encounter) When Assessing with an INT skill, you may roll a Combat Die and add it to the result (without expending it)." }
+          ],
+          11: [{ name: "Superior Striker", description: "Gain +STR Initiative. Showstopping Strike refreshes when you roll Initiative." }],
+          15: [{ name: "Outlast, Outmatch", description: "Your Coordinated Strike also grants you and your ally temp HP equal to the max value of your Combat Die." }]
+        }
+      },
+      {
+        name: "Champion of the Siege-Breaker",
+        className: "Commander",
+        description: "Unleash aggressive combat tactics to disrupt your enemies. Leave the shield behind, it'll only weigh you down.",
+        features: {
+          3:  [
+            { name: "Siege Veteran", description: "+STR Defense when wielding a weapon with 2 hands." },
+            { name: "Mighty Cleave", description: "Whenever your damage dice on a melee attack sum to 8+, you may select 1 additional target within your weapon's Reach." }
+          ],
+          7:  [{ name: "Shatter Formation", description: "(New Combat Tactic) Action: Roll a Combat Die and deal that much damage to up to STR targets within your weapon's Reach, and knockback 2. You may use this ability while moving." }],
+          11: [
+            { name: "Relentless Assault", description: "+2 Max Combat Dice. You roll Combat Dice with advantage." },
+            { name: "Tear Asunder", description: "(New Combat Tactic) Strike an armored foe and deal extra damage equal to a roll of your Combat Die. The next non-critical attack against them ignores armor." }
+          ],
+          15: [{ name: "Against the Hordes", description: "If there are 2+ enemies within your weapon's Reach, your melee attacks have advantage and always trigger Mighty Cleave." }]
         }
       }
     ],
@@ -2443,10 +2490,10 @@ window.GAME_DATA = {
             { name: "Hold the Line! (Crystalline Armor)", description: "(1/encounter) Reaction (when an ally drops to 0 HP): Command them to continue the fight! Set their HP to 3x your LVL. Additionally, they gain that many temp HP. Enemies who reduce this temp HP in melee have their speed halved until the end of their next turn." },
             { name: "Reposition! (Flashstep)", description: "Action/Reaction (on an ally's turn): Command 1 ally to move up to their speed (or 2 allies up to half their speed) for free. You may exchange places with one of them." },
             { name: "I Can Do This ALL DAY! (Rising Phoenix)", description: "(1/encounter) Reaction (when you would drop to 0 HP): You may expend any number of Hit Dice, set your HP to the sum rolled instead, and deal that much fire damage to each enemy within 2 spaces of you. They gain the Smoldering condition." },
-            { name: "Coordinated Strike! (Withering Strike)", description: "Any attacks made this way deal additional Necrotic damage equal to the max value of your Combat Die. An enemy damaged this way is considered undead for 1 round." }
+            { name: "Commanding Presence (Withering Presence)", description: "Creatures you Command suffer Necrotic damage equal to the max value of your Combat Die (ignoring armor) and are considered undead for 1 round." }
           ],
           3:  [
-            { name: "Firebrand", description: "When you roll Initiative you may cast Enchant Weapon for free (can be upcast as normal by spending additional mana)." },
+            { name: "Spellforge", description: "When you roll Initiative you may cast Enchant Weapon for free (can be upcast as normal by spending additional mana)." },
             { name: "Deep Knowledge (1)", description: "Choose any tier 1 (or lower) spell and any Utility Spell." }
           ],
           7:  [{ name: "Deep Knowledge (2)", description: "Choose any tier 2 (or lower) spell and any Utility Spell." }],
