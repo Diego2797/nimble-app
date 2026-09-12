@@ -10,3 +10,8 @@ Thumbs.db
 
 # Claude Code local settings (keep launch.json for preview server, but not local settings)
 .claude/settings.local.json
+
+# Nimble PDFs — copyrighted, kept locally for reference only
+actualizaciones/
+ACTUALIZACIONES/
+*.pdf

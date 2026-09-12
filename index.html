@@ -3211,7 +3211,8 @@ const app = {
         <div class="action-row" style="margin-top:4px">
           <button class="btn btn-gold btn-small" onclick="app.levelUp()">${this.icon('arrowUp', 14)} Level Up</button>
           <button class="btn btn-small" style="background:rgba(0,0,0,0.25);color:#f4e4c1;border-color:rgba(255,255,255,0.1)" onclick="app.navigate('combat')">${this.icon('swords', 14)} Combat</button>
-          ${ch.subclass && this.hasSubclassSwapOption(ch) ? `<button class="btn btn-small" style="background:rgba(0,0,0,0.25);color:#f4e4c1;border-color:rgba(255,255,255,0.1)" onclick="app.changeSubclassModal()" title="Story-based subclass transition">${this.icon('refresh', 14)} Story Transition</button>` : ''}
+          ${ch.subclass && this.hasSubclassSwapOption(ch) ? `<button class="btn btn-small" style="background:rgba(0,0,0,0.25);color:#f4e4c1;border-color:rgba(255,255,255,0.1)" onclick="app.changeSubclassModal()" title="Change your subclass (requires GM approval)">${this.icon('refresh', 14)} Change Subclass</button>` : ''}
+          ${ch.rulesVersion !== 'v0.9' ? `<button class="btn btn-small" style="background:rgba(139,26,26,0.55);color:#fff;border-color:rgba(255,255,255,0.15)" onclick="app.migrateToNewRulesModal()" title="Update this character to Core Rules v0.9">${this.icon('sparkle', 14)} Migrate to v0.9</button>` : ''}
           <button class="btn btn-small ${this.state.editMode ? 'btn-gold' : ''}" ${this.state.editMode ? '' : 'style="background:rgba(0,0,0,0.25);color:#f4e4c1;border-color:rgba(255,255,255,0.1)"'} onclick="app.toggleEditMode()">${this.icon('edit', 14)} ${this.state.editMode ? 'Done' : 'Edit'}</button>
         </div>
         <div class="sheet-details">
@@ -5475,12 +5476,12 @@ const app = {
     const standards = ((data.subclasses || {})[classKey] || []).filter(s => (!s.className || s.className === ch.className));
     const storyBased = ((data.subclasses || {}).storyBased || []).filter(s => s.className === ch.className);
     const currentIsStory = storyBased.some(s => s.name === ch.subclass);
-    // If currently in a standard subclass → offer story-based options
-    // If currently in a story-based subclass → offer standard options (reversal path)
-    const sourcePool = currentIsStory ? standards : storyBased;
-    const options = sourcePool
+    // All swap targets: every subclass of this class other than the current one.
+    // Standard↔Standard is allowed (GM discretion / house rule) — the modal warns about it.
+    const storyNames = new Set(storyBased.map(s => s.name));
+    const options = [...standards, ...storyBased]
       .filter(s => s.name !== ch.subclass)
-      .map(s => ({ ...s, isStory: currentIsStory ? false : true }));
+      .map(s => ({ ...s, isStory: storyNames.has(s.name) }));
     return { options, currentIsStory };
   },
 
@@ -5498,7 +5499,7 @@ const app = {
     }
     const { options, currentIsStory } = this._getSubclassSwapOptions(ch);
     if (options.length === 0) {
-      this.toast('No story-based subclass transition available for this class.');
+      this.toast('No other subclasses available for this class.');
       return;
     }
 
@@ -5615,16 +5616,14 @@ const app = {
     if (!ch || !st) return;
 
     if (st.step === 'choose') {
-      const title = st.currentIsStory ? 'Revert Subclass' : 'Story Transition';
-      const subtitle = st.currentIsStory
-        ? `A story event reconciles your character with their original path. You may return to a standard subclass. Preserves level, HP, stats, and skills — only subclass features change.`
-        : `Nimble allows story-based subclass transitions at pivotal moments (e.g., losing your patron, breaking your oath). Requires GM approval. Preserves level, HP, stats, and skills — only subclass features change.`;
+      const title = 'Change Subclass';
+      const subtitle = `Swap your subclass. Story-based subclasses (Reaver, Oathbreaker, Spellblade, Beastmaster) are canonical mid-campaign transitions. Standard-to-standard swaps are house-rule territory — get GM approval first. Preserves level, HP, stats, and skills — only subclass features and school-linked spells change.`;
       let html = `<h3>${this.icon('refresh', 14)} ${title}</h3>
         <div style="font-size:0.75rem;color:var(--ink-light);margin-bottom:8px">
           Current: <strong style="color:var(--burgundy)">${this.esc(ch.subclass)}</strong>${st.currentIsStory ? ' <span style="background:var(--gold);color:white;font-size:0.55rem;padding:1px 5px;border-radius:3px;margin-left:4px">STORY-BASED</span>' : ''}
         </div>
         <div style="font-size:0.7rem;color:var(--ink-light);margin-bottom:12px;font-style:italic">${subtitle}</div>
-        <div style="font-weight:bold;color:var(--burgundy);margin-bottom:6px;font-size:0.85rem">${st.currentIsStory ? 'Return to:' : 'Transition to:'}</div>`;
+        <div style="font-weight:bold;color:var(--burgundy);margin-bottom:6px;font-size:0.85rem">Switch to:</div>`;
 
       st.allOptions.forEach((sub, i) => {
         const desc = sub.description || '';
@@ -5649,6 +5648,13 @@ const app = {
     const newSub = st.allOptions[st.selectedIndex];
     const diff = st.diff;
     let html = `<h3>${this.icon('refresh', 14)} Switch to: ${this.esc(newSub.name)}</h3>`;
+
+    // Warn on non-canonical swaps (Standard ↔ Standard) — Nimble RAW only allows crossing story-boundary
+    if (!st.currentIsStory && !newSub.isStory) {
+      html += `<div style="margin-bottom:10px;padding:8px;background:#fff4d6;border-left:3px solid var(--gold);border-radius:4px;font-size:0.72rem;color:var(--ink)">
+        <strong>&#9888; House rule.</strong> Swapping between two standard subclasses isn't RAW — the L3 subclass pick is normally permanent. Confirm with your GM before applying.
+      </div>`;
+    }
 
     if (newSub.description) {
       html += `<div style="font-size:0.75rem;color:var(--ink-light);margin-bottom:12px;padding:8px;background:var(--parchment);border-radius:4px;font-style:italic">${this.esc(newSub.description)}</div>`;
@@ -5773,6 +5779,95 @@ const app = {
     this._subclassSwapState = null;
     this.closeModal();
     this.toast(`Subclass changed to ${newSub.name}`);
+    this.render();
+  },
+
+  // ============================================================
+  // Migrate to Core Rules v0.9
+  // ============================================================
+  // Applies the delta between the pre-v0.9 rules and Core Rules v0.9 to an
+  // individual character. The actual data changes land in the Round 2 update
+  // (ancestries, backgrounds, spells, equipment presets). For now this flow
+  // handles the structural fields that already have new values in v0.9 and
+  // stamps ch.rulesVersion = 'v0.9' so the button hides on already-migrated
+  // characters.
+  //
+  // What migration does today (safe to run):
+  //  - Default max Wounds to 6 (v0.9 clarified this baseline)
+  //  - Ensure ch.saves has the shape { advantaged, disadvantaged } if missing
+  //  - Stamp ch.rulesVersion = 'v0.9'
+  //
+  // What migration will do after Round 2 data update:
+  //  - Re-apply ancestry trait deltas
+  //  - Re-apply background bonuses
+  //  - Refresh spell entries whose text changed (keeping the character's picks)
+  //  - Refresh equipped items against new EQUIPMENT presets
+  migrateToNewRulesModal() {
+    const ch = this.getChar();
+    if (!ch) return;
+    if (ch.rulesVersion === 'v0.9') {
+      this.toast('This character is already on v0.9 rules.');
+      return;
+    }
+    const preview = this._computeMigrationPreview(ch);
+    const changesHtml = preview.length
+      ? preview.map(p => `<li><strong>${this.esc(p.label)}:</strong> ${this.esc(p.detail)}</li>`).join('')
+      : `<li>No structural changes — this character already matches the v0.9 defaults.</li>`;
+
+    const html = `<h3>${this.icon('sparkle', 14)} Migrate to Core Rules v0.9</h3>
+      <div style="font-size:0.72rem;color:var(--ink-light);margin-bottom:12px;font-style:italic">
+        Applies the Core Rules v0.9 update to this character. Safe to run — preserves your name, class, level, HP, stats, skills, abilities, spells, inventory, and notes.
+      </div>
+      <div style="padding:10px;background:var(--parchment);border-radius:6px;margin-bottom:12px">
+        <div style="font-weight:bold;color:var(--burgundy);font-size:0.8rem;margin-bottom:6px">${this.icon('check', 14)} What will change now</div>
+        <ul style="margin:0;padding-left:20px;font-size:0.75rem;line-height:1.45;color:var(--ink)">${changesHtml}</ul>
+      </div>
+      <div style="padding:10px;background:#fff4d6;border-left:3px solid var(--gold);border-radius:4px;margin-bottom:12px;font-size:0.72rem;color:var(--ink)">
+        <strong>&#9432; Coming in the next update:</strong> ancestry trait rewrites, background bonuses, refreshed spell text, and equipment preset refresh will run automatically the next time you migrate — nothing to redo.
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="app.confirmMigrateToNewRules()">Migrate</button>
+      </div>`;
+    this.showModal(html);
+  },
+
+  // Returns an array of { label, detail } items describing structural changes
+  // that will be applied. Kept small on purpose so the modal fits on mobile.
+  _computeMigrationPreview(ch) {
+    const items = [];
+    if ((ch.maxWounds || 0) !== 6 && !ch.bonusWoundsFromClass) {
+      items.push({
+        label: 'Max Wounds',
+        detail: `${ch.maxWounds || '?'} → 6 (v0.9 baseline; class/background modifiers still apply on top)`
+      });
+    }
+    const saves = ch.saves || {};
+    if (!saves.advantaged && !saves.disadvantaged && !saves.STR && !saves.DEX && !saves.INT && !saves.WIL) {
+      items.push({
+        label: 'Saves',
+        detail: 'Class save arrows will be re-applied to your sheet'
+      });
+    }
+    return items;
+  },
+
+  confirmMigrateToNewRules() {
+    const ch = this.getChar();
+    if (!ch) return;
+
+    const patch = { rulesVersion: 'v0.9' };
+
+    // Baseline max Wounds = 6 (v0.9). Class/background bonuses stack on top via
+    // getBonusWounds; we only touch the stored value if it was left blank or
+    // pointing at a legacy default.
+    if (!ch.bonusWoundsFromClass && (ch.maxWounds === undefined || ch.maxWounds === null || ch.maxWounds === 0)) {
+      patch.maxWounds = 6;
+    }
+
+    this.updateChar(patch);
+    this.closeModal();
+    this.toast('Migrated to Core Rules v0.9');
     this.render();
   },
 
