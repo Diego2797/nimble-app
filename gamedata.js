@@ -319,7 +319,7 @@ window.GAME_DATA = {
       saves: { advantaged: "STR", disadvantaged: "INT" },
       armorProficiency: "None",
       weaponProficiency: "All STR Weapons",
-      startingGear: ["Battleaxe", "Rations (meat)", "Rope (10 spaces)"],
+      startingGear: ["Battleaxe", "Rations (meat)", "Rope (50 ft.)"],
       retrainFeature: {
         name: "Wrath & Ruin",
         description: "Whenever you perform a notable act of destruction or feat of strength during a Safe Rest, you may choose different Berserker options available to you.",
@@ -327,37 +327,36 @@ window.GAME_DATA = {
       },
       retrainArrays: ["savageArsenal"],
       savageArsenal: [
-        { name: "Death Blow", description: "After dealing critical damage, expend any number of Fury Dice. Sum the results and deal double that amount as additional damage." },
-        { name: "Deathless Rage", description: "1/turn, while Dying, suffer 1 Wound to gain 1 additional action." },
-        { name: "Eager for Battle", description: "You have advantage on Initiative rolls. On your first turn of combat, move 2×DEX spaces for free." },
-        { name: "Into the Fray", description: "Action: Leap up to 2×DEX spaces toward an enemy. If you land adjacent to 2 or more enemies, make a free attack." },
-        { name: "Mighty Endurance", description: "You survive an additional 4 Wounds before death." },
-        { name: "MORE BLOOD!", description: "Whenever an enemy lands a critical hit against you, gain 1 Fury Die." },
-        { name: "Rampage", description: "1/turn, after landing a hit, treat the next attack this turn as if you rolled the same result." },
-        { name: "Swift Fury", description: "Whenever you gain Fury Dice, move DEX spaces for free, ignoring difficult terrain." },
-        { name: "Thunderous Steps", description: "After moving 4 or more spaces while Raging, deal STR Bludgeoning damage to all adjacent creatures." },
-        { name: "Unstoppable Force", description: "While Dying and Raging, damage causes 1 Wound instead of 2, and critical hits cause 2 Wounds instead of 3." },
-        { name: "Whirlwind", description: "2 actions: Attack ALL targets within your melee reach." },
-        { name: "You're Next!", description: "Action while Raging: Make a Might check to demoralize an enemy within 12 spaces (DC equals their current HP). On success, they flee." }
+        { name: "Death Blow", description: "Whenever you crit, double the damage from your Fury Dice." },
+        { name: "Deathless Rage", description: "(1/turn) While Dying, you may suffer 1 Wound to gain 1 action and 1 Fury Die." },
+        { name: "Eager for Battle", description: "Gain advantage on Initiative. Move 2×DEX spaces for free on your first turn each encounter." },
+        { name: "Into the Fray", description: "1 Action. Leap up to 2×DEX spaces toward an enemy. If you land within your weapon's Reach of at least 2 enemies, make an attack against 1 of them for free." },
+        { name: "Mighty Endurance", description: "You can now survive an additional 4 Wounds before death." },
+        { name: "MORE BLOOD!", description: "Whenever an enemy crits you, gain 1 Fury Die. Whenever you drop to 0 HP, Rage for free." },
+        { name: "Rampage", description: "(1/turn) After you land a hit, you may treat your next attack this turn as if you rolled that same amount instead of rolling again." },
+        { name: "Swift Fury", description: "Whenever you gain a Fury Die, move up to DEX spaces for free, ignoring difficult terrain." },
+        { name: "Thunderous Steps", description: "After moving at least 4 spaces while Raging, you may deal STR Bludgeoning damage to all adjacent creatures where you stop." },
+        { name: "Unstoppable Force", description: "While Dying, taking damage causes 1 Wound (instead of 2) and crits inflict 2 Wounds (instead of 3)." },
+        { name: "Whirlwind", description: "2 Actions. AoE. Attack ALL targets within your melee weapon's reach." },
+        { name: "You're Next!", description: "1 Action. While Raging, you can make a Might skill check to demoralize an enemy within Reach 12 (DC: their current HP). On a success, they immediately flee the battle." }
       ],
       levels: {
         1: [
-          { name: "Rage", description: "1/turn Action: Roll a Fury Die (d4) and set it aside. Add the result to every STR-based attack. You may hold a maximum number of Fury Dice equal to your KEY dice. All Fury Dice are lost when Rage ends." },
-          { name: "That All You Got?!", description: "When attacked, expend 1 or more Fury Dice to reduce the damage by STR + DEX per die spent." }
+          { name: "Rage", description: "(1/turn) Action: Roll a Fury Die (1d4) and set it aside. Add it to every STR attack you make. You can have a max of KEY Fury Dice; they are lost when your Rage ends. Your Rage Ends when you leave combat, drop to 0 HP, or go 1 round without attacking or Raging." },
+          { name: "That All You Got?!", description: "When you are attacked, you may expend 1 or more Fury Dice to reduce the damage taken by STR+DEX for each die spent." }
         ],
         2: [
           { name: "Intensifying Fury", description: "If you are Raging at the start of your turn, roll 1 Fury Die for free." },
-          { name: "One with the Ancients", description: "1/Safe Rest, call upon your ancestors to guide you toward the most dangerous path." }
+          { name: "One with the Ancients", description: "(1/Safe Rest) When faced with a decision about which direction or course of action to take, you can call upon your ancestors to guide you toward the most dangerous or challenging path." }
         ],
         3: [
-          { name: "Subclass", description: "Choose a Berserker subclass: Path of the Mountainheart or Path of the Red Mist." },
-          { name: "Bloodlust", description: "Expend 1 or more Fury Dice on your turn to move DEX spaces per die spent for free." }
+          { name: "Subclass", description: "Choose a Berserker subclass: Path of the Mountainheart, Path of the Red Mist, Path of the Titan's Grip, or Path of the Burning Rage." },
+          { name: "Bloodlust", description: "Expend 1 or more Fury Dice on your turn, move DEX spaces per die spent for free." }
         ],
         4: [
-          { name: "Enduring Rage", description: "While Dying, you automatically Rage at the start of your turn. You may take a maximum of 2 actions instead of 1, and you ignore STR saves to attack." },
-          { name: "Key Stat Increase", description: "+1 to STR or DEX." },
-          { name: "Savage Arsenal", description: "Choose 1 Savage Arsenal ability." },
-          { name: "Wrath & Ruin", description: "Whenever you perform a notable act of destruction or feat of strength during a Safe Rest, you may choose different Berserker options available to you." }
+          { name: "Enduring Rage", description: "While Dying, you Rage automatically for free at the beginning of your turn, have a max of 2 actions instead of 1, and ignore the STR saves to make attacks." },
+          { name: "Key Stat Increase", description: "+1 STR or DEX." },
+          { name: "Savage Arsenal", description: "Choose 1 ability from the Savage Arsenal." }
         ],
         5: [
           { name: "Rage (2)", description: "You now gain 2 Fury Dice instead of 1 when you Rage." },
@@ -413,7 +412,7 @@ window.GAME_DATA = {
           { name: "Epic Boon", description: "Gain an Epic Boon of your choice." }
         ],
         20: [
-          { name: "BOUNDLESS RAGE", description: "+1 to any 2 stats. Anytime you roll less than 6 on a Fury Die, change the result to 6." }
+          { name: "BOUNDLESS RAGE", description: "+1 to any 2 of your stats. Anytime you roll less than 5 on a Fury Die, change it to 5 instead." }
         ]
       }
     },
@@ -1865,10 +1864,11 @@ window.GAME_DATA = {
       {
         name: "Path of the Mountainheart",
         className: "Berserker",
+        description: "Withstand terrible blows and overwhelming damage. Shrug off death and disease that would crumple the mightiest armies.",
         features: {
           3:  [
             { name: "Stone's Resilience", description: "Whenever you expend Fury Dice to reduce incoming damage, add the value of the die to the amount reduced." },
-            { name: "Mountainous Tenacity", description: "Whenever you expend your Hit Dice to recover HP, for every 10 HP you would recover, you may heal 1 Wound instead." }
+            { name: "Mountainous Tenacity", description: "Whenever you expend Hit Dice to recover HP, for every 10 HP you would recover, you may heal 1 Wound instead." }
           ],
           7:  [{ name: "Unbreakable", description: "(1/encounter) While Raging, if you would suffer your last Wound or other negative condition of your choice, you don't." }],
           11: [{ name: "Titan's Fury", description: "After you miss an attack or are crit by an enemy, Rage for free." }],
@@ -1878,14 +1878,47 @@ window.GAME_DATA = {
       {
         name: "Path of the Red Mist",
         className: "Berserker",
+        description: "Lean into your offensive fury and leave nothing remaining of your enemies but a lingering crimson mist.",
         features: {
           3:  [
-            { name: "Blood Frenzy", description: "(1/turn) While Raging, whenever you crit or kill an enemy, change 1 Fury Die to the maximum." },
+            { name: "Blood Frenzy", description: "(1/turn) While Raging, whenever you crit or kill an enemy, gain 1 Fury Die or change 1 Fury Die to the max." },
             { name: "Savage Awareness", description: "Advantage on Perception checks to notice or track down blood. Blindsight 2 while Raging: you ignore the Blinded condition and can see through darkness and Invisibility within that Range." }
           ],
-          7:  [{ name: "Unstoppable Brutality", description: "While Raging, you may gain 1 Wound to reroll any attack or save." }],
+          7:  [{ name: "Unstoppable Brutality", description: "While Raging, you may gain 1 Wound to reroll any attack or save, ignoring disadvantage." }],
           11: [{ name: "Opportunistic Frenzy", description: "While Raging, you can make opportunity attacks without disadvantage, and you may make them whenever an enemy enters your melee weapon's reach." }],
           15: [{ name: "Onslaught", description: "While Raging, gain +2 speed. (1/round) you may move for free." }]
+        }
+      },
+      {
+        name: "Path of the Titan's Grip",
+        className: "Berserker",
+        description: "Beat goblin chieftains with their own lackeys, piledrive bandits, and hurl enemies across the battlefield.",
+        features: {
+          3:  [
+            { name: "Titan's Grip", description: "Your unarmed strikes gain: On hit: Grapple (vs Medium or smaller creatures)." },
+            { name: "Living Weapon", description: "While Raging, living Grappled creatures can be used as improvised weapons: Tiny 1d4+STR Light, Thrown 6; Small 1d6+STR, Thrown 4; Medium 1d10+STR (2-handed). Living Weapons suffer as much damage as they deal." }
+          ],
+          7:  [{ name: "Meat Shield", description: "While Grappling a creature, you have Cover from attacks by other creatures. Attacks that miss you strike a creature you have Grappled." }],
+          11: [{ name: "Wrathful Grip", description: "Your unarmed strikes are now 1d6+STR. You may expend a Fury Die to force a creature to reroll a save to escape your Grapple." }],
+          15: [
+            { name: "Sickening Blow", description: "Whenever you crit an enemy with an Improvised Weapon, double the damage added from Fury Dice." },
+            { name: "Catch!", description: "Your improvised weapons gain +4 Thrown." }
+          ]
+        }
+      },
+      {
+        name: "Path of the Burning Rage",
+        className: "Berserker",
+        description: "All will burn as your anger fuels the flames of battle, immolating all in its path in fiery destruction.",
+        features: {
+          3:  [
+            { name: "Stoke the Flames", description: "Whenever your Fury Die size would increase, instead roll 1 additional Fury Die." },
+            { name: "Overflowing Fury", description: "(Reach 2) When discarding Fury Dice over your max, deal 5 fire damage to an adjacent creature, they gain Smoldering." }
+          ],
+          7:  [{ name: "Hot Headed", description: "Gain STR Fury Dice when you roll Initiative instead. +2 to Overflowing Fury's Reach." }],
+          11: [{ name: "EXPLOSION!", description: "When you attack a Smoldering creature, you may deal the same amount of damage to ALL other creatures adjacent to your target OR you can ignore armor of Smoldering creatures; ending the condition." }],
+          15: [{ name: "Pyromania", description: "Treat each of your Fury Dice as if they were always 5s." }],
+          20: [{ name: "BOUNDLESS FLAMES", description: "(Replaces BOUNDLESS RAGE) +1 to any 2 of your stats. (1/round) When attacked, deal your Fury Dice damage to an adjacent creature." }]
         }
       }
     ],
@@ -2463,6 +2496,23 @@ window.GAME_DATA = {
             { name: "Large Companion (Lion, Owlbear, Elk, Giant Scorpion, Drake) Req. Level 3", description: "Alpha Protector: Damage from the first attack against you each round is halved. Protect me!: (1/encounter) After you gain a Wound, your companion can whisk you away to safety up to 12 spaces. L7: You are whisked away BEFORE gaining the Wound. L15: 2/encounter. Go for the Throat!: (1/encounter) Costs 2 TotH charges, 2 actions. Your companion attacks your quarry for 1d12+(4 x LVL) damage (ignoring armor). If that creature dies, you may deal half as much to another creature within Reach 4. L11: 2/encounter." },
             { name: "Companion Attacks & Charges", description: "Your companion's attacks count as your own for gaining TotH charges. Abilities that spend TotH charges cannot miss nor can they generate new charges. Unused charges are lost when combat ends." }
           ]
+        }
+      },
+      {
+        name: "Muscle Mage",
+        className: "Berserker",
+        description: "\"Pointy-hat-man do magic. ME have pointy hat. ME DO MAGIC!\" — Fleximus the Wise. Your muscles have \"unlocked the secrets of the arcane\" (and any fool who disputes that is about to have a bad day).",
+        // Muscle Mage strips Savage Arsenal and weapon proficiencies; instead grants Muscle Spells
+        // (documented in reference/classes.md; requires N Fury Dice to cast — not auto-loaded).
+        removesClassAbilities: ['Savage Arsenal', 'Savage Arsenal (2)', 'Savage Arsenal (3)', 'Savage Arsenal (4)', 'Savage Arsenal (5)', 'Savage Arsenal (6)', 'Savage Arsenal (7)'],
+        features: {
+          base: [
+            { name: "Muscle Magic", description: "Your muscles have \"unlocked the secrets of the arcane\" (and any fool who disputes that is about to have a bad day). You lose access to the Savage Arsenal and all weapon proficiencies but gain access to \"Muscle Spells\" which require you to have a certain number of Fury Dice to cast." }
+          ],
+          3:  [{ name: "STRENGTH of Mind", description: "Add your STR to INT-based skills." }],
+          7:  [{ name: "I'm Fine! Totally Fine!", description: "(1/Safe Rest) When you drop to 0 hp, give a number of actions out to your allies equal to the number of Fury Dice you had." }],
+          11: [{ name: "Flexpertise", description: "Reduce the Fury Die Requirement of your Muscle Spells by 2." }],
+          15: [{ name: "High Flexemplar", description: "Gain +4 max wounds. \"I'm Fine! Totally Fine!\" is unlimited." }]
         }
       },
       {

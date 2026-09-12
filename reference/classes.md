@@ -77,7 +77,8 @@
 - **Enduring Rage.** While Dying, you Rage automatically for free at the beginning of your turn, have a max of 2 actions instead of 1, and ignore the STR saves to make attacks.
 - **Key Stat Increase.** +1 STR or DEX.
 - **Savage Arsenal.** Choose 1 ability from the Savage Arsenal.
-- **Wrath & Ruin.** Whenever you perform a notable act of destruction or feat of strength during a Safe Rest, you may choose different Berserker options available to you.
+
+> **Wrath & Ruin.** Whenever you perform a notable act of destruction or feat of strength during a Safe Rest, you may choose different Berserker options available to you.
 
 ### Level 5
 - **Rage (2).** Whenever you Rage, gain 2 Fury Dice instead.
@@ -133,30 +134,33 @@
 - **Epic Boon.** Choose an Epic Boon (see pg. 23 of the GM's Guide).
 
 ### Level 20
-- **BOUNDLESS RAGE.** +1 to any 2 of your stats. Anytime you roll less than 6 on a Fury Die, change it to 6 instead.
+- **BOUNDLESS RAGE.** +1 to any 2 of your stats. Anytime you roll less than 5 on a Fury Die, change it to 5 instead.
 
 ## Savage Arsenal
 
-- **Death Blow.** After you deal damage from a crit, you may expend any number of Fury Dice. Sum the dice and deal double that amount of damage.
-- **Deathless Rage.** (1/turn) While Dying, you may suffer 1 Wound to gain 1 action.
-- **Eager for Battle.** Gain advantage on Initiative. Move 2 x DEX spaces for free on your first turn each encounter.
-- **Into the Fray.** Action: Leap up to 2 x DEX spaces toward an enemy. If you land adjacent to at least 2 enemies, make an attack against 1 of them for free.
+- **Death Blow.** Whenever you crit, double the damage from your Fury Dice.
+- **Deathless Rage.** (1/turn) While Dying, you may suffer 1 Wound to gain 1 action and 1 Fury Die.
+- **Eager for Battle.** Gain advantage on Initiative. Move 2×DEX spaces for free on your first turn each encounter.
+- **Into the Fray.** 1 Action. Leap up to 2×DEX spaces toward an enemy. If you land within your weapon's Reach of at least 2 enemies, make an attack against 1 of them for free.
 - **Mighty Endurance.** You can now survive an additional 4 Wounds before death.
-- **MORE BLOOD!** Whenever an enemy crits you, gain 1 Fury Die.
+- **MORE BLOOD!** Whenever an enemy crits you, gain 1 Fury Die. Whenever you drop to 0 HP, Rage for free.
 - **Rampage.** (1/turn) After you land a hit, you may treat your next attack this turn as if you rolled that same amount instead of rolling again.
-- **Swift Fury.** Whenever you gain one or more Fury Dice, move up to DEX spaces for free, ignoring difficult terrain.
+- **Swift Fury.** Whenever you gain a Fury Die, move up to DEX spaces for free, ignoring difficult terrain.
 - **Thunderous Steps.** After moving at least 4 spaces while Raging, you may deal STR Bludgeoning damage to all adjacent creatures where you stop.
-- **Unstoppable Force.** While Dying and Raging, taking damage causes 1 Wound (instead of 2) and critical hits inflict 2 Wounds (instead of 3).
-- **Whirlwind.** 2 actions: Attack ALL targets within your melee weapon's reach.
-- **You're Next!** Action: While Raging, you can make a Might skill check to demoralize an enemy within Reach 12 (DC: their current HP). On a success, they immediately flee the battle.
+- **Unstoppable Force.** While Dying, taking damage causes 1 Wound (instead of 2) and crits inflict 2 Wounds (instead of 3).
+- **Whirlwind.** 2 Actions. AoE. Attack ALL targets within your melee weapon's reach.
+- **You're Next!** 1 Action. While Raging, you can make a Might skill check to demoralize an enemy within Reach 12 (DC: their current HP). On a success, they immediately flee the battle.
 
 ## Subclasses
 
 ### Path of the Mountainheart
+**Subclass Complexity: 2/4**
+
+> Withstand terrible blows and overwhelming damage. Shrug off death and disease that would crumple the mightiest armies.
 
 **Level 3:**
 - **Stone's Resilience.** Whenever you expend Fury Dice to reduce incoming damage, add the value of the die to the amount reduced.
-- **Mountainous Tenacity.** Whenever you expend your Hit Dice to recover HP, for every 10 HP you would recover, you may heal 1 Wound instead.
+- **Mountainous Tenacity.** Whenever you expend Hit Dice to recover HP, for every 10 HP you would recover, you may heal 1 Wound instead.
 
 **Level 7:**
 - **Unbreakable.** (1/encounter) While Raging, if you would suffer your last Wound or other negative condition of your choice, you don't.
@@ -168,19 +172,62 @@
 - **Mountain's Endurance.** While Dying, if an attack against you would be a crit, the attack is rerolled instead (when-crit abilities, such as Titan's Fury, still trigger).
 
 ### Path of the Red Mist
+**Subclass Complexity: 2/4**
+
+> Lean into your offensive fury and leave nothing remaining of your enemies but a lingering crimson mist.
 
 **Level 3:**
-- **Blood Frenzy.** (1/turn) While Raging, whenever you crit or kill an enemy, change 1 Fury Die to the maximum.
+- **Blood Frenzy.** (1/turn) While Raging, whenever you crit or kill an enemy, gain 1 Fury Die or change 1 Fury Die to the max.
 - **Savage Awareness.** Advantage on Perception checks to notice or track down blood. Blindsight 2 while Raging: you ignore the Blinded condition and can see through darkness and Invisibility within that Range.
 
 **Level 7:**
-- **Unstoppable Brutality.** While Raging, you may gain 1 Wound to reroll any attack or save.
+- **Unstoppable Brutality.** While Raging, you may gain 1 Wound to reroll any attack or save, ignoring disadvantage.
 
 **Level 11:**
 - **Opportunistic Frenzy.** While Raging, you can make opportunity attacks without disadvantage, and you may make them whenever an enemy enters your melee weapon's reach.
 
 **Level 15:**
 - **Onslaught.** While Raging, gain +2 speed. (1/round) you may move for free.
+
+### Path of the Titan's Grip
+**Subclass Complexity: 2/4**
+
+> Beat goblin chieftains with their own lackeys, piledrive bandits, and hurl enemies across the battlefield.
+
+**Level 3:**
+- **Titan's Grip.** Your unarmed strikes gain: On hit: Grapple (vs Medium or smaller creatures).
+- **Living Weapon.** While Raging, living Grappled creatures can be used as improvised weapons: **Tiny** 1d4+STR Light, Thrown 6; **Small** 1d6+STR, Thrown 4; **Medium** 1d10+STR (2-handed). Living Weapons suffer as much damage as they deal.
+
+**Level 7:**
+- **Meat Shield.** While Grappling a creature, you have Cover from attacks by other creatures. Attacks that miss you strike a creature you have Grappled.
+
+**Level 11:**
+- **Wrathful Grip.** Your unarmed strikes are now 1d6+STR. You may expend a Fury Die to force a creature to reroll a save to escape your Grapple.
+
+**Level 15:**
+- **Sickening Blow.** Whenever you crit an enemy with an Improvised Weapon, double the damage added from Fury Dice.
+- **Catch!** Your improvised weapons gain +4 Thrown.
+
+### Path of the Burning Rage
+**Subclass Complexity: 2/4**
+
+> All will burn as your anger fuels the flames of battle, immolating all in its path in fiery destruction.
+
+**Level 3:**
+- **Stoke the Flames.** Whenever your Fury Die size would increase, instead roll 1 additional Fury Die.
+- **Overflowing Fury.** (Reach 2) When discarding Fury Dice over your max, deal 5 fire damage to an adjacent creature, they gain Smoldering.
+
+**Level 7:**
+- **Hot Headed.** Gain STR Fury Dice when you roll Initiative instead. +2 to Overflowing Fury's Reach.
+
+**Level 11:**
+- **EXPLOSION!** When you attack a Smoldering creature, you may deal the same amount of damage to ALL other creatures adjacent to your target OR you can ignore armor of Smoldering creatures; ending the condition.
+
+**Level 15:**
+- **Pyromania.** Treat each of your Fury Dice as if they were always 5s.
+
+**Level 20:**
+- **BOUNDLESS FLAMES.** (Replaces BOUNDLESS RAGE) +1 to any 2 of your stats. (1/round) When attacked, deal your Fury Dice damage to an adjacent creature.
 
 ---
 
@@ -2686,6 +2733,40 @@ These are special subclasses chosen at pivotal moments in a story, at the GM's d
 - **Go for the Throat!** (1/encounter) Costs 2 TotH charges, 2 actions: Your companion attacks your quarry for 1d12+(4 x LVL) damage (ignoring armor). If that creature dies, you may deal half as much to another creature within Reach 4. Level 11: 2/encounter.
 
 **Note:** Your companion's attacks count as your own for gaining TotH charges. Abilities that spend TotH charges cannot miss nor can they generate new charges. Unused charges are lost when combat ends.
+
+---
+
+## MUSCLE MAGE (Berserker)
+*"Pointy-hat-man do magic. ME have pointy hat. ME DO MAGIC!" — Fleximus the Wise*
+
+**Muscle Magic.** Your muscles have "unlocked the secrets of the arcane" (and any fool who disputes that is about to have a bad day). You lose access to the Savage Arsenal and all weapon proficiencies but gain access to "Muscle Spells" which require you to have a certain number of Fury Dice to cast.
+
+### Level 3
+- **STRENGTH of Mind.** Add your STR to INT-based skills.
+
+### Level 7
+- **I'm Fine! Totally Fine!** (1/Safe Rest) When you drop to 0 hp, give a number of actions out to your allies equal to the number of Fury Dice you had.
+
+### Level 11
+- **Flexpertise.** Reduce the Fury Die Requirement of your Muscle Spells by 2.
+
+### Level 15
+- **High Flexemplar.** Gain +4 max wounds. "I'm Fine! Totally Fine!" is unlimited.
+
+### Muscle "Spells"
+
+Each spell lists its Fury Die requirement (**FD Req.**). You cannot cast a Muscle Spell without at least that many Fury Dice.
+
+- **Power Word: Clobber.** (FD Req. 1) 1 Action. 1d10+STR+FD damage. On Hit: a Medium or smaller creature is Clobbered.
+  - *Clobbered.* Any Medium or smaller creature that is Dazed, Grappled, Prone, or has been forcefully moved this round is also considered Clobbered this round.
+- **Throwmaturgy.** (FD Req. 1) 2 Actions. Reach 3/FD. Throw a Clobbered creature at another enemy; both suffer 1d6+STR+FD damage and land Prone (if Medium or smaller). OR: for 1 action throw a rock or similarly throwable object.
+  - *3/FD.* If you have 1 Fury Die, you can throw 3 spaces; 2 Fury Dice, 6 spaces; and so on.
+- **Polymorph: CHICKEN!** (FD Req. 3) 1 Action. Reach 3/FD. Yell "Chicken" at a creature, Frightening them until the end of their next turn (Large+ creatures: Taunted instead).
+- **Thunderfist.** (FD Req. 3) 2 Actions. Reach: Cone FD AoE. 1d20+STR+FD damage.
+- **"Teleport".** (FD Req. 4) 1 Action. Sum your Fury Dice, leap up to that many spaces.
+- **Meat Ward.** (FD Req. 5) 1 Action. Reach 1. Reaction: When attacked, move another Medium or smaller creature into your space and you move to another adjacent space.
+- **Powershout: WEAKLINGS!** (FD Req. 6) 2 Actions. Reach 6 AoE. (1/encounter) FD damage to enemies, Frightening them (Large+ enemies are Taunted instead) and attacks deal +10 damage to Armored enemies this round.
+- **Earthquake.** (FD Req. 7) 2 Actions. (1/encounter) Leap into the air, land with seismic force up to 2× your Speed away. Creatures within Reach 3 take 3d20+FD damage and become Slowed. Clobbered creatures are knocked Prone.
 
 ---
 
