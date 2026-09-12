@@ -47,23 +47,28 @@ window.GAME_DATA = {
   // CONDITIONS
   // ==========================================================================
   CONDITIONS: [
-    { name: "Blinded",             description: "Cannot see. Automatically fails any check that requires sight. Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage." },
-    { name: "Bloodied",            description: "A creature is Bloodied when reduced to half or fewer of its maximum HP. Some abilities trigger or change when a creature is Bloodied." },
-    { name: "Charmed",             description: "A Charmed creature cannot attack or target the charmer with harmful effects. The charmer has advantage on social checks against the Charmed creature." },
-    { name: "Dazed",               description: "A Dazed creature can only take 1 Action on its turn (no Bonus Actions). It cannot take Reactions." },
-    { name: "Dying",               description: "A creature at 0 HP is Dying. At the start of each turn, roll a d20: 10+ is a success, 9 or below is a failure. 3 successes stabilize; 3 failures result in death. A natural 20 restores 1 HP. A natural 1 counts as 2 failures." },
-    { name: "Frightened",          description: "A Frightened creature has disadvantage on checks and attack rolls while the source of its fear is within line of sight. The creature cannot willingly move closer to the source of its fear." },
-    { name: "Grappled/Restrained", description: "A Grappled creature's Speed is 0 and it cannot benefit from bonuses to Speed. Attack rolls against it have advantage. Its attack rolls and DEX saves have disadvantage. The grappler can drag the target at half speed." },
-    { name: "Hampered",            description: "A Hampered creature deals half damage with weapon attacks." },
-    { name: "Incapacitated",       description: "An Incapacitated creature cannot take Actions, Bonus Actions, or Reactions. It automatically fails STR and DEX saves." },
-    { name: "Invisible",           description: "An Invisible creature cannot be seen without magic or special senses. It is heavily obscured. Attack rolls against it have disadvantage, and its attack rolls have advantage." },
-    { name: "Petrified",           description: "A Petrified creature is transformed to stone. It is Incapacitated, has resistance to all damage, and is immune to poison and disease. Time does not pass for the creature." },
-    { name: "Poisoned",            description: "A Poisoned creature has disadvantage on attack rolls and ability checks." },
-    { name: "Prone",               description: "A Prone creature can only crawl (half speed). It has disadvantage on attack rolls. Melee attacks against it have advantage; ranged attacks have disadvantage. Standing up costs half movement." },
-    { name: "Riding",              description: "A creature Riding a mount uses the mount's Speed. When the mount is attacked, the rider can use a Reaction to force the attack to target themselves instead. If the mount is forced to move, the rider moves with it." },
-    { name: "Slowed",              description: "A Slowed creature's Speed is halved. It cannot take Reactions." },
-    { name: "Taunted",             description: "A Taunted creature has disadvantage on attack rolls against targets other than the taunter. Lasts until the taunter is Incapacitated or until end of the Taunted creature's next turn." },
-    { name: "Wounded",             description: "When you take a critical hit or massive damage, you gain a Wound. Each Wound reduces your maximum HP by your Hit Die size. If your max Wounds are exceeded, you are instantly killed. Wounds heal during long rests or with medical attention." }
+    { name: "Blinded",             description: "Can't see. Attacks against you have advantage, and your attacks have disadvantage." },
+    { name: "Bloodied",            description: "At half HP or less. Some abilities trigger or change when a creature is Bloodied." },
+    { name: "Charmed",             description: "Sees the charmer as an ally. The charmer has advantage on social interactions with you." },
+    { name: "Dazed",               description: "Heroes: lose 1 action. Monsters: can perform one less action on their next turn." },
+    { name: "Dying",               description: "At 0 HP. Actions are limited to 1, Concentration is broken. Attacking or casting causes 1 Wound unless you make a DC 10 STR save. Taking damage while Dying causes 2 Wounds; a crit causes 3 instead." },
+    { name: "Frightened",          description: "Disadvantage on rolls when the source of fear is nearby; Speed halved when moving closer to it." },
+    { name: "Grappled/Restrained", description: "Cannot move. Attacks against you have advantage. Restrained functions the same way but is caused by objects (chains, rope, roots) and ignores size restrictions." },
+    { name: "Hampered",            description: "Any creature with actions or movement reduced (e.g., Dazed, Grappled/Restrained, Prone, Slowed, Difficult Terrain). Some Ice spells have additional effects against Hampered targets." },
+    { name: "Incapacitated",       description: "Can't do anything. Attacks against you have advantage, and melee attacks that hit, crit." },
+    { name: "Invisible",           description: "Cannot be seen. Your attacks have advantage, and attacks against you have disadvantage." },
+    { name: "Petrified",           description: "Incapacitated with all the benefits and drawbacks of being a rock. Immune to most damage except from large explosions, picks, or similar tools." },
+    { name: "Poisoned",            description: "Disadvantage on rolls (typically, healing ends this condition)." },
+    { name: "Prone",               description: "Movement costs twice as much, and disadvantage on attacks. Melee attacks against you have advantage; Ranged have disadvantage. Spend 3 spaces of your Speed to stand up." },
+    { name: "Riding",              description: "You move with the creature you are riding. Any attacks that miss you, strike them." },
+    { name: "Silenced",            description: "Cannot cast spells or use other abilities that require speaking (e.g., Commander's Orders)." },
+    { name: "Slowed",              description: "Speed halved during your next turn." },
+    { name: "Taunted",             description: "Disadvantage on attacks except against the most recent taunter." },
+    { name: "Wounded",             description: "Has any Wounds. Wounds are serious injuries that gauge how close you are to death; you die at 6 Wounds (unless an ability changes this number). Wounds recover slowly, typically 1 per Safe Rest." },
+    // Minor statuses — do nothing on their own; some spells and abilities have additional effects against these targets
+    { name: "Smoldering",          description: "Minor status from Fire spells. Does nothing on its own, but some Fire spells and abilities have additional destructive effects against Smoldering creatures. Ends when combat ends." },
+    { name: "Charged",             description: "Minor status from Lightning damage. Whenever you take lightning damage, you become Charged for 1 minute (or until combat ends). Some Lightning spells (e.g., Overload) can only be cast while Charged." },
+    { name: "Distracted",          description: "Minor status. A distracted target is unaware of you or cannot see you." }
   ],
 
   // ==========================================================================
@@ -112,20 +117,62 @@ window.GAME_DATA = {
         statMods: { allyReroll: true, speedMod: -1 }
       }
     ],
-    exotic: [
+    uncommon: [
+      {
+        name: "Dragonborn",
+        size: "Medium",
+        abilityName: "Draconic Heritage",
+        description: "+1 Armor. (1/Safe Rest) Deal an additional LVL+KEY damage on an attack (ignoring armor) divided as you choose among any of the attack's targets. Recharges whenever you gain a Wound. You know Draconic if your INT isn't negative.",
+        languages: ["Common", "Draconic"],
+        statMods: { naturalArmor: 1, draconicHeritage: true }
+      },
+      {
+        name: "Goblin",
+        size: "Small",
+        abilityName: "Skedaddle",
+        description: "Can move 2 spaces for free after you become the target of an attack or negative effect (after damage, ignoring difficult terrain). You know Goblin if your INT isn't negative.",
+        languages: ["Common", "Goblin"],
+        statMods: { skedaddle: true }
+      },
+      {
+        name: "Orc",
+        size: "Medium",
+        abilityName: "Relentless",
+        description: "(1/Safe Rest) When you would drop to 0 HP, you may set your HP to LVL instead. +1 Might. You know Goblin if your INT isn't negative (but you call it Orcish, of course).",
+        languages: ["Common", "Goblin"],
+        statMods: { mightBonus: 1, relentless: true }
+      },
+      {
+        name: "Kobold",
+        size: "Small",
+        abilityName: "Wily",
+        description: "Advantage on skill checks related to dragons and to Influence friendly creatures. (1/encounter) Force an enemy to reroll a non-critical attack against you. You know Draconic if your INT isn't negative.",
+        languages: ["Common", "Draconic"],
+        statMods: { attackReroll: true, dragonAdvantage: true }
+      },
+      {
+        name: "Fiendkin",
+        size: "Medium",
+        abilityName: "Flameborn",
+        description: "1 neutral save is advantaged instead. You know Infernal if your INT isn't negative.",
+        languages: ["Common", "Infernal"],
+        statMods: { neutralSaveAdvantaged: true }
+      },
       {
         name: "Bunbun",
         size: "Small",
         abilityName: "Bunny Legs",
-        description: "Before Interposing or after Defending (after damage), hop up to your Speed in any direction for free, 1/encounter.",
+        description: "(1/encounter) Before Interposing or after Defending (after damage), hop up to your Speed in any direction for free.",
         languages: ["Common"],
         statMods: { freeHop: true }
-      },
+      }
+    ],
+    exotic: [
       {
         name: "Birdfolk",
         size: "Small/Medium",
         abilityName: "Hollow Bones",
-        description: "You have a fly Speed as long as you are wearing armor no heavier than Leather. Crits against you are Vicious (the attacker rolls 1 additional die). Forced movement moves you twice as far.",
+        description: "You can fly as long as you are wearing armor no heavier than Leather. Crits against you are Vicious (the attacker rolls 1 additional die). Forced movement moves you twice as far.",
         languages: ["Common"],
         statMods: { flySpeed: true, viciousCrits: true, doubleForcedMovement: true }
       },
@@ -133,7 +180,7 @@ window.GAME_DATA = {
         name: "Celestial",
         size: "Medium",
         abilityName: "Highborn",
-        description: "Your disadvantaged save is Neutral instead. You know Celestial if your INT is not negative.",
+        description: "Your disadvantaged save is Neutral instead. You know Celestial if your INT isn't negative.",
         languages: ["Common", "Celestial"],
         statMods: { disadvantagedSaveNeutral: true }
       },
@@ -141,7 +188,7 @@ window.GAME_DATA = {
         name: "Changeling",
         size: "Medium",
         abilityName: "New Place, New Face",
-        description: "+2 shifting skill points. You may take on the appearance of any ancestry. When you do, you may place your 2 shifting skill points into any 1 skill. 1/day.",
+        description: "+2 Shifting Skill Points. You may take on the appearance of any ancestry (transformation time 10 min). When you do, you may move your 2 Shifting Skill Points into any 1 skill.",
         languages: ["Common"],
         statMods: { shiftingSkillPoints: 2 }
       },
@@ -149,79 +196,39 @@ window.GAME_DATA = {
         name: "Crystalborn",
         size: "Medium",
         abilityName: "Reflective Aura",
-        description: "When you Defend, gain KEY armor and deal KEY damage back to the attacker. 1/encounter.",
+        description: "(1/encounter) When you Defend, gain KEY armor and deal KEY damage back to the attacker (ignoring their armor).",
         languages: ["Common"],
         statMods: { reflectiveAura: true }
-      },
-      {
-        name: "Dragonborn",
-        size: "Medium",
-        abilityName: "Draconic Heritage",
-        description: "+1 Armor. When you attack: deal an additional LVL+KEY damage (ignoring armor) divided as you choose among any of your targets; recharges whenever you Safe Rest or gain a Wound. You know Draconic if your INT is not negative.",
-        languages: ["Common", "Draconic"],
-        statMods: { naturalArmor: 1, draconicHeritage: true }
       },
       {
         name: "Dryad/Shroomling",
         size: "Small/Medium",
         abilityName: "Danger Pollen/Spores",
-        description: "Whenever an enemy causes you one or more Wounds, you excrete soporific spores: all adjacent enemies are Dazed. You know Elvish if your INT is not negative.",
+        description: "Whenever you gain one or more Wounds, you excrete soporific spores: all adjacent enemies are Dazed. You know Elvish if your INT isn't negative.",
         languages: ["Common", "Elvish"],
         statMods: { dangerSpores: true }
-      },
-      {
-        name: "Fiendkin",
-        size: "Medium",
-        abilityName: "Flameborn",
-        description: "1 of your neutral saves is advantaged instead. You know Infernal if your INT is not negative.",
-        languages: ["Common", "Infernal"],
-        statMods: { neutralSaveAdvantaged: true }
-      },
-      {
-        name: "Goblin",
-        size: "Small",
-        abilityName: "Skedaddle",
-        description: "Can move 2 spaces for free after you become the target of an attack or negative effect (after damage, ignoring difficult terrain). You know Goblin if your INT is not negative.",
-        languages: ["Common", "Goblin"],
-        statMods: { skedaddle: true }
       },
       {
         name: "Half-Giant",
         size: "Large",
         abilityName: "Strength of Stone",
-        description: "Force an enemy to reroll a crit against you, 1/encounter. +2 Might. You know Dwarvish if your INT is not negative.",
+        description: "(1/encounter) Force an enemy to reroll a crit against you. +2 Might. You know Dwarvish if your INT isn't negative (but you call it Giant, of course).",
         languages: ["Common", "Dwarvish"],
         statMods: { mightBonus: 2, critReroll: true }
-      },
-      {
-        name: "Kobold",
-        size: "Small",
-        abilityName: "Wily",
-        description: "Force an enemy to reroll a non-critical attack against you, 1/encounter. +3 to Influence friendly characters. Advantage on skill checks related to dragons. You know Draconic if your INT is not negative.",
-        languages: ["Common", "Draconic"],
-        statMods: { attackReroll: true, influenceFriendlyBonus: 3 }
       },
       {
         name: "Minotaur/Beastfolk",
         size: "Medium",
         abilityName: "Charge",
-        description: "When you move at least 4 spaces, you can push a creature in your path. Medium: 1 space; Small/Tiny: up to 2 spaces. 1/turn.",
+        description: "When you move at least 4 spaces, you can push a creature in your path 1 space.",
         languages: ["Common"],
         statMods: { charge: true }
-      },
-      {
-        name: "Orc",
-        size: "Medium",
-        abilityName: "Relentless",
-        description: "When you would drop to 0 HP, you may set your HP to LVL instead, 1/Safe Rest. +1 Might. You know Goblin if your INT is not negative (but you call it Orcish, of course).",
-        languages: ["Common", "Goblin"],
-        statMods: { mightBonus: 1, relentless: true }
       },
       {
         name: "Oozeling/Construct",
         size: "Small/Medium",
         abilityName: "Odd Constitution",
-        description: "Increment your Hit Die one step (d6 > d8 > d10 > d12 > d20); they always heal you for the maximum amount. Magical healing always heals for the minimum amount.",
+        description: "Increment your Hit Die one step (d6 > d8 > d10 > d12 > d20); they always heal you for the maximum amount. Magical healing always heals you for the minimum amount.",
         languages: ["Common"],
         statMods: { hitDieIncrement: true, maxHitDieHeal: true, minMagicHeal: true }
       },
@@ -229,7 +236,7 @@ window.GAME_DATA = {
         name: "Planarbeing",
         size: "Medium",
         abilityName: "Planeshift",
-        description: "Whenever you Defend, you can gain 1 Wound to temporarily phase out of the material plane and ignore the damage. -2 max Wounds.",
+        description: "Whenever you Defend, you can gain 1 Wound to temporarily phase out of the material plane and ignore all effects of the attack. -2 max Wounds.",
         languages: ["Common"],
         statMods: { planeshift: true, maxWoundsMod: -2 }
       },
@@ -237,9 +244,9 @@ window.GAME_DATA = {
         name: "Ratfolk",
         size: "Small",
         abilityName: "Scurry",
-        description: "Gain +2 armor if you moved on your last turn.",
+        description: "Gain +2 armor if you moved on your last turn. +1 Speed.",
         languages: ["Common"],
-        statMods: { conditionalArmor: 2 }
+        statMods: { conditionalArmor: 2, speedMod: 1 }
       },
       {
         name: "Stoatling",
@@ -261,7 +268,7 @@ window.GAME_DATA = {
         name: "Wyrdling",
         size: "Small",
         abilityName: "Chaotic Surge",
-        description: "Whenever you or a willing ally within Reach 6 casts a tiered spell, you may allow them to roll on the Chaos Table. 1/encounter.",
+        description: "(1/encounter) Whenever you or a willing ally within Reach 6 casts a tiered spell, you may allow them to roll on the Chaos Table.",
         languages: ["Common"],
         statMods: { chaoticSurge: true }
       }
@@ -2377,7 +2384,7 @@ window.GAME_DATA = {
         { name: "Shadow Trap", tier: 1, actions: 2, range: "Self", damage: "3d12", description: "Next creature to move adjacent to you suffers 3d12 damage; if Small/Tiny, also Restrained by shadowy tendrils. Concentration up to 1 min.", upcast: "+1 size category, +1d12 on escape", type: "single" },
         { name: "Dread Visage", tier: 2, actions: 1, range: "Self", damage: "1d12", description: "Reaction: When attacked, Defend for free. Melee attackers are Frightened and suffer 1d12 damage if they attack you this round. Costs 2 mana less while dying.", upcast: "+2 damage, +2 armor", type: "self" },
         { name: "Vampiric Greed", tier: 3, actions: 2, range: "Self", damage: "4d12", description: "Gain 1 Wound. 4d12 to all adjacent creatures, heal HP equal to damage done. Surviving creatures STR save. Gain 1 additional Wound for each that saves.", upcast: "+1 DC", type: "aoe" },
-        { name: "Greater Shadow", tier: 4, actions: 2, range: "Self", damage: "5d12", description: "Summon a 5d12 Greater Shadow minion (max 1) adjacent to you. When it dies, explodes into 5 shadow minions placed within 8 spaces.", upcast: "+1d12, +1 shadow minion", type: "single" },
+        { name: "Vigor Mortis", tier: 4, actions: 1, range: "Reach", damage: "None", description: "Castable only when an ally drops to 0 HP. Concentration up to 1 min. Their max HP does not change, they skip STR saves to act, and taking damage while Dying causes 1 fewer Wounds (min 1).", upcast: "+10 temp HP", type: "single" },
         { name: "Gangrenous Burst", tier: 5, actions: 2, reach: "Up to 8 spaces", damage: "3d20 (ignoring armor)", description: "Other damaged creatures must STR save or take 3d20 damage (ignoring armor), half on save. Save rolled with disadvantage while Bloodied.", upcast: "+10 damage", type: "aoe" },
         { name: "Unspeakable Word", tier: 6, actions: 2, reach: "8 spaces", damage: "d66 (ignoring armor, advantage, no miss/crit)", description: "On failed INT save. Target rolls disadvantage if Bloodied/Frightened. On success, you both take half. d66 with advantage = roll 3d6, drop lowest.", upcast: "+1 DC, +10 damage", type: "single" },
         { name: "Creeping Death", tier: 7, actions: 3, reach: "8 spaces", damage: "4d20", description: "If this kills a creature, it erupts and you MUST deal the same damage to another creature within 8 spaces not yet damaged by this effect. Repeat until a creature survives or none remain.", upcast: "+1d20 damage", type: "aoe" }
@@ -2479,17 +2486,18 @@ window.GAME_DATA = {
         { name: "Club",        damage: "1d6+STR",  damageType: "Bludgeoning",       statUsed: "STR", properties: [],                                                    cost: "2 gp" },
         { name: "Mace",        damage: "1d6+STR",  damageType: "Bludgeoning",       statUsed: "STR", properties: [],                                                    cost: "2 gp" },
         { name: "Hand Axe",    damage: "1d6+STR",  damageType: "Slashing",          statUsed: "STR", properties: ["Thrown 4"],                                          cost: "8 gp" },
-        { name: "Short Sword", damage: "1d6+DEX",  damageType: "Piercing",          statUsed: "DEX", properties: ["Light"],                                             cost: "10 gp" },
+        { name: "Spear",       damage: "1d6+STR",  damageType: "Piercing",          statUsed: "STR", properties: ["2-handed", "Reach 2"],                               cost: "10 gp" },
+        { name: "Short Sword", damage: "1d6+DEX",  damageType: "Piercing",          statUsed: "DEX", properties: ["Light"],                                             cost: "15 gp" },
         { name: "Rapier",      damage: "2d4+DEX",  damageType: "Piercing",          statUsed: "DEX", properties: [],                                                    cost: "60 gp" },
         { name: "Staff",       damage: "1d8+STR",  damageType: "Bludgeoning",       statUsed: "STR", properties: ["2-handed"],                                          cost: "8 gp" },
         { name: "Longsword",   damage: "1d8+STR",  damageType: "Slashing",          statUsed: "STR", properties: ["2-handed (1-handed: Req. 2 STR)"],                   cost: "60 gp" },
         { name: "Battleaxe",   damage: "1d10+STR", damageType: "Slashing",          statUsed: "STR", properties: ["2-handed"],                                          cost: "30 gp" },
         { name: "Pole Hammer", damage: "1d10+STR", damageType: "Bludgeoning",       statUsed: "STR", properties: ["2-handed", "Reach 2"],                               cost: "60 gp" },
         { name: "Glaive",      damage: "1d10+STR", damageType: "Slashing",          statUsed: "STR", properties: ["2-handed", "Reach 2"],                               cost: "60 gp" },
-        { name: "Spear",       damage: "1d10+STR", damageType: "Piercing",          statUsed: "STR", properties: ["2-handed", "Reach 2"],                               cost: "60 gp" },
-        { name: "Greatmaul",   damage: "1d12+STR", damageType: "Bludgeoning",       statUsed: "STR", properties: ["2-handed", "Req. 2 STR"],                            cost: "80 gp" },
+        { name: "Great Spear", damage: "1d10+STR", damageType: "Piercing",          statUsed: "STR", properties: ["2-handed", "Reach 2"],                               cost: "60 gp" },
+        { name: "Greatmaul",   damage: "3d4+STR",  damageType: "Bludgeoning",       statUsed: "STR", properties: ["2-handed", "Req. 2 STR"],                            cost: "80 gp" },
         { name: "Greataxe",    damage: "2d6+STR",  damageType: "Slashing",          statUsed: "STR", properties: ["2-handed", "Req. 2 STR"],                            cost: "100 gp" },
-        { name: "Greatsword",  damage: "3d4+STR",  damageType: "Slashing/Piercing", statUsed: "STR", properties: ["2-handed", "Req. 2 STR"],                            cost: "120 gp" }
+        { name: "Greatsword",  damage: "1d12+STR", damageType: "Slashing/Piercing", statUsed: "STR", properties: ["2-handed", "Req. 2 STR"],                            cost: "120 gp" }
       ],
       ranged: [
         { name: "Sling",             damage: "1d4+DEX",  damageType: "Bludgeoning", statUsed: "DEX", properties: ["2-handed", "Range 12", "Vicious"],                   cost: "4 gp" },
@@ -2524,7 +2532,7 @@ window.GAME_DATA = {
         { name: "Rusty Plate",   formula: { base: 10 }, cost: "25 gp",    requirements: "Req. 2 STR" },
         { name: "Half Plate",    formula: { base: 14 }, cost: "200 gp",   requirements: "Req. 3 STR" },
         { name: "Full Plate",    formula: { base: 18 }, cost: "2,000 gp", requirements: "Req. 4 STR" },
-        { name: "Mithril Plate", formula: { base: 22 }, cost: "5,000 gp", requirements: "Req. 5 STR" }
+        { name: "Adamantine Plate", formula: { base: 22 }, cost: "5,000 gp", requirements: "Req. 5 STR" }
       ]
     },
     shields: [

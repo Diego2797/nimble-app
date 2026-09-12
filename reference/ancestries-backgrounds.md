@@ -1,5 +1,7 @@
 # Nimble TTRPG -- Ancestries, Backgrounds, Languages & Motivations
-## Authoritative Reference (from Nimble Core Rules PDF, cross-referenced with gamedata.js)
+## Authoritative Reference (from Nimble Core Rules v0.9, cross-referenced with gamedata.js)
+
+> **v0.9 UPDATE.** Ancestries now split into **Common / Uncommon / Exotic**. The 6 ancestries in Uncommon (Bunbun, Dragonborn, Fiendkin, Goblin, Kobold, Orc) were previously grouped with Exotic. Their `Category:` labels below have been updated. See `core-rules.md` sections 19-20 for the authoritative v0.9 text.
 
 > **Default Speed**: 6 spaces (unless modified by ancestry).
 > **Default Size**: Medium (unless noted).
@@ -69,7 +71,7 @@
 
 ## Bunbun
 - **Size:** Small
-- **Category:** Exotic
+- **Category:** Uncommon
 - **Ability Name:** Bunny Legs
 - **Ability Description:** Before Interposing or after Defending (after damage), hop up to your Speed in any direction for free, 1/encounter.
 - **Speed:** 6 (default, no modifier listed in PDF)
@@ -119,7 +121,7 @@
 
 ## Dragonborn
 - **Size:** Medium
-- **Category:** Exotic
+- **Category:** Uncommon
 - **Ability Name:** Draconic Heritage
 - **Ability Description:** +1 Armor. When you attack: deal an additional LVL+KEY damage (ignoring armor) divided as you choose among any of your targets; recharges whenever you Safe Rest or gain a Wound. You know Draconic if your INT is not negative.
 - **Speed:** 6 (default)
@@ -139,7 +141,7 @@
 
 ## Fiendkin
 - **Size:** Medium
-- **Category:** Exotic
+- **Category:** Uncommon
 - **Ability Name:** Flameborn
 - **Ability Description:** 1 of your neutral saves is advantaged instead. You know Infernal if your INT is not negative.
 - **Speed:** 6 (default)
@@ -149,7 +151,7 @@
 
 ## Goblin
 - **Size:** Small
-- **Category:** Exotic
+- **Category:** Uncommon
 - **Ability Name:** Skedaddle
 - **Ability Description:** Can move 2 spaces for free after you become the target of an attack or negative effect (after damage, ignoring difficult terrain). You know Goblin if your INT is not negative.
 - **Speed:** 6 (default)
@@ -169,7 +171,7 @@
 
 ## Kobold
 - **Size:** Small
-- **Category:** Exotic
+- **Category:** Uncommon
 - **Ability Name:** Wily
 - **Ability Description:** Force an enemy to reroll a non-critical attack against you, 1/encounter. +3 to Influence friendly characters. Advantage on skill checks related to dragons. You know Draconic if your INT is not negative.
 - **Speed:** 6 (default)
@@ -189,7 +191,7 @@
 
 ## Orc
 - **Size:** Medium
-- **Category:** Exotic
+- **Category:** Uncommon
 - **Ability Name:** Relentless
 - **Ability Description:** When you would drop to 0 HP, you may set your HP to LVL instead, 1/Safe Rest. +1 Might. You know Goblin if your INT is not negative (but you call it Orcish, of course).
 - **Speed:** 6 (default)

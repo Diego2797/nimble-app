@@ -2558,7 +2558,7 @@ h1, h2, h3, h4 {
 
 <input type="file" id="imageUpload" class="hidden-input" accept="image/*">
 
-<script src="gamedata.js"></script>
+<script src="gamedata.js?v=v0.9"></script>
 <script src="gmdata.js"></script>
 <script>
 /* =============================================================
@@ -2696,10 +2696,11 @@ const app = {
       gd.adventuringMotivations = gd.ADVENTURING_MOTIVATIONS;
       gd.combatActions = gd.COMBAT_ACTIONS;
       gd.reactions = gd.REACTIONS;
-      // Flatten ancestries from {common:[...], exotic:[...]} to flat array with category field
+      // Flatten ancestries from {common:[...], uncommon:[...], exotic:[...]} to flat array with category field
       if (gd.ANCESTRIES && !Array.isArray(gd.ANCESTRIES)) {
         const flat = [];
         (gd.ANCESTRIES.common || []).forEach(a => { a.category = 'Common'; flat.push(a); });
+        (gd.ANCESTRIES.uncommon || []).forEach(a => { a.category = 'Uncommon'; flat.push(a); });
         (gd.ANCESTRIES.exotic || []).forEach(a => { a.category = 'Exotic'; flat.push(a); });
         gd.ancestries = flat;
       } else {
@@ -5823,7 +5824,7 @@ const app = {
         <ul style="margin:0;padding-left:20px;font-size:0.75rem;line-height:1.45;color:var(--ink)">${changesHtml}</ul>
       </div>
       <div style="padding:10px;background:#fff4d6;border-left:3px solid var(--gold);border-radius:4px;margin-bottom:12px;font-size:0.72rem;color:var(--ink)">
-        <strong>&#9432; Coming in the next update:</strong> ancestry trait rewrites, background bonuses, refreshed spell text, and equipment preset refresh will run automatically the next time you migrate — nothing to redo.
+        <strong>&#9432; Preserved:</strong> your class, level, subclass picks, abilities, HP/current stats, notes, gold, and non-listed inventory items stay untouched. Class-specific updates land when the class PDF for your class is imported.
       </div>
       <div class="modal-buttons">
         <button class="btn btn-secondary" onclick="app.closeModal()">Cancel</button>
@@ -5831,6 +5832,25 @@ const app = {
       </div>`;
     this.showModal(html);
   },
+
+  // v0.9 renamed/replaced spells and equipment entries. Migration substitutes
+  // stale names with their v0.9 replacements so the sheet stays consistent
+  // with GAME_DATA lookups.
+  _v0_9_SPELL_RENAMES: {
+    // Old spell name → new name (or null to remove entirely)
+    'Greater Shadow': null   // Removed in v0.9; T4 slot became Vigor Mortis with different mechanics
+  },
+  _v0_9_ITEM_RENAMES: {
+    'Mithril Plate': 'Adamantine Plate'
+  },
+  // Weapons whose damage die was rebalanced in v0.9; if the inventory item
+  // still holds the old damage, refresh it from the EQUIPMENT preset.
+  _v0_9_WEAPON_REBALANCES: [
+    { name: 'Spear',      newDamage: '1d6+STR' },
+    { name: 'Short Sword', newCost: '15 gp' },
+    { name: 'Greatmaul',  newDamage: '3d4+STR' },
+    { name: 'Greatsword', newDamage: '1d12+STR' }
+  ],
 
   // Returns an array of { label, detail } items describing structural changes
   // that will be applied. Kept small on purpose so the modal fits on mobile.
@@ -5842,13 +5862,45 @@ const app = {
         detail: `${ch.maxWounds || '?'} → 6 (v0.9 baseline; class/background modifiers still apply on top)`
       });
     }
-    const saves = ch.saves || {};
-    if (!saves.advantaged && !saves.disadvantaged && !saves.STR && !saves.DEX && !saves.INT && !saves.WIL) {
+
+    // Spells with renamed/removed entries
+    const spellHits = (ch.spells || []).filter(sp => Object.prototype.hasOwnProperty.call(this._v0_9_SPELL_RENAMES, sp.name));
+    if (spellHits.length) {
       items.push({
-        label: 'Saves',
-        detail: 'Class save arrows will be re-applied to your sheet'
+        label: 'Spells',
+        detail: spellHits.map(sp => {
+          const target = this._v0_9_SPELL_RENAMES[sp.name];
+          return target ? `${sp.name} → ${target}` : `${sp.name} (removed in v0.9)`;
+        }).join('; ')
       });
     }
+
+    // Inventory items renamed (Mithril Plate → Adamantine Plate)
+    const itemHits = (ch.inventory || []).filter(it => Object.prototype.hasOwnProperty.call(this._v0_9_ITEM_RENAMES, it.name));
+    if (itemHits.length) {
+      items.push({
+        label: 'Equipment',
+        detail: itemHits.map(it => `${it.name} → ${this._v0_9_ITEM_RENAMES[it.name]}`).join('; ')
+      });
+    }
+
+    // Weapons rebalanced (only if the damage string still matches the pre-v0.9 value)
+    const weaponHits = (ch.inventory || []).filter(it => {
+      if (it.category !== 'weapon') return false;
+      const rebal = this._v0_9_WEAPON_REBALANCES.find(r => r.name === it.name);
+      if (!rebal) return false;
+      return rebal.newDamage && it.damage && it.damage !== rebal.newDamage;
+    });
+    if (weaponHits.length) {
+      items.push({
+        label: 'Weapon rebalance',
+        detail: weaponHits.map(it => {
+          const rebal = this._v0_9_WEAPON_REBALANCES.find(r => r.name === it.name);
+          return `${it.name}: ${it.damage} → ${rebal.newDamage}`;
+        }).join('; ')
+      });
+    }
+
     return items;
   },
 
@@ -5863,6 +5915,38 @@ const app = {
     // pointing at a legacy default.
     if (!ch.bonusWoundsFromClass && (ch.maxWounds === undefined || ch.maxWounds === null || ch.maxWounds === 0)) {
       patch.maxWounds = 6;
+    }
+
+    // Apply spell renames (Greater Shadow → null = drop the entry)
+    if (Array.isArray(ch.spells)) {
+      const renames = this._v0_9_SPELL_RENAMES;
+      patch.spells = ch.spells.reduce((out, sp) => {
+        if (Object.prototype.hasOwnProperty.call(renames, sp.name)) {
+          const target = renames[sp.name];
+          if (target === null) return out; // dropped
+          out.push({ ...sp, name: target });
+        } else {
+          out.push(sp);
+        }
+        return out;
+      }, []);
+    }
+
+    // Apply inventory renames and weapon damage refresh
+    if (Array.isArray(ch.inventory)) {
+      patch.inventory = ch.inventory.map(it => {
+        let next = it;
+        if (Object.prototype.hasOwnProperty.call(this._v0_9_ITEM_RENAMES, next.name)) {
+          next = { ...next, name: this._v0_9_ITEM_RENAMES[next.name] };
+        }
+        if (next.category === 'weapon') {
+          const rebal = this._v0_9_WEAPON_REBALANCES.find(r => r.name === next.name);
+          if (rebal && rebal.newDamage && next.damage && next.damage !== rebal.newDamage) {
+            next = { ...next, damage: rebal.newDamage };
+          }
+        }
+        return next;
+      });
     }
 
     this.updateChar(patch);
@@ -10539,27 +10623,26 @@ const app = {
     ];
 
     const common = ancestries.filter(a => (a.category || 'Common') === 'Common');
-    const exotic = ancestries.filter(a => (a.category || 'Common') === 'Exotic');
+    const uncommon = ancestries.filter(a => a.category === 'Uncommon');
+    const exotic = ancestries.filter(a => a.category === 'Exotic');
+
+    const renderGroup = (label, list, extraNote) => {
+      if (!list.length) return '';
+      let h = `<h3 style="margin-bottom:8px;font-size:0.9rem;color:var(--ink-light)">${label}</h3>`;
+      if (extraNote) h += `<div style="font-size:0.7rem;color:var(--ink-light);margin-bottom:6px;font-style:italic">${extraNote}</div>`;
+      h += '<div class="option-grid" style="margin-bottom:12px">';
+      list.forEach(a => {
+        const sel = cr.ancestry === a.name ? 'selected' : '';
+        h += `<div class="option-card ${sel}" onclick="app.state.creation.ancestry='${a.name}'; app.render()"><h4>${a.name}</h4><p>${a.description || ''}</p></div>`;
+      });
+      h += '</div>';
+      return h;
+    };
 
     let html = '';
-    if (common.length) {
-      html += '<h3 style="margin-bottom:8px;font-size:0.9rem;color:var(--ink-light)">Common</h3>';
-      html += '<div class="option-grid" style="margin-bottom:12px">';
-      common.forEach(a => {
-        const sel = cr.ancestry === a.name ? 'selected' : '';
-        html += `<div class="option-card ${sel}" onclick="app.state.creation.ancestry='${a.name}'; app.render()"><h4>${a.name}</h4><p>${a.description || ''}</p></div>`;
-      });
-      html += '</div>';
-    }
-    if (exotic.length) {
-      html += '<h3 style="margin-bottom:8px;font-size:0.9rem;color:var(--ink-light)">Exotic</h3>';
-      html += '<div class="option-grid">';
-      exotic.forEach(a => {
-        const sel = cr.ancestry === a.name ? 'selected' : '';
-        html += `<div class="option-card ${sel}" onclick="app.state.creation.ancestry='${a.name}'; app.render()"><h4>${a.name}</h4><p>${a.description || ''}</p></div>`;
-      });
-      html += '</div>';
-    }
+    html += renderGroup('Common', common);
+    html += renderGroup('Uncommon', uncommon, 'Your setting may or may not support these — check with your GM.');
+    html += renderGroup('Exotic', exotic, 'Your setting may or may not support these — check with your GM.');
     return html;
   },
 

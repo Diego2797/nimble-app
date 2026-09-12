@@ -528,11 +528,11 @@
 - **Description**: Gain 1 Wound. 4d12 to all adjacent creatures, and heal HP equal to the damage done. Any surviving creatures make a STR save. Gain 1 additional Wound for each creature that saves.
 - **Upcast**: +1 DC.
 
-### Greater Shadow
+### Vigor Mortis
 - **Tier**: 4
-- **Actions**: 2 Actions
-- **Description**: Summon a 5d12 Greater Shadow minion (max 1) adjacent to you. When it dies, it explodes into 5 shadow minions (see Summon Shadow). Place them anywhere within 8 spaces.
-- **Upcast**: +1d12 damage, +1 shadow minion on explosion.
+- **Actions**: 1 Action
+- **Description**: Castable only when an ally drops to 0 HP. Concentration: Up to 1 min. Their max HP does not change, they skip STR saves to act, and taking damage while Dying causes 1 fewer Wounds (min 1).
+- **Upcast**: +10 temp HP.
 
 ### Gangrenous Burst
 - **Tier**: 5
