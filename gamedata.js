@@ -1004,14 +1004,14 @@ window.GAME_DATA = {
       retrainArrays: ["lesserInvocations", "greaterInvocations"],
       levels: {
         1: [
-          { name: "Conduit of Shadow", description: "Your Patron grants you Shadow Blast (Necrotic cantrip, 1 Action, 1/turn, Range: 8, 1d12+KEY damage, +1d12 every 5 levels) and Summon Shadows (Necrotic cantrip, summon a shadow minion within Reach 1, max INT or LVL minions; Action 1/turn: command ALL minions to move 6 then attack, Reach 1, 1d12 each, +1 Reach every 5 levels). Shadow minions: 1 HP, no damage bonus, no crit, abandon you outside combat." }
+          { name: "Conduit of Shadow", description: "Learn the Shadowmancer cantrips: Summon Shadow, Command Shadows, and Shadow Blast. Shadow minions are d12 minions; you can have up to INT Shadows at a time (Shadow Limit). Minions follow the minion rules and abandon you immediately outside of combat." }
         ],
         2: [
           { name: "Master of Darkness", description: "Your Patron grants you knowledge of Necrotic cantrips and tier 1 spells." },
           { name: "Pilfered Power", description: "You have NO mana pool. You may steal power from your patron to cast tiered spells, always at the highest tier you have unlocked. You can do this DEX times before your patron takes notice. Each time you exceed this limit, your patron damages you for half your max HP. Resets on Safe Rest. Max Spell Tier: 1." }
         ],
         3: [
-          { name: "Subclass", description: "Choose a Shadowmancer subclass: Pact of the Red Dragon or Pact of the Abyssal Depths." },
+          { name: "Subclass", description: "THE PACT IS SEALED. Choose a Shadowmancer subclass: Pact of the Red Dragon, Pact of the Abyssal Depths, Pact of the Void, Pact of the Endless Swarm, or Pact of the High Celestial." },
           { name: "Lesser Invocation", description: "Choose 1 Lesser Shadow Invocation." },
           { name: "Supplicate", description: "Whenever you commune with your Patron on a Safe Rest, you may beg them to allow you to choose different Shadowmancer options (they may ask for something in return)." }
         ],
@@ -1081,7 +1081,8 @@ window.GAME_DATA = {
           { name: "Tier 7 Spells", description: "You may now cast tier 7 spells; all of your spells are cast at this tier." }
         ],
         20: [
-          { name: "Eldritch Usurper", description: "+1 to any 2 of your stats. Whenever you summon a single shadow minion, summon 2 instead. They die only when they receive 12 or more damage at one time." },
+          { name: "Eldritch Usurper", description: "+1 to any 2 of your stats. (1/Encounter) When you cast Summon Shadow you may summon a Greater Shadow instead." },
+          { name: "Greater Shadow", description: "A 5d12 minion. When it dies, it explodes into 5 Shadows (ignoring your Shadow Limit). Place them anywhere within Reach 6." },
           { name: "Upgraded Cantrips", description: "Your cantrips grow stronger." }
         ]
       },
@@ -1098,17 +1099,16 @@ window.GAME_DATA = {
         { name: "Whispers of the Grave", description: "(1/day) You can ask a dead creature 3 yes/no questions. It can never be questioned this way again." }
       ],
       greaterInvocations: [
-        { name: "Armor of Shadows", description: "Reduce all damage you receive by an amount equal to the number of minions you have." },
-        { name: "Fiendish Boon", description: "Increase your DEX or INT by 1. You have 1 fewer maximum Hit Dice." },
-        { name: "Hungering Shadows", description: "Whenever one of your shadows would crit, the next tiered spell you cast this encounter does not cost a use of Pilfered Power." },
-        { name: "One with Shadows", description: "Action: When you are in dim light or darkness, you may become Invisible until you move or attack." },
-        { name: "Repelling Blast", description: "When you hit a Medium or smaller creature with Shadow Blast, you can push the creature up to 2 spaces away from yourself." },
-        { name: "Shadow Magus", description: "Your minions gain +4 Reach and you deal d10 damage instead." },
-        { name: "Shadow Spear", description: "Your Shadow Blast can target creatures twice as far away, it ignores cover, and you may attack Prone targets with advantage (instead of disadvantage)." },
-        { name: "Shadow Rush", description: "When your shadow minions attack, instead of rolling damage, you may have any of them deal the max amount, then die." },
-        { name: "Shadow Warp", description: "Action: Switch places with a creature within 12 spaces that has been dealt necrotic damage this turn." },
-        { name: "Swarming Shadows", description: "Whenever one of your shadows would crit, summon another shadow minion adjacent to the target." },
-        { name: "Vengeful Blast", description: "Whenever a minion dies, you may cast Shadow Blast as a reaction (even if you already cast it this turn)." }
+        { name: "Armor of Shadows", description: "Passive. Reduce all damage you receive by an amount equal to the number of minions you have." },
+        { name: "Fiendish Boon", description: "Passive. Increase your DEX or INT by 1. You have 1 fewer max Hit Dice." },
+        { name: "Hungering Shadows", description: "Passive. Whenever one of your Shadows rolls the max, the next tiered spell you cast this encounter does not cost a use of Pilfered Power." },
+        { name: "One with Shadows", description: "1 Action. While adjacent to a Shadow or in an area of dim light or darkness, you may become Invisible until you move or attack (summoning and commanding minions does not count as an attack)." },
+        { name: "Repelling Blast", description: "Passive. Your Shadow Blast gains: On hit, knockback 2." },
+        { name: "Shadow Magus", description: "Passive. Your Shadows gain +4 Reach and deal d10 damage instead." },
+        { name: "Shadow Spear", description: "Passive. Your Shadow Blast gains +8 Range, ignores cover, and advantage vs Prone targets (instead of disadvantage)." },
+        { name: "Shadow Rush", description: "Passive. Whenever your Shadows attack, instead of rolling damage, you may have any of them deal the max amount, then die." },
+        { name: "Shadow Warp", description: "1 Action. (Reach 12) Switch places with a creature that has been dealt necrotic damage this turn." },
+        { name: "Swarming Shadows", description: "Passive. Whenever a Shadow rolls the max, summon another Shadow adjacent to the target (ignoring your Shadow Limit)." }
       ]
     },
 
@@ -2024,9 +2024,10 @@ window.GAME_DATA = {
       {
         name: "Pact of the Red Dragon",
         className: "Shadowmancer",
+        description: "The Great Dragon's flames are yours. Its wrath is yours. Soon, even its flesh will be too.",
         features: {
-          3:  [{ name: "Draconic Crimson Rite", description: "Your Patron grants you knowledge of Fire spells. Your shadow minions become flaming dragon wyrmling shadows. Your Shadow Blast and minions can deal fire or necrotic damage and inflict Smoldering whenever they would crit." }],
-          7:  [{ name: "We'll ALL Burn!", description: "You may cast Pyroclasm without Pilfering Power by including yourself in the damage. You have advantage on the save." }],
+          3:  [{ name: "Draconic Crimson Rite", description: "Your Patron grants you knowledge of Fire spells. Your Shadows become flaming dragon wyrmling shadows. Your Shadow Blast and Shadows can deal fire or necrotic damage and inflict Smoldering whenever they roll the max." }],
+          7:  [{ name: "We'll ALL Burn!", description: "You may cast Pyroclasm without Pilfering Power by including yourself in the damage. You have advantage on the save. Choose 1 Fire Utility Spell." }],
           11: [{ name: "Heart of Burning Fire", description: "Regain 1 use of Pilfered Power each time you roll Initiative. This expires at the end of combat if unused." }],
           15: [{ name: "Enveloped by the Master", description: "Gain 1d4 Wounds to cast Dragonform." }]
         }
@@ -2034,13 +2035,65 @@ window.GAME_DATA = {
       {
         name: "Pact of the Abyssal Depths",
         className: "Shadowmancer",
+        description: "Icy tendrils reach out from the abyss, and drag your foes into absolute cold and darkness.",
         features: {
-          3:  [{ name: "Master of Nightfrost", description: "Your Patron grants you knowledge of Ice spells. Gain the ability to breathe underwater. Your shadow minions become beings of nightfrost. Your Shadow Blast and minions can deal cold or necrotic damage, and whenever they would crit, you gain INT+LVL temp HP." }],
+          3:  [{ name: "Master of Nightfrost", description: "Your Patron grants you knowledge of Ice spells. Gain the ability to breathe underwater. Your Shadows become beings of nightfrost. Your Shadow Blast and Shadows can deal cold or necrotic damage, and whenever they roll the max, you gain INT+LVL temp HP." }],
           7:  [{ name: "Shadowfrost", description: "Your Shadow Blast also Slows. You can cast Cryosleep or Rimeblades without Pilfering Power by expending 10 temp HP. Choose 1 Ice Utility Spell." }],
-          11: [{ name: "Glacial Resilience", description: "(1/Safe Rest) Reaction (whenever you are attacked or would gain a condition), gain 10 x LVL temp HP and end ALL negative conditions on yourself. At the end of your next turn, any remaining temp HP are lost." }],
+          11: [{ name: "Glacial Resilience", description: "(1/Safe Rest) Reaction (whenever you are attacked or would gain a condition): Gain 10 x LVL temp HP and end ALL negative conditions on yourself. At the end of your next turn, any remaining temp HP are lost." }],
           15: [{ name: "Cryomancer's Reprisal", description: "Pay half your max HP to cast ANY Ice spell. After casting an Ice spell in this way, you gain an invisible aura: the next creature that hits you with a melee attack this encounter takes cold damage equal to half the HP you spent on this casting." }]
         }
       },
+      {
+        name: "Pact of the Void",
+        className: "Shadowmancer",
+        description: "Your cosmic master gazes from beyond the stars. Time and space are mere playthings to you.",
+        features: {
+          3:  [
+            { name: "Void Spawn", description: "You can summon Shadows within Reach 6." },
+            { name: "Void Step", description: "You and your allies can move between spaces your Shadows occupy as if they were the same space (but cannot end movement in an occupied space)." }
+          ],
+          7:  [
+            { name: "Voidstrike", description: "You and your allies can attack between spaces your Shadows occupy as if they were the same space. Gain advantage when attacking this way (e.g., an ally next to a Shadow can make a melee attack against any enemy also adjacent to a Shadow)." },
+            { name: "The Vast Cold", description: "Your Shadows inflict the Slowed condition when attacked in melee." }
+          ],
+          11: [{ name: "Void Singularity", description: "(Reach 1/minion) Whenever 1 or more Shadows move into the space of another Shadow, all of them implode and die, dealing their combined damage to all creatures in the area, moving them towards the center as you choose." }],
+          15: [
+            { name: "The Consuming Dark", description: "(1/encounter) When a Shadow kills an enemy you may have it transform into a Greater Shadow." },
+            { name: "Urgent Command", description: "Gain a Wound to move your Shadows as a Reaction." }
+          ]
+        }
+      },
+      {
+        name: "Pact of the Endless Swarm",
+        className: "Shadowmancer",
+        description: "Pests and vermin... Even the weakest grow strong in numbers. The denizens of your swarm are infinite and unyielding.",
+        features: {
+          3:  [
+            { name: "Summon Hive", description: "Whenever you cast Summon Shadow, also summon a Hive within Reach 2 (max of INT Hives)." },
+            { name: "Hive", description: "Immobile minion; enemies within Reach 2 attack with disadvantage. At the end of your turns, spawns a swarm: roll and set aside 1d4. Whenever you or an ally attacks, you can expend any of these dice to increase the damage done." }
+          ],
+          7:  [
+            { name: "Rampant Brood", description: "When a Hive dies, it spawns 2 swarms. Whenever you cast Command Shadows, your Hives can also move." },
+            { name: "Broodlord", description: "You may spend your Interpose reaction to make a Hive Interpose for yourself or an ally instead." }
+          ],
+          11: [{ name: "Impending Infestation", description: "Summon 1 additional Hive for each time you've previously cast Summon Shadow this encounter." }],
+          15: [{ name: "Terrible Plague", description: "Your swarms increase to d8 damage and your Hives' Reach increases to 3." }]
+        }
+      },
+      {
+        name: "Pact of the High Celestial",
+        className: "Shadowmancer",
+        description: "Be not afraid! Your radiant spirits empower, bless, and protect those that you deem worthy.",
+        features: {
+          3:  [{ name: "Divine Bestowal", description: "Your Shadows become radiant spirits, lose their ability to attack directly, but can move into the space of an ally and bless them. They move wherever the ally does, and each one grants the ally +2 damage on their attacks and +2 damage reduction from incoming attacks. If an ally takes damage, all minions blessing them die." }],
+          7:  [{ name: "Radiant Boon", description: "You may target allies with Shadow Blast and give them Temp HP instead of damaging them." }],
+          11: [
+            { name: "Divine Bestowal (2)", description: "Your minions' blessing increases to 3." },
+            { name: "Celestial Armor", description: "When a blessed ally Defends or Interposes, 1 minion blessing them can sacrifice itself to take the damage instead." }
+          ],
+          15: [{ name: "Apotheosis", description: "(1/Safe Rest) For 1 round you are immune to all damage and negative effects. Anytime you would roll a d20, roll a d100 instead, and anytime you would roll less than a d20, roll a d20." }]
+        }
+      }
       // Reaver was moved to SUBCLASSES.storyBased — it's a story-based subclass triggered by losing your patron, not pickable at L3.
     ],
     shepherd: [
@@ -2248,27 +2301,29 @@ window.GAME_DATA = {
       {
         name: "Reaver",
         className: "Shadowmancer",
-        description: "Cast Aside, Born Anew. Cut off from your patron, you lose Shadow Blast and Pilfered Power. Instead you gain the Bonescythe.",
+        description: "Cast Aside, Born Anew. Cut off from your patron, you lose Shadow Blast and tiered spells via Pilfered Power. In exchange you gain the magical Bonescythe.",
         // Reaver loses only Shadow Blast (keeps Summon Shadow) and gains Bonescythe as a replacement cantrip
         blocksClassSpecific: ['Shadow Blast'],
         grantsClassSpecific: ['Bonescythe'],
         // Base class abilities this subclass removes (e.g., Reaver strips Pilfered Power — replaced by Shadow Exploit)
         removesClassAbilities: ['Pilfered Power'],
         features: {
+          base: [
+            { name: "Hollow One", description: "Cut off from your patron, you can no longer cast Shadow Blast, nor can you cast tiered spells using Pilfering Power. However, as a parting token, you have stolen a secret from your patron: the magical Bonescythe, a weapon of sinew and bone, infused with shadowy magic." },
+            { name: "Summon Bonescythe", description: "1 Action. Summon a magical Bonescythe, a melee weapon. (Reach 2) 2d12 slashing+DEX necrotic damage to EACH die (add 1 extra damage die every 5 levels). On hit (or when combat ends): it shatters and must be resummoned to use again. Invocations affecting Shadow Blast affect your Bonescythe instead." }
+          ],
           3:  [
-            { name: "Hollow One", description: "Cut off from your patron, you can no longer cast Shadow Blast and you can no longer cast tiered spells using Pilfered Power. However, you have stolen the magical Bonescythe: Action: Summon a melee weapon: 2d12 slashing+DEX necrotic damage (Reach: 2). It shatters after you hit with it (or when combat ends). Any Invocations affecting Shadow Blast affect your Bonescythe instead. High Levels: +1 extra damage die every 5 levels." },
-            { name: "Shadow Exploit", description: "Sacrifice a shadow minion to cast a spell at the highest tier you have unlocked. Each subsequent spell you cast in this encounter costs 1 additional minion." },
-            { name: "Martyr Spawn", description: "Whenever you Defend, you can sacrifice a shadow minion to take no damage." }
+            { name: "Shadow Exploit", description: "Whenever you Defend, you can sacrifice a Shadow to take no damage. Or you may sacrifice a Shadow to cast a spell at the highest tier you have unlocked. Each subsequent time you use this ability in an encounter, increase the cost by 1 Shadow." }
           ],
           7:  [
-            { name: "Grim Harrow", description: "When you strike with your Bonescythe, you may divide the dice as you choose amongst any number of adjacent targets within Reach." },
-            { name: "Reap", description: "When your Bonescythe crits, or kills a creature, summon a shadow minion for free." }
+            { name: "Grim Harrow", description: "When you strike with your Bonescythe, treat each die as Primary. You may divide the dice as you choose amongst any number of adjacent targets within Reach." },
+            { name: "Reap", description: "When your Bonescythe crits or kills a creature, summon a Shadow for free (ignoring your Shadow Limit)." }
           ],
           11: [
             { name: "My Blood, My Power", description: "You may take 1 Wound to cast a tiered spell you know at the highest tier you have unlocked." },
-            { name: "Otherworldly Might", description: "Advantage on concentration checks if you have any shadow minions." }
+            { name: "Otherworldly Might", description: "Advantage on concentration checks if you have any Shadows." }
           ],
-          15: [{ name: "I'm the Patron Now!", description: "Summon 2 shadow minions for free when you roll Initiative." }]
+          15: [{ name: "Sovereign One", description: "Summon 2 Shadows and your Bonescythe for free when you roll Initiative." }]
         }
       },
       {
@@ -2393,9 +2448,10 @@ window.GAME_DATA = {
     classSpecific: {
       name: "Class-Specific Spells",
       spells: [
-        { name: "Shadow Blast", tier: 0, actions: 1, range: "8 spaces", damage: "1d12+KEY Necrotic", description: "(Shadowmancer) 1/round. +1d12 damage every 5 levels.", type: "single", class: "Shadowmancer" },
-        { name: "Summon Shadow", tier: 0, actions: 1, reach: "1 space", damage: "None", description: "(Shadowmancer) Summon a shadow minion within Reach 1 (max INT or LVL minions). Action (1/turn): command ALL minions to move 6 then attack (Reach 1, d12 each). Minions: 1 HP, no damage bonus, no crit, abandon you outside combat. +1 Reach every 5 levels.", type: "single", class: "Shadowmancer" },
-        { name: "Bonescythe", tier: 0, actions: 1, reach: "2 spaces", damage: "2d12+DEX Slashing/Necrotic", description: "(Shadowmancer — Reaver) Action: Summon a melee weapon. It shatters after you hit with it (or when combat ends). Any Invocations affecting Shadow Blast affect your Bonescythe instead. +1 extra damage die every 5 levels.", type: "single", class: "Shadowmancer", requiresSubclass: "Reaver" },
+        { name: "Shadow Blast", tier: 0, actions: 1, range: "8 spaces", damage: "1d12+DEX Necrotic", description: "(Shadowmancer) 1/round. +1d12 damage every 5 levels.", type: "single", class: "Shadowmancer" },
+        { name: "Summon Shadow", tier: 0, actions: 1, reach: "1 space", damage: "None", description: "(Shadowmancer) Summon 1 adjacent Shadow (a d12 minion). Shadow Limit: you can have up to INT Shadows. Minions follow the minion rules and abandon you immediately outside of combat. High Levels: +1 Shadow every 5 levels.", type: "single", class: "Shadowmancer" },
+        { name: "Command Shadows", tier: 0, actions: 1, range: "N/A", damage: "None", description: "(Shadowmancer) 1/turn. ALL your Shadows move 6 then attack.", type: "single", class: "Shadowmancer" },
+        { name: "Bonescythe", tier: 0, actions: 1, reach: "2 spaces", damage: "2d12 slashing + DEX necrotic per die", description: "(Shadowmancer — Reaver) Summon a magical Bonescythe. 2d12 slashing+DEX necrotic damage to EACH die. On hit (or when combat ends): it shatters and must be resummoned to use again. Invocations affecting Shadow Blast affect your Bonescythe instead. +1 extra damage die every 5 levels.", type: "single", class: "Shadowmancer", requiresSubclass: "Reaver" },
         { name: "Vicious Mockery", tier: 0, actions: 1, range: "12 spaces", damage: "1d4+INT Psychic (ignoring armor)", description: "(Songweaver) On hit: target is Taunted during their next turn. +2 damage every 5 levels.", type: "single", class: "Songweaver" },
         { name: "Lifebinding Spirit", tier: 1, actions: 1, range: "Self", damage: "None", description: "(Shepherd) Summon a spirit companion, immune to harm. Lasts until recast, Safe Rest, or heals equal to mana spent. Action: attacks or heals within Reach 4 for 1d6+WIL radiant (ignoring armor). Upcast: increment die (max d12), +1 healing use.", type: "single", class: "Shepherd" }
       ]

@@ -1080,18 +1080,19 @@ The Shadowmancer does NOT have a traditional mana pool. Instead, they use **Pilf
 - **Level 6:** 1 Necrotic Utility Spell (Shadowmastery).
 - **Level 8:** 2nd Necrotic Utility Spell (Shadowmastery 2).
 - **Level 14:** All Necrotic Utility Spells (Shadowmastery 3).
-- Subclass may grant Fire (Pact of the Red Dragon) or Ice (Pact of the Abyssal Depths).
+- Subclass may grant Fire (Pact of the Red Dragon) or Ice (Pact of the Abyssal Depths). Pact of the Void, Pact of the Endless Swarm, and Pact of the High Celestial do not grant additional schools.
 
 ## Level Features (1-20)
 
 ### Level 1
-- **Conduit of Shadow.** Your Patron grants you knowledge of:
-- **Shadow Blast.** (Necrotic cantrip) Action: (1/turn) Range: 8. Damage: 1d12+KEY. High Levels: +1d12 damage every 5 levels.
-- **Summon Shadows.** (Necrotic cantrip) High Levels: +1 Reach every 5 levels.
-  - Action: Summon a shadow minion within Reach 1 (you can summon a max of INT or LVL minions this way, whichever is lower).
-  - Action: (1/turn) Command ALL of your minions to move 6 then attack (Reach 1, 1d12 each).
+- **Conduit of Shadow.** Learn the Shadowmancer cantrips (see below): Summon Shadow, Command Shadows, and Shadow Blast.
 
-**Shadow Minions:** Your shadow minions follow the normal minion rules: they have 1 HP, no damage bonus, and do not crit. They abandon you immediately outside of combat. You and your minions are different creatures, so you can attack once and command them to attack without suffering the Rushed Attack penalty.
+**Shadow Minions:** Shadows are d12 minions. **Shadow Limit:** you can have up to INT Shadows at a time. Minions follow the normal minion rules (1 HP, no damage bonus, do not crit) and abandon you immediately outside of combat. You and your minions are different creatures, so you can attack once and command them to attack without suffering the Rushed Attack penalty.
+
+**Shadowmancer Cantrips:**
+- **Summon Shadow.** 1 Action. Summon 1 adjacent Shadow (a d12 minion). High Levels: +1 Shadow every 5 levels.
+- **Command Shadows.** 1 Action (1/turn). ALL your Shadows move 6 then attack.
+- **Shadow Blast.** 1 Action. Range: 8. Damage: 1d12+DEX (1/round). High Levels: +1d12 every 5 levels.
 
 ### Level 2
 - **Master of Darkness.** Your Patron grants you knowledge of Necrotic cantrips and tier 1 spells.
@@ -1170,7 +1171,8 @@ The Shadowmancer does NOT have a traditional mana pool. Instead, they use **Pilf
 - **Tier 7 Spells.** You may now cast tier 7 spells; all of your spells are cast at this tier.
 
 ### Level 20
-- **Eldritch Usurper.** +1 to any 2 of your stats. Whenever you summon a single shadow minion, summon 2 instead. They die only when they receive 12 or more damage at one time.
+- **Eldritch Usurper.** +1 to any 2 of your stats. (1/Encounter) When you cast Summon Shadow you may summon a Greater Shadow instead.
+- **Greater Shadow.** A 5d12 minion. When it dies, it explodes into 5 Shadows (ignoring your Shadow Limit). Place them anywhere within Reach 6.
 - **Upgraded Cantrips.** Your cantrips grow stronger.
 
 ## Lesser Shadow Invocations
@@ -1188,27 +1190,29 @@ The Shadowmancer does NOT have a traditional mana pool. Instead, they use **Pilf
 
 ## Greater Shadow Invocations
 
-- **Armor of Shadows.** Reduce all damage you receive by an amount equal to the number of minions you have.
-- **Fiendish Boon.** Increase your DEX or INT by 1. You have 1 fewer maximum Hit Dice.
-- **Hungering Shadows.** Whenever one of your shadows would crit, the next tiered spell you cast this encounter does not cost a use of Pilfered Power.
-- **One with Shadows.** Action: When you are in an area of dim light or darkness, you may become Invisible until you move or attack.
-- **Repelling Blast.** When you hit a Medium or smaller creature with Shadow Blast, you can push the creature up to 2 spaces away from yourself.
-- **Shadow Magus.** Your minions gain +4 Reach and you deal d10 damage instead.
-- **Shadow Spear.** Your Shadow Blast can target creatures twice as far away, it ignores cover, and you may attack Prone targets with advantage with it (instead of disadvantage).
-- **Shadow Rush.** When your shadow minions attack, instead of rolling damage, you may have any of them deal the max amount, then die.
-- **Shadow Warp.** Action: Switch places with a creature within 12 spaces that has been dealt necrotic damage this turn.
-- **Swarming Shadows.** Whenever one of your shadows would crit, summon another shadow minion adjacent to the target.
-- **Vengeful Blast.** Whenever a minion dies, you may cast Shadow Blast as a reaction (even if you already cast it this turn).
+- **Armor of Shadows.** (Passive) Reduce all damage you receive by an amount equal to the number of minions you have.
+- **Fiendish Boon.** (Passive) Increase your DEX or INT by 1. You have 1 fewer max Hit Dice.
+- **Hungering Shadows.** (Passive) Whenever one of your Shadows rolls the max, the next tiered spell you cast this encounter does not cost a use of Pilfered Power.
+- **One with Shadows.** 1 Action. While adjacent to a Shadow or in an area of dim light or darkness, you may become Invisible until you move or attack (summoning and commanding minions does not count as an attack).
+- **Repelling Blast.** (Passive) Your Shadow Blast gains: On hit, knockback 2.
+- **Shadow Magus.** (Passive) Your Shadows gain +4 Reach and deal d10 damage instead.
+- **Shadow Spear.** (Passive) Your Shadow Blast gains +8 Range, ignores cover, and advantage vs Prone targets (instead of disadvantage).
+- **Shadow Rush.** (Passive) Whenever your Shadows attack, instead of rolling damage, you may have any of them deal the max amount, then die.
+- **Shadow Warp.** 1 Action. (Reach 12) Switch places with a creature that has been dealt necrotic damage this turn.
+- **Swarming Shadows.** (Passive) Whenever a Shadow rolls the max, summon another Shadow adjacent to the target (ignoring your Shadow Limit).
 
 ## Subclasses
 
 ### Pact of the Red Dragon
+**Subclass Complexity: 2/4**
+
+> The Great Dragon's flames are yours. Its wrath is yours. Soon, even its flesh will be too.
 
 **Level 3:**
-- **Draconic Crimson Rite.** Your Patron grants you knowledge of Fire spells. Your shadow minions become flaming dragon wyrmling shadows. Your Shadow Blast and minions can deal fire or necrotic damage and inflict Smoldering whenever they would crit.
+- **Draconic Crimson Rite.** Your Patron grants you knowledge of Fire spells. Your Shadows become flaming dragon wyrmling shadows. Your Shadow Blast and Shadows can deal fire or necrotic damage and inflict Smoldering whenever they roll the max.
 
 **Level 7:**
-- **We'll ALL Burn!** You may cast Pyroclasm without Pilfering Power by including yourself in the damage. You have advantage on the save.
+- **We'll ALL Burn!** You may cast Pyroclasm without Pilfering Power by including yourself in the damage. You have advantage on the save. Choose 1 Fire Utility Spell.
 
 **Level 11:**
 - **Heart of Burning Fire.** Regain 1 use of Pilfered Power each time you roll Initiative. This expires at the end of combat if unused.
@@ -1217,18 +1221,78 @@ The Shadowmancer does NOT have a traditional mana pool. Instead, they use **Pilf
 - **Enveloped by the Master.** Gain 1d4 Wounds to cast Dragonform.
 
 ### Pact of the Abyssal Depths
+**Subclass Complexity: 4/4**
+
+> Icy tendrils reach out from the abyss, and drag your foes into absolute cold and darkness.
 
 **Level 3:**
-- **Master of Nightfrost.** Your Patron grants you knowledge of Ice spells. Gain the ability to breathe underwater. Your shadow minions become beings of nightfrost. Your shadow blast and minions can deal cold or necrotic damage, and whenever they would crit, you gain INT+LVL temp HP.
+- **Master of Nightfrost.** Your Patron grants you knowledge of Ice spells. Gain the ability to breathe underwater. Your Shadows become beings of nightfrost. Your Shadow Blast and Shadows can deal cold or necrotic damage, and whenever they roll the max, you gain INT+LVL temp HP.
 
 **Level 7:**
 - **Shadowfrost.** Your Shadow Blast also Slows. You can cast Cryosleep or Rimeblades without Pilfering Power by expending 10 temp HP. Choose 1 Ice Utility Spell.
 
 **Level 11:**
-- **Glacial Resilience.** (1/Safe Rest) Reaction (whenever you are attacked or would gain a condition), gain 10 x LVL temp HP and end ALL negative conditions on yourself. At the end of your next turn, any remaining temp HP are lost.
+- **Glacial Resilience.** (1/Safe Rest) Reaction (whenever you are attacked or would gain a condition): Gain 10 x LVL temp HP and end ALL negative conditions on yourself. At the end of your next turn, any remaining temp HP are lost.
 
 **Level 15:**
 - **Cryomancer's Reprisal.** Pay half your max HP to cast ANY Ice spell. After casting an Ice spell in this way, you gain an invisible aura: the next creature that hits you with a melee attack this encounter takes cold damage equal to half the HP you spent on this casting.
+
+### Pact of the Void
+**Subclass Complexity: 4/4**
+
+> Your cosmic master gazes from beyond the stars. Time and space are mere playthings to you.
+
+**Level 3:**
+- **Void Spawn.** You can summon Shadows within Reach 6.
+- **Void Step.** You and your allies can move between spaces your Shadows occupy as if they were the same space (but cannot end movement in an occupied space).
+
+**Level 7:**
+- **Voidstrike.** You and your allies can attack between spaces your Shadows occupy as if they were the same space. Gain advantage when attacking this way (e.g., an ally next to a Shadow can make a melee attack against any enemy also adjacent to a Shadow).
+- **The Vast Cold.** Your Shadows inflict the Slowed condition when attacked in melee.
+
+**Level 11:**
+- **Void Singularity.** (Reach 1/minion) Whenever 1 or more Shadows move into the space of another Shadow, all of them implode and die, dealing their combined damage to all creatures in the area, moving them towards the center as you choose.
+
+**Level 15:**
+- **The Consuming Dark.** (1/encounter) When a Shadow kills an enemy you may have it transform into a Greater Shadow.
+- **Urgent Command.** Gain a Wound to move your Shadows as a Reaction.
+
+### Pact of the Endless Swarm
+**Subclass Complexity: 3/4**
+
+> Pests and vermin... Even the weakest grow strong in numbers. The denizens of your swarm are infinite and unyielding.
+
+**Level 3:**
+- **Summon Hive.** Whenever you cast Summon Shadow, also summon a Hive within Reach 2 (max of INT Hives).
+- **Hive.** Immobile minion; enemies within Reach 2 attack with disadvantage. At the end of your turns, spawns a swarm: roll and set aside 1d4. Whenever you or an ally attacks, you can expend any of these dice to increase the damage done.
+
+**Level 7:**
+- **Rampant Brood.** When a Hive dies, it spawns 2 swarms. Whenever you cast Command Shadows, your Hives can also move.
+- **Broodlord.** You may spend your Interpose reaction to make a Hive Interpose for yourself or an ally instead.
+
+**Level 11:**
+- **Impending Infestation.** Summon 1 additional Hive for each time you've previously cast Summon Shadow this encounter.
+
+**Level 15:**
+- **Terrible Plague.** Your swarms increase to d8 damage and your Hives' Reach increases to 3.
+
+### Pact of the High Celestial
+**Subclass Complexity: 2/4**
+
+> Be not afraid! Your radiant spirits empower, bless, and protect those that you deem worthy.
+
+**Level 3:**
+- **Divine Bestowal.** Your Shadows become radiant spirits, lose their ability to attack directly, but can move into the space of an ally and bless them. They move wherever the ally does, and each one grants the ally +2 damage on their attacks and +2 damage reduction from incoming attacks. If an ally takes damage, all minions blessing them die.
+
+**Level 7:**
+- **Radiant Boon.** You may target allies with Shadow Blast and give them Temp HP instead of damaging them.
+
+**Level 11:**
+- **Divine Bestowal (2).** Your minions' blessing increases to 3.
+- **Celestial Armor.** When a blessed ally Defends or Interposes, 1 minion blessing them can sacrifice itself to take the damage instead.
+
+**Level 15:**
+- **Apotheosis.** (1/Safe Rest) For 1 round you are immune to all damage and negative effects. Anytime you would roll a d20, roll a d100 instead, and anytime you would roll less than a d20, roll a d20.
 
 ---
 
@@ -2410,26 +2474,23 @@ These are special subclasses chosen at pivotal moments in a story, at the GM's d
 ## REAVER (Shadowmancer)
 *Cast Aside, Born Anew*
 
-**Hollow One.** Cut off from your patron, you can no longer cast Shadow Blast and you can no longer cast tiered spells using Pilfered Power. However, as a parting token, you have stolen a secret from your patron: The magical Bonescythe, a weapon of sinew and bone, infused with shadowy magic.
+**Hollow One.** Cut off from your patron, you can no longer cast Shadow Blast, nor can you cast tiered spells using Pilfering Power. However, as a parting token, you have stolen a secret from your patron: the magical Bonescythe, a weapon of sinew and bone, infused with shadowy magic.
 
-**Bonescythe.** Action: Summon a magical Bonescythe, a melee weapon: 2d12 slashing+DEX necrotic damage to each die (Reach: 2). It shatters after you hit with it (or when combat ends). Any Invocations affecting Shadow Blast affect your Bonescythe instead.
-
-**High Levels:** Every 5 levels, add 1 extra damage die (Level 5: 3d12, Level 10: 4d12, etc.).
+**Summon Bonescythe.** 1 Action. Summon a magical Bonescythe, a melee weapon. (Reach 2) 2d12 slashing+DEX necrotic damage to EACH die (add 1 extra damage die every 5 levels). On hit (or when combat ends): it shatters and must be resummoned to use again. Invocations affecting Shadow Blast affect your Bonescythe instead.
 
 ### Level 3
-- **Shadow Exploit.** Sacrifice a shadow minion to cast a spell at the highest tier you have unlocked. Each subsequent spell you cast in this encounter costs 1 additional minion.
-- **Martyr Spawn.** Whenever you Defend, you can sacrifice a shadow minion to take no damage.
+- **Shadow Exploit.** Whenever you Defend, you can sacrifice a Shadow to take no damage. Or you may sacrifice a Shadow to cast a spell at the highest tier you have unlocked. Each subsequent time you use this ability in an encounter, increase the cost by 1 Shadow.
 
 ### Level 7
-- **Grim Harrow.** When you strike with your Bonescythe, you may divide the dice as you choose amongst any number of adjacent targets within Reach.
-- **Reap.** When your Bonescythe crits, or kills a creature, summon a shadow minion for free.
+- **Grim Harrow.** When you strike with your Bonescythe, treat each die as Primary. You may divide the dice as you choose amongst any number of adjacent targets within Reach.
+- **Reap.** When your Bonescythe crits or kills a creature, summon a Shadow for free (ignoring your Shadow Limit).
 
 ### Level 11
 - **My Blood, My Power.** You may take 1 Wound to cast a tiered spell you know at the highest tier you have unlocked.
-- **Otherworldly Might.** Advantage on concentration checks if you have any shadow minions.
+- **Otherworldly Might.** Advantage on concentration checks if you have any Shadows.
 
 ### Level 15
-- **I'm the Patron Now!** Summon 2 shadow minions for free when you roll Initiative.
+- **Sovereign One.** Summon 2 Shadows and your Bonescythe for free when you roll Initiative.
 
 ---
 
