@@ -2208,6 +2208,49 @@ window.GAME_DATA = {
         }
       },
       {
+        name: "Circle of Venom & Web",
+        className: "Stormshifter",
+        description: "Stormshifters who align themselves with the nature of spiders and utilize their power from these tiny but deadly creatures.",
+        // Deadly Nature replaces lightning OR wind with necrotic (player picks via stormshifterReplacedSchool)
+        replacesBaseSchoolChoice: { options: ['lightning', 'wind'], to: 'necrotic' },
+        features: {
+          3:  [
+            { name: "Deadly Nature", description: "Replace your knowledge of the lightning or wind school with necrotic." },
+            { name: "Too many legs, too many eyes", description: "Your beastforms gain Climber or Keen Senses for free." },
+            { name: "Venom Sacs", description: "When your attack hits in beastform, you may spend mana to increase your Primary Die by 1 for each mana spent (up to the tier of spells you have unlocked). When you crit in beastform, the target is Poisoned until the end of their next turn." }
+          ],
+          7:  [
+            { name: "Ensnare", description: "Whenever you Interpose or Defend vs a melee attack, you may spend 1 mana to Restrain the attacker until the end of their next turn if it is your size or smaller." },
+            { name: "Recurring Nightmare", description: "(1/encounter) Shift into a Beast of Nightmares as a reaction for free (if you were being attacked, they must reroll and you choose either result)." }
+          ],
+          11: [
+            { name: "Fear Toxin", description: "When you Poison a target, they are Frightened until the end of their next turn." },
+            { name: "Skitter", description: "Your Beast of Nightmares form gets the Fleet Footed Chimeric Boon for free." }
+          ],
+          15: [
+            { name: "Dread Voice", description: "You may cast necrotic spells while Beastshifted." },
+            { name: "Spiderling Swarm", description: "Ensnare also Poisons creatures for as long as they are Restrained." }
+          ]
+        }
+      },
+      {
+        name: "Circle of Cinder & Ash",
+        className: "Stormshifter",
+        description: "The circles of Cinders have an important duty beyond being perceived as pyromaniacs. They are responsible for clearing portions of forests of impurities or old invasive species to clear it out for the new.",
+        // Wildfire replaces lightning OR wind with fire (player picks via stormshifterReplacedSchool)
+        replacesBaseSchoolChoice: { options: ['lightning', 'wind'], to: 'fire' },
+        features: {
+          3:  [
+            { name: "Wildfire", description: "Replace your lightning or wind spell school with the fire school." },
+            { name: "Searing Fang", description: "Your direbeast form attacks gain the benefits of Enchant Weapon for free." },
+            { name: "Firesight", description: "You have advantage on Skill checks related to fire." }
+          ],
+          7:  [{ name: "Phoenix Flame", description: "(1/encounter) While dying you may cast Pyroclasm for free. Gain temp HP equal to the amount rolled." }],
+          11: [{ name: "Cinderhide", description: "Whenever you cast a tiered fire spell, you may spend 2 additional mana to Beastshift for free. You gain resistance to fire damage while shifted." }],
+          15: [{ name: "Living Pyre", description: "You can cast Flame Barrier while Beastshifted. (1/encounter) You may do so for free." }]
+        }
+      },
+      {
         name: "Circle of Fang & Claw",
         className: "Stormshifter",
         description: "Bestial shapeshifter. Move fluidly between Direbeast forms and unleash the raw fury of the wild.",
@@ -2239,6 +2282,37 @@ window.GAME_DATA = {
           7:  [{ name: "Share My Pain", description: "Your Swiftstrike can also target a 2nd creature within Reach 2." }],
           11: [{ name: "Pain Sharpens the Mind", description: "While you are Bloodied, gain advantage on the first attack you make each turn, and on all saves." }],
           15: [{ name: "Echoed Agony", description: "Your Swiftstrike can also target a 3rd creature within Reach 4." }]
+        }
+      },
+      {
+        name: "Way of Iron",
+        className: "Zephyr",
+        description: "Train your body to be hard as iron. Concentrate to strengthen your defenses, then release the energy for devastating blows.",
+        features: {
+          3:  [{ name: "Steel Yourself", description: "When you roll Initiative gain Tempered: Roll STR saves with advantage. Reduce all Primary Dice rolled against you by 1. Ends when the encounter does, or when you hit, you may end it to add 1d20 damage." }],
+          7:  [
+            { name: "Iron Fists", description: "Your unarmed strikes deal 1d6+STR damage. Roll your Tempered die with advantage." },
+            { name: "Iron Body", description: "Gain Tempered the first time you would gain a Wound each encounter." }
+          ],
+          11: [{ name: "Infuse with Iron", description: "When you use Infuse Strength, your target gains Tempered." }],
+          15: [{ name: "Perfect Alloy", description: "Gain Tempered whenever you use a Burst of Speed." }]
+        }
+      },
+      {
+        name: "Way of Hurricanes",
+        className: "Zephyr",
+        description: "Your fist is as the howling wind, unceasing and everflowing. Those who face you are battered and bruised by a whirlwind of deadly strikes. Choose this subclass if you want to move with blinding speed and control the position of foes with typhoon-like strikes.",
+        features: {
+          3:  [
+            { name: "Razor Fist", description: "Your unarmed strikes do Slashing damage and are Vicious." },
+            { name: "Air Dash", description: "Your Windstep gains: You can pull creatures within Reach 1 of your movement anywhere else within this Reach." }
+          ],
+          7:  [
+            { name: "Cyclonic Defense", description: "Whirling Defense gains: you may place any other creatures within Reach 4, elsewhere within Reach 4." },
+            { name: "Cleaving Gale", description: "Whenever you crit, deal that much damage to a 2nd target within Reach 2." }
+          ],
+          11: [{ name: "Galeforce Strike", description: "Your Swiftstrikes gain Vicious and knockback STR spaces away; you may suffer 1 Wound to double the distance." }],
+          15: [{ name: "Tempest's Fury", description: "Whenever you would roll any extra dice for a crit instead roll 1d20." }]
         }
       },
       {

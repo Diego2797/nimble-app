@@ -1934,6 +1934,47 @@ Transform into any Tiny beast or insect (provided it is *horrible*). Gain the St
 **Level 15:**
 - **Master of Forms (2).** You can Beastshift 2 additional times per Safe Rest. Choose 2 additional Chimeric Boons. Your Direbeast forms can have 3 at a time.
 
+### Circle of Venom & Web
+**Subclass Complexity: 2/4**
+
+> Stormshifters who align themselves with the nature of spiders and utilize their power from these tiny but deadly creatures.
+
+**Level 3:**
+- **Deadly Nature.** Replace your knowledge of the lightning or wind school with necrotic.
+- **Too many legs, too many eyes.** Your beastforms gain Climber or Keen Senses for free.
+- **Venom Sacs.** When your attack hits in beastform, you may spend mana to increase your Primary Die by 1 for each mana spent (up to the tier of spells you have unlocked). When you crit in beastform, the target is Poisoned until the end of their next turn.
+
+**Level 7:**
+- **Ensnare.** Whenever you Interpose or Defend vs a melee attack, you may spend 1 mana to Restrain the attacker until the end of their next turn if it is your size or smaller.
+- **Recurring Nightmare.** (1/encounter) Shift into a Beast of Nightmares as a reaction for free (if you were being attacked, they must reroll and you choose either result).
+
+**Level 11:**
+- **Fear Toxin.** When you Poison a target, they are Frightened until the end of their next turn.
+- **Skitter.** Your Beast of Nightmares form gets the Fleet Footed Chimeric Boon for free.
+
+**Level 15:**
+- **Dread Voice.** You may cast necrotic spells while Beastshifted.
+- **Spiderling Swarm.** Ensnare also Poisons creatures for as long as they are Restrained.
+
+### Circle of Cinder & Ash
+**Subclass Complexity: 1/4**
+
+> The circles of Cinders have an important duty beyond being perceived as pyromaniacs. They are responsible for clearing portions of forests of impurities or old invasive species to clear it out for the new.
+
+**Level 3:**
+- **Wildfire.** Replace your lightning or wind spell school with the fire school.
+- **Searing Fang.** Your direbeast form attacks gain the benefits of Enchant Weapon for free.
+- **Firesight.** You have advantage on Skill checks related to fire.
+
+**Level 7:**
+- **Phoenix Flame.** (1/encounter) While Dying you may cast Pyroclasm for free. Gain temp HP equal to the amount rolled.
+
+**Level 11:**
+- **Cinderhide.** Whenever you cast a tiered fire spell, you may spend 2 additional mana to Beastshift for free. You gain resistance to fire damage while shifted.
+
+**Level 15:**
+- **Living Pyre.** You can cast Flame Barrier while Beastshifted. (1/encounter) You may do so for free.
+
 ---
 
 # ZEPHYR
@@ -2098,6 +2139,43 @@ Additional Bursts of Speed are gained from:
 
 **Level 15:**
 - **Burning Soul.** Double any fire damage you deal.
+
+### Way of Iron
+**Subclass Complexity: 1/4**
+
+> Train your body to be hard as iron. Concentrate to strengthen your defenses, then release the energy for devastating blows.
+
+**Level 3:**
+- **Steel Yourself.** When you roll Initiative gain **Tempered**: Roll STR saves with advantage. Reduce all Primary Dice rolled against you by 1. Ends when the encounter does, or when you hit, you may end it to add 1d20 damage.
+
+**Level 7:**
+- **Iron Fists.** Your unarmed strikes deal 1d6+STR damage. Roll your Tempered die with advantage.
+- **Iron Body.** Gain Tempered the first time you would gain a Wound each encounter.
+
+**Level 11:**
+- **Infuse with Iron.** When you use Infuse Strength, your target gains Tempered.
+
+**Level 15:**
+- **Perfect Alloy.** Gain Tempered whenever you use a Burst of Speed.
+
+### Way of Hurricanes
+**Subclass Complexity: 2/4**
+
+> Your fist is as the howling wind, unceasing and everflowing. Those who face you are battered and bruised by a whirlwind of deadly strikes. Choose this subclass if you want to move with blinding speed and control the position of foes with typhoon-like strikes.
+
+**Level 3:**
+- **Razor Fist.** Your unarmed strikes do Slashing damage and are Vicious.
+- **Air Dash.** Your Windstep gains: You can pull creatures within Reach 1 of your movement anywhere else within this Reach.
+
+**Level 7:**
+- **Cyclonic Defense.** Whirling Defense gains: you may place any other creatures within Reach 4, elsewhere within Reach 4.
+- **Cleaving Gale.** Whenever you crit, deal that much damage to a 2nd target within Reach 2.
+
+**Level 11:**
+- **Galeforce Strike.** Your Swiftstrikes gain Vicious and knockback STR spaces away; you may suffer 1 Wound to double the distance.
+
+**Level 15:**
+- **Tempest's Fury.** Whenever you would roll any extra dice for a crit instead roll 1d20.
 
 ---
 

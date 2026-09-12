@@ -2558,7 +2558,7 @@ h1, h2, h3, h4 {
 
 <input type="file" id="imageUpload" class="hidden-input" accept="image/*">
 
-<script src="gamedata.js?v=v0.9-sm0.2-tc0.2-sh0.2-st2.0.3-zp2.0.3"></script>
+<script src="gamedata.js?v=v0.9-sm0.2-tc0.2-sh0.2-st2.0.3v01-zp2.0.3v01"></script>
 <script src="gmdata.js"></script>
 <script>
 /* =============================================================
@@ -4207,6 +4207,15 @@ const app = {
       schools = schools.filter(s => s !== from);
       if (to && !schools.includes(to)) schools.push(to);
     }
+    // Player-chosen replacement (e.g., Stormshifter Circle of Venom & Web swaps lightning OR wind → necrotic).
+    // The picked `from` school lives on ch.stormshifterReplacedSchool; falls back to the first option
+    // in the subclass's replacesBaseSchoolChoice.options until the player picks one.
+    if (subData?.replacesBaseSchoolChoice) {
+      const { options, to } = subData.replacesBaseSchoolChoice;
+      const from = ch.stormshifterReplacedSchool || options[0];
+      schools = schools.filter(s => s !== from);
+      if (to && !schools.includes(to)) schools.push(to);
+    }
     // Subclass schools (additive)
     if (ch.subclass && prog.subclassSchools[ch.subclass]) {
       prog.subclassSchools[ch.subclass].forEach(s => { if (!schools.includes(s)) schools.push(s); });
@@ -4621,6 +4630,7 @@ const app = {
       epicBoonChoices: {},  // { [featureIndex]: { name, description } }
       fiendishBoonStat: null,
       stormshifterSchool: null, // Circle of Sky & Storm: 'ice' | 'radiant'
+      stormshifterReplacedSchool: null, // Circle of Venom & Web / Cinder & Ash: 'lightning' | 'wind'
     };
     this.renderLevelUpModal();
   },
@@ -4763,6 +4773,25 @@ const app = {
           const sel = st.stormshifterSchool === o.key;
           html += `<button class="btn ${sel ? 'btn-primary' : 'btn-secondary'}" style="min-width:100px"
             onclick="app.setLevelUpStormshifterSchool('${o.key}')">${o.label}</button>`;
+        });
+        html += `</div></div>`;
+      }
+      // Stormshifter: Circle of Venom & Web / Cinder & Ash replace lightning OR wind
+      if (st.subclassChoice === 'Circle of Venom & Web' || st.subclassChoice === 'Circle of Cinder & Ash') {
+        const to = st.subclassChoice === 'Circle of Venom & Web' ? 'Necrotic' : 'Fire';
+        const featureName = st.subclassChoice === 'Circle of Venom & Web' ? 'Deadly Nature' : 'Wildfire';
+        const opts = [
+          { key: 'lightning', label: '⚡ Lightning' },
+          { key: 'wind', label: '🌪 Wind' }
+        ];
+        html += `<div style="margin-bottom:16px;padding:10px;background:var(--parchment-dark);border-radius:8px">
+          <div style="font-weight:bold;color:var(--burgundy);margin-bottom:6px;font-size:0.85rem">${featureName} — Replace a Base School</div>
+          <div style="font-size:0.7rem;color:var(--ink-light);margin-bottom:6px">Choose which of your base schools to replace with <strong>${to}</strong>.</div>
+          <div style="display:flex;gap:8px;justify-content:center">`;
+        opts.forEach(o => {
+          const sel = st.stormshifterReplacedSchool === o.key;
+          html += `<button class="btn ${sel ? 'btn-primary' : 'btn-secondary'}" style="min-width:100px"
+            onclick="app.setLevelUpStormshifterReplacedSchool('${o.key}')">${o.label}</button>`;
         });
         html += `</div></div>`;
       }
@@ -5001,7 +5030,8 @@ const app = {
     // --- New Spells Preview ---
     const subForSpells = st.subclassChoice || ch.subclass || null;
     const stormshifterSchoolForSpells = st.stormshifterSchool || ch.stormshifterSchool || null;
-    const tempCharForSpells = { ...ch, level: st.newLevel, subclass: subForSpells, stormshifterSchool: stormshifterSchoolForSpells };
+    const stormshifterReplacedForSpells = st.stormshifterReplacedSchool || ch.stormshifterReplacedSchool || null;
+    const tempCharForSpells = { ...ch, level: st.newLevel, subclass: subForSpells, stormshifterSchool: stormshifterSchoolForSpells, stormshifterReplacedSchool: stormshifterReplacedForSpells };
     const newSpells = this.autoLoadSpells(tempCharForSpells);
     const addedSpells = newSpells.filter(ns => !(ch.spells || []).find(s => s.name === ns.name));
     if (addedSpells.length > 0) {
@@ -5031,6 +5061,8 @@ const app = {
     if (!utilityComplete) canConfirm = false;
     // Stormshifter Sky & Storm requires picking Ice or Radiant
     if (st.subclassChoice === 'Circle of Sky & Storm' && !st.stormshifterSchool) canConfirm = false;
+    // Stormshifter Venom & Web / Cinder & Ash require picking Lightning or Wind to replace
+    if ((st.subclassChoice === 'Circle of Venom & Web' || st.subclassChoice === 'Circle of Cinder & Ash') && !st.stormshifterReplacedSchool) canConfirm = false;
     // utilityAllPickSchool: must pick N schools
     const schoolPickComplete = st.categorized.filter(c => c.type === 'utilityAllPickSchool').every(cat => {
       return (st.utilitySchoolPicks[cat.index] || []).length >= (cat.numSchools || 1);
@@ -5130,6 +5162,9 @@ const app = {
     if (sub) st.subclassChoice = st.subclassChoice === sub.name ? null : sub.name;
     // Reset Stormshifter school if subclass changed away from Sky & Storm
     if (st.subclassChoice !== 'Circle of Sky & Storm') st.stormshifterSchool = null;
+    // Reset base-school-replacement pick if not on a subclass that uses it
+    const replaceChoiceSubs = ['Circle of Venom & Web', 'Circle of Cinder & Ash'];
+    if (!replaceChoiceSubs.includes(st.subclassChoice)) st.stormshifterReplacedSchool = null;
     this.renderLevelUpModal();
   },
 
@@ -5137,6 +5172,13 @@ const app = {
     const st = this.levelUpState;
     if (!st) return;
     st.stormshifterSchool = st.stormshifterSchool === school ? null : school;
+    this.renderLevelUpModal();
+  },
+
+  setLevelUpStormshifterReplacedSchool(school) {
+    const st = this.levelUpState;
+    if (!st) return;
+    st.stormshifterReplacedSchool = st.stormshifterReplacedSchool === school ? null : school;
     this.renderLevelUpModal();
   },
 
@@ -5373,7 +5415,8 @@ const app = {
 
     // Auto-load spells based on class, subclass, new level, and any Stormshifter extra school
     const finalStormshifterSchool = st.stormshifterSchool || ch.stormshifterSchool || null;
-    const tempChar = { ...ch, level: st.newLevel, subclass: subclass, stats: newStats, stormshifterSchool: finalStormshifterSchool };
+    const finalStormshifterReplacedSchool = st.stormshifterReplacedSchool || ch.stormshifterReplacedSchool || null;
+    const tempChar = { ...ch, level: st.newLevel, subclass: subclass, stats: newStats, stormshifterSchool: finalStormshifterSchool, stormshifterReplacedSchool: finalStormshifterReplacedSchool };
     const spells = this.autoLoadSpells(tempChar);
 
     // Add chosen utility spells (from utilitySpellChoice features)
@@ -5459,7 +5502,8 @@ const app = {
       chosenAbilities,
       fiendishBoonStat,
       hitDiceMaxMod,
-      stormshifterSchool: finalStormshifterSchool
+      stormshifterSchool: finalStormshifterSchool,
+      stormshifterReplacedSchool: finalStormshifterReplacedSchool
     });
 
     this.levelUpState = null;
@@ -5588,9 +5632,20 @@ const app = {
     const lostSchools = oldSchools.filter(s => !newSchools.includes(s));
     const gainedSchools = newSchools.filter(s => !oldSchools.includes(s));
 
-    // Base-school replacement (e.g., Shepherd Luminary of the Forge swaps Necrotic → Fire)
-    const oldReplace = oldSub?.replacesBaseSchool;
-    const newReplace = newSub?.replacesBaseSchool;
+    // Base-school replacement (e.g., Shepherd Luminary of the Forge swaps Necrotic → Fire).
+    // Normalize both fixed (`replacesBaseSchool`) and player-choice (`replacesBaseSchoolChoice`)
+    // forms into a common { from, to } shape.
+    const resolveReplace = (sub) => {
+      if (!sub) return null;
+      if (sub.replacesBaseSchool) return sub.replacesBaseSchool;
+      if (sub.replacesBaseSchoolChoice) {
+        const opt = sub.replacesBaseSchoolChoice;
+        return { from: ch.stormshifterReplacedSchool || opt.options[0], to: opt.to };
+      }
+      return null;
+    };
+    const oldReplace = resolveReplace(oldSub);
+    const newReplace = resolveReplace(newSub);
     if (newReplace) {
       if (!lostSchools.includes(newReplace.from)) lostSchools.push(newReplace.from);
       if (newReplace.to && !gainedSchools.includes(newReplace.to)) gainedSchools.push(newReplace.to);
