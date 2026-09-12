@@ -520,6 +520,8 @@ Then each stat card shows a shield icon: green up-arrow for advantage, red down-
 
 ## Data Corrections Status
 
+> **Session 5 update (September 2026)**: this checklist describes the state at the end of April 2026 Session 2 — accurate for the audit that landed then, but every class listed here has since been rebuilt against its printed 0.2 PDF (or the 2.0.3 compiled Heroes book). See the Session 5 block for the current subclass roster (22 new subclasses added) and mechanic changes.
+
 ### All Completed
 - [x] **Distance Units**: All "ft"/"feet" converted to "spaces" (1 space = 5 feet). Default speed = 6.
 - [x] **Spell Data**: All 6 schools rebuilt — 2 cantrips each, correct tiers, 3 utility spells each, hexbinder spells rewritten.
@@ -891,20 +893,20 @@ This is the RAW-legal way to handle story events like "you lose your patron, bec
 
 The app is being tested with a real campaign group. These 5 classes MUST work correctly end-to-end (creation, level-up, abilities, spells, all features):
 
-1. **The Cheat** — Luck Dice, no mana
-2. **Shadowmancer** — Pilfered Power, Lesser/Greater Invocations, Supplicate, subclass-based spell schools
-3. **Shepherd** — Mana (WIL x 3 + LVL), Radiant+Necrotic cantrips at L1, Searing Light, Lifebinding Spirit, Sacred Graces
-4. **Stormshifter** — Mana (WIL x 3 + LVL), Lightning+Wind, Sky & Storm subclass extra school
-5. **Zephyr** — Focus, Momentum, no mana
+1. **The Cheat** — no mana, Sneak Attack ladder, Underhanded Abilities (11 total after Session 5)
+2. **Shadowmancer** — Pilfered Power, Lesser/Greater Invocations, Supplicate, subclass-based spell schools (5 subclasses after Session 5)
+3. **Shepherd** — Mana (WIL x 3 + LVL), Radiant+Necrotic cantrips at L1, Lifebinding Spirit (now a cantrip after Session 5), Sacred Graces (Searing Light moved to Mercy L7)
+4. **Stormshifter** — Mana (WIL x 3 + LVL), Lightning+Wind base + subclass swaps (Venom & Web / Cinder & Ash trade lightning-or-wind for necrotic/fire via `replacesBaseSchoolChoice`)
+5. **Zephyr** — Focus, Momentum, no mana. Way of Iron (Tempered status) and Way of Hurricanes now available.
 
 When making changes, **always verify these 5 classes are not broken**. Cross-reference `reference/classes.md` for any data corrections.
 
-**Audit status (April 2026 Session 2)**: All 5 classes cross-referenced against `reference/classes.md` via agent-assisted audit. Critical issues found and fixed:
-- The Cheat: ✅ clean (0 critical, 2 minor cosmetic)
-- Shadowmancer: ✅ fixed (removed duplicate Pilfered Power from L1)
-- Shepherd: ✅ fixed (armor prof + starting gear were wrong)
-- Stormshifter: ✅ clean (0 critical, 3 minor)
-- Zephyr: ✅ clean (0 critical, 2 minor)
+**Audit status (April 2026 Session 2 → September 2026 Session 5)**: originally audited against a partial `reference/classes.md` in April 2026 (Session 2); every class then rebuilt against the printed 0.2 PDFs in September 2026 (Session 5). See the Session 5 block above for the full per-class rewrite list and the four new subclass mechanics (`replacesBaseSchool`, `replacesBaseSchoolChoice`, `restrictsBaseSchoolsTo`, `removesClassAbilities`).
+- The Cheat: ✅ v0.2 (11 Underhanded Abilities; +Serpent, +Gambler, +Honorseeker story-based)
+- Shadowmancer: ✅ v0.2 (+Void, +Endless Swarm, +High Celestial; Command Shadows split out)
+- Shepherd: ✅ v0.2 (+Protection, +Forge story-based; Lifebinding Spirit now a cantrip; Sacred Graces shift one level earlier)
+- Stormshifter: ✅ 2.0.3 + v0.1 solo PDF (+Venom & Web, +Cinder & Ash)
+- Zephyr: ✅ 2.0.3 + v0.1 solo PDF (+Iron, +Hurricanes)
 
 ## Features Not Yet Implemented
 
@@ -1726,6 +1728,112 @@ app._invokerPickSchool(ch)            // 'wind' | 'necrotic' | null — for Mage
 app.hasInvokerPicks(ch)               // true if picker button should show on sheet
 ```
 
+## Session 5 (September 2026) — Nimble v0.9 + Class 0.2 rollout
+
+Full content pass across every published class. Diego dropped the new **Nimble Core Rules v0.9** PDF plus individual class 0.2 PDFs into `ACTUALIZACIONES/` (gitignored — copyrighted PDFs stay local). Every class was rebuilt against the printed text, ~22 new subclasses shipped, four subclass mechanics landed to support them, and two new player-facing buttons went in as scaffolding for the rollout.
+
+### Round 1 — Player-facing buttons
+
+- **Change Subclass button** (sheet header, was "Story Transition"). `_getSubclassSwapOptions` now returns every subclass of the class (Standard + Story-based), not only the crossings of the story-boundary. Standard↔Standard swaps show a gold "House rule — get GM approval" banner in the confirm step. Uses the same `_computeSubclassDiff` engine so removed/gained abilities + spell schools still preview correctly. Button label stays visible as "Change Subclass"; the old restrictive text was retired.
+- **Migrate to v0.9 button** (sheet header, red, hidden once `ch.rulesVersion === 'v0.9'`). Modal previews the concrete deltas — max Wounds baseline → 6, spells with renamed / removed entries (Greater Shadow → dropped), inventory items renamed (Mithril Plate → Adamantine Plate), weapons whose damage stayed stale (Spear / Greatmaul / Greatsword). Confirm applies the deltas atomically via `updateChar` and stamps `ch.rulesVersion = 'v0.9'`. Lookup tables live at the top of the confirm methods: `_v0_9_SPELL_RENAMES`, `_v0_9_SPELL_REFRESH`, `_v0_9_ITEM_RENAMES`, `_v0_9_WEAPON_REBALANCES`. `_v0_9_SPELL_REFRESH` drops a spell entry so `autoLoadSpells` re-adds it with the new stat block (used for Lifebinding Spirit's Tier 1 → Cantrip move).
+
+### Round 2 — Core Rules v0.9 data
+
+- **Ancestries** split into three groups: **Common** (5), **Uncommon** (6 — Bunbun, Dragonborn, Fiendkin, Goblin, Kobold, Orc, previously grouped with Exotic), **Exotic** (13). `getData()` now flattens `{common, uncommon, exotic}` → flat array with `category` field. `renderStepAncestry` renders each group under its own heading with a "check with your GM" note for Uncommon and Exotic.
+- **Conditions rewritten** to Nimble v0.9 wording — dropped the 5e-isms (Bonus Actions, d20 death saves, "max HP reduction on Wound"). Added **Silenced**. Added **Smoldering / Charged / Distracted** as minor statuses, each documenting which parent school it interacts with.
+- **Equipment refreshes**: Spear damage 1d10 → 1d6 (with new Great Spear taking the 1d10 slot); Greatmaul 1d12 → 3d4; Greatsword 3d4 → 1d12; Short Sword cost 10gp → 15gp; **Mithril Plate → Adamantine Plate**. Migration handles inventory items with the old names.
+- **Spells**: Necrotic T4 "Greater Shadow" → **Vigor Mortis** (very different — cast when an ally drops to 0 HP, concentration up to 1 min, preserves their max HP + they skip STR saves + Dying wounds -1). Bumps existing character migration path.
+- **Cache-buster on gamedata.js**: `<script src="gamedata.js?v=v0.9-...">`. Each subsequent class deploy appends to the query string so browsers don't serve a stale `gamedata.js` off cache.
+
+### Round 3 — All 11 classes brought to v0.2
+
+One commit per class, each carrying its own SW bump + cache-buster append. Individual PDFs for 8 classes (Berserker, The Cheat, Commander, Hunter, Mage, Oathsworn, Shadowmancer, Shepherd) came from Diego's collection at v0.2. Songweaver, Stormshifter, Zephyr sourced from the compiled **Heroes 2.0.3** book. Diego flagged that the Stormshifter / Zephyr solo PDFs (v0.1) carried extra subclasses the compiled book didn't — those were pulled from the v0.1 PDFs too.
+
+Class-by-class subclass rundown:
+
+| Class | Existing subclasses | New subclasses shipped | Story-based |
+|---|---|---|---|
+| Berserker | Mountainheart, Red Mist | **Titan's Grip**, **Burning Rage** | **Muscle Mage** (new) |
+| The Cheat | Silent Blade, Scoundrel | **Tools of the Serpent**, **Tools of the Gambler** | **The Honorseeker** (new) |
+| Commander | Bulwark, Vanguard | **Phalanx**, **Arena**, **Siege-Breaker** | Spellblade (refreshed) |
+| Hunter | Shadowpath, Wild Heart | **Keeper of the Pack**, **Keeper of Traps** | Beastmaster (already existed) |
+| Mage | Control, Chaos | **Wards**, **Flame**, **Frost**, **Surges** | — |
+| Oathsworn | Vengeance, Refuge (were placeholders — now filled) | **Valor**, **Roaring Thunder** | Oathbreaker (already existed, refreshed) |
+| Shadowmancer | Red Dragon, Abyssal Depths | **Void**, **Endless Swarm**, **High Celestial** | Reaver (refreshed) |
+| Shepherd | Mercy, Malice | **Protection** | **Luminary of the Forge** (new) |
+| Songweaver | Snark, Courage | (compiled 2.0.3 only carries the printed two) | — |
+| Stormshifter | Sky & Storm, Fang & Claw | **Venom & Web**, **Cinder & Ash** (from v0.1 solo PDF) | — |
+| Zephyr | Pain, Flame | **Iron**, **Hurricanes** (from v0.1 solo PDF) | — |
+
+**Class-level rewrites of note** (each class also carries wording refreshes + duplicated-callout cleanup, but these are the ones that reshape gameplay):
+
+- **Berserker**: L1 Rage inlines the "Your Rage Ends" clause so the sheet shows the termination rule. L4 Wrath & Ruin duplicate removed. L20 Boundless Rage floor 6 → 5. **Death Blow** rewritten from "expend Fury Dice, sum, deal double" to a passive rider "Whenever you crit, double the damage from your Fury Dice". MORE BLOOD! gains the second clause "Whenever you drop to 0 HP, Rage for free."
+- **The Cheat**: Underhanded Abilities 10 → 11 (added Tangling Wire + The Setup, collapsed the fabricated Sunder Armor (Medium)/(Heavy) into one). Scoundrel's Low Blow is now the d4 status roll (Taunted / Prone+Taunted / Dazed+Taunted / Incapacitated), not the fabricated Incap-on-STR-save version. Silent Blade Cunning Strike simplified to "+2×INT damage on crit".
+- **Commander** (biggest rewrite): L1 Coordinated Strike now (1/encounter). L2 ↔ L4 swapped — Fit for Any Battlefield + Field Medic land at L2 (Combat Dice arrive here), Commander's Orders picks land at L4. Master Commander now bundles Combat Die size + INT uses per Safe Rest + ignore-disadvantage rider. Commanding Presence moved from Combat Tactics into Commander's Orders. Weapon Mastery rewritten (Slashing "hit +1 adjacent creature", Bludgeoning "+10 vs Armored", Piercing "hit target behind"). Starting gear Hand Axe → Short Sword. `retrainArrays` now includes `weaponMastery` so all three pick lists retrain via Rigorous Training.
+- **Hunter**: Thrill of the Hunt abilities refreshed with action costs prefixed (0/1/2/3 Actions). Heavy Shot simplified to "knock them back 2 spaces" (was a fabricated size-based push table). Sharpshooter distance clause updated to "beyond Reach 3". Hail of Arrows now "Slow all creatures within a 3×3 area" (was fabricated "speed halved"). Shadowpath L11 Pack Hunter → **Dread Hunter** (choose both Hunter's Mark options). Wild Heart L7 split Herbalist + Healing Salve.
+- **Mage**: L4 Study! duplicate removed. Control and Chaos wording refreshed. Four Invoker subclasses added — three of them single-school via the new `restrictsBaseSchoolsTo` mechanic below.
+- **Oathsworn**: Vengeance + Refuge went from placeholder entries to full 4-level features. Zealot simplified to flat "+5 damage per mana spent" (dropped fabricated Condemning Strike / Blessed Aim menu). Weapon prof clarified to "Melee STR Weapons". Unstoppable Protector Sacred Decree +1 → +2 Speed.
+- **Shadowmancer**: Command Shadows moved out of the Summon Shadow blob into its own cantrip entry. L20 Eldritch Usurper + Greater Shadow rewrite. Fabricated "Vengeful Blast" invocation removed (10 total). Reaver base features hold Hollow One + Summon Bonescythe (moved out of L3), L15 renamed Sovereign One.
+- **Shepherd**: L1 Searing Light moved off the base class into Mercy L7. **My Buddy!** at L1 grants Lifebinding Spirit as a cantrip (was a Tier 1 Radiant spell — see the Migrate button's refresh table). Sacred Grace picks shift one level earlier (first pick at L4, was L5). Assist Me, My Friend! is now an L5 class feature (was a Sacred Grace). Dark Benediction added to Sacred Graces (8 total).
+- **Stormshifter**: L1 Tiny Beasts pulled out as its own feature entry. L6 Be Wild callout duplicate removed. Fang & Claw L11 Venomous Gaze mana 2 → 3 (matches printed).
+- **Zephyr**: L4 Focus callout duplicate removed. **Way of Iron** introduces the **Tempered** status ("Roll STR saves with advantage. Reduce all Primary Dice rolled against you by 1").
+
+### Four subclass mechanics landed this session
+
+All three build on top of the existing subclass-swap engine (`getCharacterSchools`, `autoLoadSpells`, `_computeSubclassDiff`, `confirmSubclassSwap`). Each mechanic is declared on the subclass in `gamedata.js` and consumed by the two engine methods in `index.html`.
+
+1. **`replacesBaseSchool: { from, to }`** — subclass fixed swap of one base school for another. First customer: Shepherd Luminary of the Forge (Necrotic → Fire). `getCharacterSchools` filters `from` out of `baseSchools` and appends `to`. `_computeSubclassDiff` reports the swap as `lostSchools: [from]` / `gainedSchools: [to]`, and restores it when swapping out.
+
+2. **`replacesBaseSchoolChoice: { options, to }`** — subclass offers the player a choice of which base school to trade for the fixed replacement. Customers: Stormshifter Circle of Venom & Web (`options: ['lightning', 'wind'], to: 'necrotic'`) and Circle of Cinder & Ash (`options: ['lightning', 'wind'], to: 'fire'`). Choice lives on `ch.stormshifterReplacedSchool: 'lightning' | 'wind'` (defaults to the first option until picked). Level-up modal shows a **Lightning / Wind picker** next to the Deadly Nature / Wildfire feature when either subclass is selected; confirm is blocked until picked. `confirmLevelUp` persists the pick.
+
+3. **`restrictsBaseSchoolsTo: [...]`** — subclass replaces the entire base pool with the listed schools. Customers: Mage Invoker of Flame (`['fire']`), Invoker of Frost (`['ice']`), Invoker of Surges (`['lightning']`). `getCharacterSchools` drops the base pool entirely and returns the restricted list. `_computeSubclassDiff` iterates `SPELL_PROGRESSION.baseSchools`, reports every school not in `restrictsBaseSchoolsTo` as lost, and restores them on swap out.
+
+4. **`removesClassAbilities: [...]`** — existing since Session 4 (Reaver stripped Pilfered Power), now used more broadly for the "trade class features for something else" pattern:
+   - **Muscle Mage** → strips the Savage Arsenal pick ladder (Muscle Spells replace them, listed in `reference/classes.md` under STORY-BASED SUBCLASSES).
+   - **The Honorseeker** → strips Sneak Attack + Vicious Opportunist + Twist the Blade (Honorable Gambits replace the Underhanded ladder).
+   - **Champion of the Arena** (Commander) → strips Commander's Orders (Single-minded Fighter trades each Order for +1 max Combat Die).
+
+### Cache-buster + SW progression
+
+Both the SW `CACHE_NAME` and the `<script src="gamedata.js?v=...">` query string were bumped on every deploy so installed PWAs pick up the class updates without a hard reload. The query-string chain reads left-to-right as the session progressed:
+
+| Deploy | SW | gamedata.js cache-buster |
+|---|---|---|
+| Round 1 (buttons) | v33 → v34 | *(none — same URL)* |
+| Round 2 (Core Rules v0.9) | v34 → v35 | `?v=v0.9` |
+| Shadowmancer 0.2 | v35 → v36 | `?v=v0.9-sm0.2` |
+| The Cheat 0.2 | v36 → v37 | `?v=v0.9-sm0.2-tc0.2` |
+| Shepherd 0.2 | v37 → v38 | `?v=...-sh0.2` |
+| Stormshifter 2.0.3 (compiled) | v38 → v39 | `?v=...-st2.0.3` |
+| Zephyr 2.0.3 (compiled) | v39 → v40 | `?v=...-zp2.0.3` |
+| Stormshifter + Zephyr v0.1 solo subclasses | v40 → v41 | `?v=...-st2.0.3v01-zp2.0.3v01` |
+| Berserker 0.2 | v41 → v42 | `?v=...-bk0.2` |
+| Commander 0.2 | v42 → v43 | `?v=...-cm0.2` |
+| Hunter 0.2 | v43 → v44 | `?v=...-hn0.2` |
+| Mage 0.2 | v44 → v45 | `?v=...-mg0.2` |
+| Oathsworn 0.2 | v45 → v46 | `?v=...-os0.2` |
+
+### New character fields (persist to localStorage + Firestore)
+
+- `ch.rulesVersion: 'v0.9' | null` — set by the Migrate to v0.9 flow so the button hides after use. Absence of the field means the character is still on pre-v0.9 rules.
+- `ch.stormshifterReplacedSchool: 'lightning' | 'wind' | null` — Stormshifter Venom & Web / Cinder & Ash: which base school is traded for the replacement.
+- `ch.maxWounds` — was previously implicit; now explicitly set to 6 by the Migrate flow so class/background bonuses can stack cleanly on top (matches how `getBonusWounds` already works).
+
+### New subclass declaration fields (in `gamedata.js`)
+
+Alongside the existing `features`, `className`, `blocksClassSpecific`, `grantsClassSpecific`, `removesClassAbilities`:
+
+- `description: 'Flavor quote'` — every subclass now carries the printed description quote so the L3 subclass picker and the Change Subclass modal show the intended flavor.
+- `replacesBaseSchool: { from, to }` — see mechanic #1 above.
+- `replacesBaseSchoolChoice: { options: [...], to }` — see mechanic #2 above.
+- `restrictsBaseSchoolsTo: [...]` — see mechanic #3 above.
+
+### `reference/` and `.gitignore`
+
+- Every class edit landed in both `reference/classes.md` (source of truth) and `gamedata.js` (app data). The "reference/ files are the source of truth" rule still holds.
+- `reference/classes.md` grew a per-subclass complexity block + description quote, matching the layout the Session 5 rewrite settled on.
+- `.gitignore` gained `actualizaciones/`, `ACTUALIZACIONES/`, and `*.pdf` — Diego's Nimble PDFs (copyrighted) stay local.
+
 ## Aesthetic Guidelines
 - **Fantasy old book / worn parchment** look
 - Dark brown text on parchment background
@@ -1736,13 +1844,15 @@ app.hasInvokerPicks(ch)               // true if picker button should show on sh
 - All in English (the game is played in English even though Diego speaks Spanish)
 
 ## Source Material
-The game data was originally extracted from these Nimble PDFs:
-- Nimble - Core Rules.pdf
-- Nimble - Heroes.pdf
-- Nimble 5E - Artificer1.3.pdf
-- Nimble 5E - Hexbinder.pdf
+Game data was originally extracted from these Nimble PDFs, then rebuilt in September 2026 (Session 5) against the newer versions:
+- Nimble Core Rules v0.9 (Second Printing 2026) — landed in Round 2 of Session 5
+- Nimble Heroes 2.0.3 (First Printing, compiled) — source for Songweaver, Stormshifter, and Zephyr
+- Nimble Heroes 0.2 solo PDFs — one per class for Berserker, The Cheat, Commander, Hunter, Mage, Oathsworn, Shadowmancer, Shepherd (each read individually, one commit per class)
+- Nimble Heroes 0.1 solo PDFs — used for Stormshifter and Zephyr *extra* subclasses (Venom & Web + Cinder & Ash; Iron + Hurricanes) that the compiled 2.0.3 book does not carry
+- Nimble 5E - Artificer1.3.pdf (Hidden class, not yet updated)
+- Nimble 5E - Hexbinder.pdf (Hidden class, not yet updated)
 
-These have been transcribed to the `reference/` folder as .md files. **The reference/ files are the source of truth** — always use them over gamedata.js when there's a conflict.
+The PDFs themselves live locally under `ACTUALIZACIONES/` (gitignored — see `.gitignore`) and are not committed to the public repo. They have been transcribed to the `reference/` folder as .md files. **The reference/ files are the source of truth** — always use them over gamedata.js when there's a conflict.
 
 ## Test Characters in localStorage
 - **Pip** (Shadowmancer L4, id: mo0y94e2fuxic) — has One with Shadows (greaterInvocations), no subclass set
