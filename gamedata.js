@@ -656,33 +656,32 @@ window.GAME_DATA = {
       },
       retrainArrays: ["thrillOfTheHuntAbilities"],
       thrillOfTheHuntAbilities: [
-        { name: "Addling Arrow", description: "Action: Attack with a ranged weapon. The next attack the target makes must be against the closest other creature, chosen at random." },
-        { name: "Come Get Some!", description: "Action: Attack a target. It is Taunted by you until the end of their next turn." },
-        { name: "Decoy", description: "When you Defend: The attack misses instead, and you can move up to half your speed away (where you really were all along!)." },
-        { name: "Fleet Feet", description: "Move up to your speed for free, ignoring difficult terrain." },
-        { name: "Grease Trap", description: "(1/encounter) Reaction (when an enemy moves adjacent to you or an ally within 6 spaces): Target falls Prone, is vulnerable to the next fire damage it takes, and is treated as if it is Smoldering." },
-        { name: "Hail of Arrows", description: "(Half range) 2 actions: Shoot all creatures within a 3x3 area. Their speed is halved until the end of their next turn." },
-        { name: "Heavy Shot", description: "(Half range) Action: Attack with a ranged weapon and push your target: 4 spaces for a small creature, 2 for a medium creature, 1 for a large creature." },
-        { name: "Incendiary Shot", description: "(Half range) Action: Attack with a ranged weapon, add WIL d8 fire damage." },
-        { name: "Multishot", description: "(Half range) Action: Attack your quarry with a ranged weapon and load an extra projectile. Select a 2nd target within 2 spaces of them to take the same amount of damage." },
-        { name: "Pinning Shot", description: "Spend 3 actions shooting your quarry. They are Restrained until they can escape (DC 10+WIL)." },
-        { name: "Snare Trap", description: "(1/encounter) Reaction (when an enemy moves adjacent to you or an ally within 6 spaces): Move them back 1 space, they are Restrained until they can escape (DC 10+WIL)." },
-        { name: "Sharpshooter", description: "Action: If you have not moved this turn and your quarry is 4 or more spaces away, attack them for double damage." },
-        { name: "Vital Shot", description: "(Half range) Action: Attack your Hampered quarry with a ranged weapon, ignoring their armor or doubling your Hunter's Mark damage bonus if they have none." },
-        { name: "Wild Instinct", description: "(1/round, costs 0 TotH charges if you have none.) Assess for free, with advantage." }
+        { name: "Addling Arrow", description: "1 Action. Shoot a target, the next attack they make must be against the closest other creature, chosen at random." },
+        { name: "Come Get Some!", description: "1 Action. Attack a target. It is Taunted by you until the end of their next turn." },
+        { name: "Decoy", description: "0 Actions. When you Defend: The attack misses instead, and you can move up to half your speed away (where you really were all along!)." },
+        { name: "Fleet Feet", description: "0 Actions. (1/round) Move up to your speed for free, ignoring difficult terrain." },
+        { name: "Grease Trap", description: "1 Action. (1/encounter) Reaction (when an enemy moves adjacent to you or an ally within Reach 6): Target falls Prone, is vulnerable to the next fire damage it takes, and is treated as if it is Smoldering." },
+        { name: "Hail of Arrows", description: "2 Actions. (Half range) Shoot and Slow all creatures within a 3×3 area." },
+        { name: "Heavy Shot", description: "1 Action. (Half range) Shoot a creature and knock them back 2 spaces." },
+        { name: "Incendiary Shot", description: "1 Action. (Half range) Attack with a ranged weapon, add WIL d8 fire damage." },
+        { name: "Multishot", description: "1 Action. (Half range) Shoot your Quarry and select a 2nd target within 2 spaces of them to take the same amount of damage." },
+        { name: "Pinning Shot", description: "3 Actions. Shoot your Quarry, rolling 3 times the normal amount of dice. They are Restrained until they can escape (DC 10+WIL)." },
+        { name: "Snare Trap", description: "1 Action. (1/encounter) Reaction (when an enemy moves adjacent to you or an ally within Reach 6): Move them back 1 space and Restrain them (escape DC 10+WIL)." },
+        { name: "Sharpshooter", description: "1 Action. If you have not moved this turn and your Quarry is beyond Reach 3, attack them for double damage." },
+        { name: "Vital Shot", description: "1 Action. (Half Range) Shoot your Hampered Quarry. Ignore their Armor or double your Hunter's Mark damage bonus if they have none." },
+        { name: "Wild Instinct", description: "0 Actions. (1/round) (Costs 0 TotH charges if you have none) Assess, with advantage." }
       ],
       levels: {
         1: [
-          { name: "Hunter's Mark", description: "Action: Mark a creature you can see as your quarry for 1 day (or until you mark another). It can't be hidden from you, and your attacks against it gain your choice of advantage OR +LVL damage (choose before each attack)." },
+          { name: "Hunter's Mark", description: "Action: A creature you can see is marked as your Quarry for 1 day (or until you mark another creature). It can't be hidden from you, and your attacks against it gain your choice of advantage OR +LVL damage (choose before each attack)." },
           { name: "Forager", description: "Gain advantage on skill checks to find food and water in the wild." }
         ],
         2: [
-          { name: "Thrill of the Hunt", description: "Choose 2 Thrill of the Hunt (TotH) abilities. Gain a charge to use these abilities during that encounter whenever your quarry dies, you hit your quarry in melee, or you crit your quarry at range." },
-          { name: "Roll & Strike", description: "Action: If you have no Thrill of the Hunt charges, move up to your speed toward your quarry. If you end adjacent to them, make a melee attack against them for free." },
-          { name: "Remember the Wild", description: "Whenever you spend a day in the wilderness during a Safe Rest, you may choose different Hunter options available to you." }
+          { name: "Thrill of the Hunt", description: "Choose 2 Thrill of the Hunt (TotH) abilities. Gain a charge to use these abilities during that encounter whenever: You HIT your Quarry in melee. You CRIT your Quarry at range. Your Quarry dies." },
+          { name: "Roll & Strike", description: "Action: If you have no Thrill of the Hunt charges, move up to your speed toward your Quarry. If you end adjacent to them, make a melee attack against them for free." }
         ],
         3: [
-          { name: "Subclass", description: "Choose a Hunter subclass: Keeper of the Shadowpath or Keeper of the Wild Heart." },
+          { name: "Subclass", description: "Choose a Hunter subclass: Keeper of the Shadowpath, Keeper of the Wild Heart, Keeper of the Pack, or Keeper of Traps." },
           { name: "Tracker's Intuition", description: "You can discern the events of a past encounter by studying tracks and other subtle environmental clues, accurately determining the kind and amount of creatures, their direction, key actions, and passage of time." }
         ],
         4: [
@@ -691,8 +690,8 @@ window.GAME_DATA = {
           { name: "Explorer of the Wilds", description: "+2 speed; gain a climbing speed." }
         ],
         5: [
-          { name: "Hunter's Resolve", description: "Whenever you have no Thrill of the Hunt charges, gain Hunter's Resolve until the end of your turn: treat all creatures as your quarry for the purposes of movement and melee attacks." },
-          { name: "Final Takedown", description: "Action: Spend 1 Thrill of the Hunt charge to make a melee attack against your Bloodied quarry. Turn it into a crit and double the damage of your Hunter's Mark. If they survive, they crit you back." },
+          { name: "Hunter's Resolve", description: "Whenever you have no Thrill of the Hunt charges, gain Hunter's Resolve until the end of your turn: treat all creatures as your Quarry for the purposes of movement and melee attacks." },
+          { name: "Final Takedown", description: "(1 Action, 1 TotH charge) Crit your Bloodied Quarry in melee and double the damage of your Hunter's Mark. If they survive, they crit you back." },
           { name: "Secondary Stat Increase", description: "+1 STR or INT." }
         ],
         6: [
@@ -735,7 +734,7 @@ window.GAME_DATA = {
           { name: "Key Stat Increase", description: "+1 DEX or WIL." }
         ],
         17: [
-          { name: "Peerless Hunter", description: "You can Defend against your quarry for free." },
+          { name: "Peerless Hunter", description: "You can Defend against your Quarry for free." },
           { name: "Secondary Stat Increase", description: "+1 STR or INT." }
         ],
         18: [
@@ -2060,28 +2059,68 @@ window.GAME_DATA = {
       {
         name: "Keeper of the Shadowpath",
         className: "Hunter",
+        description: "Stalk your prey from the shadows, and take down your foes with precision and speed.",
         features: {
           3:  [
-            { name: "Ambusher", description: "When you roll Initiative, you may use Hunter's Mark for free. Gain advantage on the first attack you make each encounter." },
+            { name: "Ambusher", description: "Whenever you roll Initiative, use Hunter's Mark for free. Gain advantage on the first attack you make each encounter." },
             { name: "Skilled Tracker", description: "You have advantage on skill checks to track creatures." },
             { name: "Skilled Navigator", description: "You cannot become lost by nonmagical means." }
           ],
-          7:  [{ name: "Primal Predator", description: "(1/encounter) Your weapon attacks ignore cover and armor this turn." }],
-          11: [{ name: "Pack Hunter", description: "Whenever you mark a creature, you may also mark another creature within 6 spaces of them for free." }],
+          7:  [{ name: "Primal Predator", description: "(1/encounter) Your weapon attacks ignore Cover and Armor this turn." }],
+          11: [{ name: "Dread Hunter", description: "Choose both Hunter's Mark options when attacking your Quarry." }],
           15: [{ name: "Apex Predator", description: "You may use your Primal Predator ability twice each encounter. Gain 1 Thrill of the Hunt charge when you roll Initiative." }]
         }
       },
       {
         name: "Keeper of the Wild Heart",
         className: "Hunter",
+        description: "A resourceful survivalist, you can endure far more adversity than most any other adventurer.",
         features: {
           3:  [
             { name: "Impressive Form", description: "+5 max HP. Upgrade your Hit Dice to d10s." },
-            { name: "I Have the High Ground", description: "When you roll Initiative or gain one or more Thrill of the Hunt charges, move up to half your speed for free, ignoring difficult terrain." }
+            { name: "I Have the High Ground", description: "Whenever you roll Initiative or gain a Thrill of the Hunt charge, move up to half your speed for free, ignoring difficult terrain." }
           ],
-          7:  [{ name: "Resourceful Herbalist", description: "Whenever you Safe Rest in a location near where plants or fungi can grow, you may spend a day collecting healing herbs to craft a number of Healing Salves equal to your WIL. Healing Salve (Action): Heal yourself or an adjacent creature WIL d6 HP. Only you or another experienced Herbalist may administer these, and they expire whenever you Safe Rest." }],
+          7:  [
+            { name: "Resourceful Herbalist", description: "Add your WIL to your Examination skill. Whenever you Safe Rest in a location near where plants or fungi can grow, you may spend a day collecting healing herbs to craft WIL Healing Salves." },
+            { name: "Healing Salve", description: "(Reach 1) Action: Heal a creature WIL d8 HP (only an experienced Herbalist may administer these, and they expire whenever you Safe Rest)." }
+          ],
           11: [{ name: "Ha! I'm Over Here!", description: "(1/Safe Rest) If an attack would cause you to drop to 0 HP, you instead move up to your speed away and take no damage." }],
-          15: [{ name: "Unparalleled Survivalist", description: "Gain +WIL armor. When you attack with a ranged weapon, you may first move half your speed for free." }]
+          15: [{ name: "Unparalleled Survivalist", description: "Gain +WIL armor. When you attack, you may first move half your speed for free." }]
+        }
+      },
+      {
+        name: "Keeper of the Pack",
+        className: "Hunter",
+        description: "Even the fiercest of prey is weak in isolation, while the pack has strength in numbers. Lead from the front, finish the hunt.",
+        features: {
+          3:  [
+            { name: "Marked for Death", description: "(1/encounter) When you hit your Quarry in melee, the next WIL attacks against it are made with advantage 2." },
+            { name: "Lead the Hunt", description: "Nearby allies can add your WIL to their Stealth roll." }
+          ],
+          7:  [
+            { name: "The Lion's Share", description: "Whenever your Quarry dies, gain 3×WIL Temp HP." },
+            { name: "Fearsome Alpha", description: "Your Quarry has disadvantage on melee attacks against you." }
+          ],
+          11: [{ name: "Frenzied Pack", description: "Allies within Reach 2 gain the benefits of your Hunter's Mark in melee." }],
+          15: [{ name: "Ferocious Takedown", description: "When you kill your Quarry with Final Takedown, regain a use of Marked for Death." }]
+        }
+      },
+      {
+        name: "Keeper of Traps",
+        className: "Hunter",
+        description: "Daring trappers like carrying bits and baubles to attract attention. They often include some sort of charm for protection like the tuft of a fox tail, an old superstition.",
+        features: {
+          3:  [
+            { name: "Hunter's Lure", description: "Whenever you use Hunter's Mark, you may gain KEY temp HP and Taunt your Quarry until you lose these temp HP." },
+            { name: "Blinding Trap", description: "Reaction (when an enemy moves adjacent to you or an ally within Reach 6): Target is Blinded until the end of their next turn." },
+            { name: "Skilled Trapmaker", description: "You have advantage on skill checks relating to traps." }
+          ],
+          7:  [
+            { name: "Prolific Trapper", description: "Whenever you Safe Rest in a location where feral critters live nearby, you may spend a day capturing critters to make WIL Critter Traps." },
+            { name: "Critter Trap", description: "Free Reaction (when an enemy moves adjacent to you or an ally within Reach 6): loose a critter to attack the enemy for WIL d6 damage. You must release all captured critters whenever you Safe Rest." }
+          ],
+          11: [{ name: "Bait and Switch", description: "You and your allies gain +2 Reach on Interposing vs Taunted attackers. (1/encounter) You can use Decoy for free while Prone." }],
+          15: [{ name: "Trap Master", description: "Whenever you use a Trap, add LVL damage to it. One of your Traps can be used an additional time each encounter." }]
         }
       }
     ],

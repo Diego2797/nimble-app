@@ -710,26 +710,30 @@ Unless otherwise noted, each TotH ability costs 1 charge to use and cannot miss.
 ## Level Features (1-20)
 
 ### Level 1
-- **Hunter's Mark.** Action: A creature you can see is marked as your quarry for 1 day (or until you mark another creature). It can't be hidden from you, and your attacks against it gain your choice of advantage OR +LVL damage (choose before each attack).
+- **Hunter's Mark.** Action: A creature you can see is marked as your Quarry for 1 day (or until you mark another creature). It can't be hidden from you, and your attacks against it gain your choice of advantage OR +LVL damage (choose before each attack).
 - **Forager.** Gain advantage on skill checks to find food and water in the wild.
 
 ### Level 2
-- **Thrill of the Hunt.** Choose 2 Thrill of the Hunt (TotH) abilities. Gain a charge to use these abilities during that encounter whenever your quarry dies, you hit your quarry in melee, or crit your quarry at range.
-- **Roll & Strike.** Action: If you have no Thrill of the Hunt charges, move up to your speed toward your quarry. If you end adjacent to them, make a melee attack against them for free.
-- **Remember the Wild.** Whenever you spend a day in the wilderness during a Safe Rest, you may choose different Hunter options available to you.
+- **Thrill of the Hunt.** Choose 2 Thrill of the Hunt (TotH) abilities. Gain a charge to use these abilities during that encounter whenever:
+  - You HIT your Quarry in melee.
+  - You CRIT your Quarry at range.
+  - Your Quarry dies.
+- **Roll & Strike.** Action: If you have no Thrill of the Hunt charges, move up to your speed toward your Quarry. If you end adjacent to them, make a melee attack against them for free.
+
+> **Remember the Wild.** Whenever you spend a day in the wilderness during a Safe Rest, you may choose different Hunter options available to you.
 
 ### Level 3
-- **Subclass.** Choose a Hunter subclass.
+- **Subclass.** Choose a Hunter subclass: Keeper of the Shadowpath, Keeper of the Wild Heart, Keeper of the Pack, or Keeper of Traps.
 - **Tracker's Intuition.** You can discern the events of a past encounter by studying tracks and other subtle environmental clues, accurately determining the kind and amount of creatures, their direction, key actions, and passage of time.
 
 ### Level 4
 - **Thrill of the Hunt (2).** Choose a 3rd Thrill of the Hunt ability.
 - **Key Stat Increase.** +1 DEX or WIL.
-- **Explorer of the Wilds.** +2 speed; gain a climbing speed.
+- **Explorer of the Wilds.** +2 Speed; gain a climbing speed.
 
 ### Level 5
-- **Hunter's Resolve.** Whenever you have no Thrill of the Hunt charges, gain Hunter's Resolve until the end of your turn: treat all creatures as your quarry for the purposes of movement and melee attacks.
-- **Final Takedown.** Action: Spend 1 Thrill of the Hunt charge to make a melee attack against your Bloodied quarry. Turn it into a crit and double the damage of your Hunter's Mark. If they survive, they crit you back.
+- **Hunter's Resolve.** Whenever you have no Thrill of the Hunt charges, gain *Hunter's Resolve* until the end of your turn: treat all creatures as your Quarry for the purposes of movement and melee attacks.
+- **Final Takedown.** (1 Action, 1 TotH charge) Crit your Bloodied Quarry in melee and double the damage of your Hunter's Mark. If they survive, they crit you back.
 - **Secondary Stat Increase.** +1 STR or INT.
 
 ### Level 6
@@ -772,7 +776,7 @@ Unless otherwise noted, each TotH ability costs 1 charge to use and cannot miss.
 - **Key Stat Increase.** +1 DEX or WIL.
 
 ### Level 17
-- **Peerless Hunter.** You can Defend against your quarry for free.
+- **Peerless Hunter.** You can Defend against your Quarry for free.
 - **Secondary Stat Increase.** +1 STR or INT.
 
 ### Level 18
@@ -786,54 +790,101 @@ Unless otherwise noted, each TotH ability costs 1 charge to use and cannot miss.
 
 ## Thrill of the Hunt Abilities
 
-- **Addling Arrow.** Action: Attack with a ranged weapon. The next attack the target makes must be against the closest other creature, chosen at random.
-- **Come Get Some!** Action: Attack a target. It is Taunted by you until the end of their next turn.
-- **Decoy.** When you Defend: The attack misses instead, and you can move up to half your speed away (where you really were all along!).
-- **Fleet Feet.** Move up to your speed for free, ignoring difficult terrain.
-- **Grease Trap.** (1/encounter) Reaction (when an enemy moves adjacent to you or an ally within 6 spaces): Target falls Prone, is vulnerable to the next fire damage it takes, and is treated as if it is Smoldering.
-- **Hail of Arrows.** (Half range) 2 actions: Shoot all creatures within a 3x3 area. Their speed is halved until the end of their next turn.
-- **Heavy Shot.** (Half range) Action: Attack with a ranged weapon and push your target: 4 spaces for a small creature, 2 for a medium creature, 1 for a large creature.
-- **Incendiary Shot.** (Half range) Action: Attack with a ranged weapon, add WIL d8 fire damage.
-- **Multishot.** (Half range) Action: Attack your quarry with a ranged weapon and load an extra projectile. Select a 2nd target within 2 spaces of them to take the same amount of damage.
-- **Pinning Shot.** Spend 3 actions shooting your quarry. They are Restrained until they can escape (DC 10+WIL).
-- **Snare Trap.** (1/encounter) Reaction (when an enemy moves adjacent to you or an ally within 6 spaces): Move them back 1 space, they are Restrained until they can escape (DC 10+WIL).
-- **Sharpshooter.** Action: If you have not moved this turn and your quarry is 4 or more spaces away, attack them for double damage.
-- **Vital Shot.** (Half Range) Action: Attack your Hampered quarry with a ranged weapon, ignoring their armor or doubling your Hunter's Mark damage bonus if they have none.
-- **Wild Instinct.** (1/round, costs 0 TotH charges if you have none.) Assess for free, with advantage.
+Unless otherwise noted, each Thrill of the Hunt ability costs 1 charge to use and cannot miss. Abilities that spend charges cannot generate new ones. Unused charges are lost when combat ends.
+
+- **Addling Arrow.** 1 Action. Shoot a target, the next attack they make must be against the closest other creature, chosen at random.
+- **Come Get Some!** 1 Action. Attack a target. It is Taunted by you until the end of their next turn.
+- **Decoy.** 0 Actions. When you Defend: The attack misses instead, and you can move up to half your speed away (where you really were all along!).
+- **Fleet Feet.** 0 Actions. (1/round) Move up to your speed for free, ignoring difficult terrain.
+- **Grease Trap.** 1 Action. (1/encounter) Reaction (when an enemy moves adjacent to you or an ally within Reach 6): Target falls Prone, is vulnerable to the next fire damage it takes, and is treated as if it is Smoldering.
+- **Hail of Arrows.** 2 Actions. (Half range) Shoot and Slow all creatures within a 3×3 area.
+- **Heavy Shot.** 1 Action. (Half range) Shoot a creature and knock them back 2 spaces.
+- **Incendiary Shot.** 1 Action. (Half range) Attack with a ranged weapon, add WIL d8 fire damage.
+- **Multishot.** 1 Action. (Half range) Shoot your Quarry and select a 2nd target within 2 spaces of them to take the same amount of damage.
+- **Pinning Shot.** 3 Actions. Shoot your Quarry, rolling 3 times the normal amount of dice. They are Restrained until they can escape (DC 10+WIL).
+- **Snare Trap.** 1 Action. (1/encounter) Reaction (when an enemy moves adjacent to you or an ally within Reach 6): Move them back 1 space and Restrain them (escape DC 10+WIL).
+- **Sharpshooter.** 1 Action. If you have not moved this turn and your Quarry is beyond Reach 3, attack them for double damage.
+- **Vital Shot.** 1 Action. (Half Range) Shoot your Hampered Quarry. Ignore their Armor or double your Hunter's Mark damage bonus if they have none.
+- **Wild Instinct.** 0 Actions. (1/round) (Costs 0 TotH charges if you have none) Assess, with advantage.
 
 ## Subclasses
 
 ### Keeper of the Shadowpath
+**Subclass Complexity: 2/4**
+
+> Stalk your prey from the shadows, and take down your foes with precision and speed.
 
 **Level 3:**
-- **Ambusher.** When you roll Initiative, you may use Hunter's Mark for free. Gain advantage on the first attack you make each encounter.
+- **Ambusher.** Whenever you roll Initiative, use Hunter's Mark for free. Gain advantage on the first attack you make each encounter.
 - **Skilled Tracker.** You have advantage on skill checks to track creatures.
 - **Skilled Navigator.** You cannot become lost by nonmagical means.
 
 **Level 7:**
-- **Primal Predator.** (1/encounter) Your weapon attacks ignore cover and armor this turn.
+- **Primal Predator.** (1/encounter) Your weapon attacks ignore Cover and Armor this turn.
 
 **Level 11:**
-- **Pack Hunter.** Whenever you mark a creature, you may also mark another creature within 6 spaces of them for free.
+- **Dread Hunter.** Choose both Hunter's Mark options when attacking your Quarry.
 
 **Level 15:**
 - **Apex Predator.** You may use your Primal Predator ability twice each encounter. Gain 1 Thrill of the Hunt charge when you roll Initiative.
 
 ### Keeper of the Wild Heart
+**Subclass Complexity: 2/4**
+
+> A resourceful survivalist, you can endure far more adversity than most any other adventurer.
 
 **Level 3:**
 - **Impressive Form.** +5 max HP. Upgrade your Hit Dice to d10s.
-- **I Have the High Ground.** When you roll Initiative or gain one or more Thrill of the Hunt charges, move up to half your speed for free, ignoring difficult terrain.
+- **I Have the High Ground.** Whenever you roll Initiative or gain a Thrill of the Hunt charge, move up to half your speed for free, ignoring difficult terrain.
 
 **Level 7:**
-- **Resourceful Herbalist.** Whenever you Safe Rest in a location near where plants or fungi can grow, you may spend a day collecting healing herbs to craft a number of Healing Salves equal to your WIL.
-  - **Healing Salve.** Action: Heal yourself or an adjacent creature WIL d6 HP. Only you or another experienced Herbalist may administer these, and they expire whenever you Safe Rest.
+- **Resourceful Herbalist.** Add your WIL to your Examination skill. Whenever you Safe Rest in a location near where plants or fungi can grow, you may spend a day collecting healing herbs to craft WIL Healing Salves.
+- **Healing Salve.** (Reach 1) Action: Heal a creature WIL d8 HP (only an experienced Herbalist may administer these, and they expire whenever you Safe Rest).
 
 **Level 11:**
 - **Ha! I'm Over Here!** (1/Safe Rest) If an attack would cause you to drop to 0 HP, you instead move up to your speed away and take no damage.
 
 **Level 15:**
-- **Unparalleled Survivalist.** Gain +WIL armor. When you attack with a ranged weapon, you may first move half your speed for free.
+- **Unparalleled Survivalist.** Gain +WIL armor. When you attack, you may first move half your speed for free.
+
+### Keeper of the Pack
+**Subclass Complexity: 1/4**
+
+> Even the fiercest of prey is weak in isolation, while the pack has strength in numbers. Lead from the front, finish the hunt.
+
+**Level 3:**
+- **Marked for Death.** (1/encounter) When you hit your Quarry in melee, the next WIL attacks against it are made with advantage 2.
+- **Lead the Hunt.** Nearby allies can add your WIL to their Stealth roll.
+
+**Level 7:**
+- **The Lion's Share.** Whenever your Quarry dies, gain 3×WIL Temp HP.
+- **Fearsome Alpha.** Your Quarry has disadvantage on melee attacks against you.
+
+**Level 11:**
+- **Frenzied Pack.** Allies within Reach 2 gain the benefits of your Hunter's Mark in melee.
+
+**Level 15:**
+- **Ferocious Takedown.** When you kill your Quarry with Final Takedown, regain a use of Marked for Death.
+
+### Keeper of Traps
+**Subclass Complexity: 3/4**
+
+> Daring trappers like carrying bits and baubles to attract attention. They often include some sort of charm for protection like the tuft of a fox tail, an old superstition.
+
+**Level 3:**
+- **Hunter's Lure.** Whenever you use Hunter's Mark, you may gain KEY temp HP and Taunt your Quarry until you lose these temp HP.
+- **Blinding Trap.** Reaction (when an enemy moves adjacent to you or an ally within Reach 6): Target is Blinded until the end of their next turn.
+- **Skilled Trapmaker.** You have advantage on skill checks relating to traps.
+
+**Level 7:**
+- **Prolific Trapper.** Whenever you Safe Rest in a location where feral critters live nearby, you may spend a day capturing critters to make WIL Critter Traps.
+- **Critter Trap.** Free Reaction (when an enemy moves adjacent to you or an ally within Reach 6): loose a critter to attack the enemy for WIL d6 damage. You must release all captured critters whenever you Safe Rest.
+
+**Level 11:**
+- **Bait and Switch.** You and your allies gain +2 Reach on Interposing vs Taunted attackers. (1/encounter) You can use Decoy for free while Prone.
+
+**Level 15:**
+- **Trap Master.** Whenever you use a Trap, add LVL damage to it. One of your Traps can be used an additional time each encounter.
 
 ---
 
