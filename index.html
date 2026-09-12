@@ -2558,7 +2558,7 @@ h1, h2, h3, h4 {
 
 <input type="file" id="imageUpload" class="hidden-input" accept="image/*">
 
-<script src="gamedata.js?v=v0.9-sm0.2-tc0.2-sh0.2-st2.0.3v01-zp2.0.3v01-bk0.2-cm0.2-hn0.2"></script>
+<script src="gamedata.js?v=v0.9-sm0.2-tc0.2-sh0.2-st2.0.3v01-zp2.0.3v01-bk0.2-cm0.2-hn0.2-mg0.2"></script>
 <script src="gmdata.js"></script>
 <script>
 /* =============================================================
@@ -4216,6 +4216,11 @@ const app = {
       schools = schools.filter(s => s !== from);
       if (to && !schools.includes(to)) schools.push(to);
     }
+    // Subclass may restrict base schools down to a single-element subset (e.g., Mage Invoker of
+    // Flame → fire only). Replaces the entire base pool with the listed schools.
+    if (Array.isArray(subData?.restrictsBaseSchoolsTo)) {
+      schools = [...subData.restrictsBaseSchoolsTo];
+    }
     // Subclass schools (additive)
     if (ch.subclass && prog.subclassSchools[ch.subclass]) {
       prog.subclassSchools[ch.subclass].forEach(s => { if (!schools.includes(s)) schools.push(s); });
@@ -5656,6 +5661,20 @@ const app = {
       if (oldReplace.to && !lostSchools.includes(oldReplace.to) && oldReplace.to !== newReplace?.to) {
         lostSchools.push(oldReplace.to);
       }
+    }
+    // Base-school restriction (e.g., Mage Invoker of Flame → fire only). Uses the full baseSchools
+    // list from SPELL_PROGRESSION to compute what's dropped.
+    const baseSchools = prog?.baseSchools || [];
+    if (Array.isArray(newSub?.restrictsBaseSchoolsTo)) {
+      baseSchools.forEach(s => {
+        if (!newSub.restrictsBaseSchoolsTo.includes(s) && !lostSchools.includes(s)) lostSchools.push(s);
+      });
+    }
+    // Reverting away from a restriction subclass: gain back the base schools that were locked out
+    if (Array.isArray(oldSub?.restrictsBaseSchoolsTo) && !Array.isArray(newSub?.restrictsBaseSchoolsTo)) {
+      baseSchools.forEach(s => {
+        if (!oldSub.restrictsBaseSchoolsTo.includes(s) && !gainedSchools.includes(s)) gainedSchools.push(s);
+      });
     }
 
     // Class-specific spell block/grant diff (e.g., Reaver loses Shadow Blast, gains Bonescythe)

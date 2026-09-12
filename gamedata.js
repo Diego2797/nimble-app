@@ -778,24 +778,23 @@ window.GAME_DATA = {
       ],
       levels: {
         1: [
-          { name: "Elemental Spellcasting", description: "You know Fire, Ice, and Lightning cantrips." }
+          { name: "Elemental Spellcasting", description: "You know the Fire, Ice, and Lightning spell schools and can cast cantrips from them." }
         ],
         2: [
-          { name: "Mana and Unlock Tier 1 Spells", description: "You unlock tier 1 Fire, Ice, and Lightning spells and gain a mana pool. Your mana pool maximum is always equal to (INT x 3) + LVL and recharges on a Safe Rest." },
+          { name: "Mana and Unlock Tier 1 Spells", description: "You may now cast tier 1 spells and gain a mana pool to cast them. This mana pool's max is always equal to (INT×3)+LVL and recharges on a Safe Rest." },
           { name: "Talented Researcher", description: "Gain advantage on Arcana or Lore checks when you have access to a large amount of books and time to study them." }
         ],
         3: [
-          { name: "Subclass", description: "Choose a Mage subclass: Invoker of Control or Invoker of Chaos." },
+          { name: "Subclass", description: "Choose a Mage subclass: Invoker of Control, Invoker of Chaos, Invoker of Wards, Invoker of Flame, Invoker of Frost, or Invoker of Surges." },
           { name: "Elemental Mastery", description: "Learn the Utility Spells from 1 spell school you know." }
         ],
         4: [
           { name: "Spellshaper", description: "You gain the ability to enhance your spells with powerful effects by spending additional mana. Choose 2 Spellshaper abilities." },
-          { name: "Tier 2 Spells", description: "You may now cast tier 2 spells and upcast spells at tier 2." },
-          { name: "Key Stat Increase", description: "+1 INT or WIL." },
-          { name: "Study!", description: "Whenever you study arcane books or are tutored by a higher level Mage during a Safe Rest, you may choose different Mage options available to you." }
+          { name: "Tier 2 Spells", description: "You may now cast spells up to tier 2." },
+          { name: "Key Stat Increase", description: "+1 INT or WIL." }
         ],
         5: [
-          { name: "Elemental Surge", description: "When you roll Initiative, regain WIL mana. This mana expires at the end of combat if unused." },
+          { name: "Elemental Surge", description: "A surge of adrenaline and your attunement with the elements grants you additional power as combat begins. When you roll Initiative, regain WIL mana (this expires at the end of combat if unused)." },
           { name: "Secondary Stat Increase", description: "+1 STR or DEX." },
           { name: "Upgraded Cantrips", description: "Your cantrips grow stronger." }
         ],
@@ -2128,30 +2127,122 @@ window.GAME_DATA = {
       {
         name: "Invoker of Control",
         className: "Mage",
+        description: "Failure is NOT an option. Your will shall not be subsumed by chance.",
         features: {
           3:  [
-            { name: "Force of Will", description: "(1/round) On your turn, you may Demand Control: Choose 1 option from the Control Table which you haven't chosen yet; resets when you roll Initiative, or when you have chosen all options once." },
-            { name: "Deny Fate", description: "Whenever you miss with a spell or an effect you cause is saved against, you MUST Demand Control." }
+            { name: "Force of Will", description: "(1/round) On your turn, you may Demand Control for free: Choose 1 option from the Control Table which you haven't chosen yet; resets when you roll Initiative, or when you have chosen all options once." },
+            { name: "Deny Fate", description: "Whenever you miss with a spell (or if one or more creatures save vs a spell you cast), you MUST Demand Control." }
           ],
           7:  [
             { name: "At Any Cost", description: "Learn 1 cantrip and 1 tiered spell from the Necrotic school." },
             { name: "Nullify", description: "(1/encounter) Ignore all disadvantage and other negative effects on your next action this turn, then Demand Control." }
           ],
-          11: [{ name: "Steel Will", description: "(1/Safe Rest) Whenever you would fail a save, you may succeed instead. Whenever you roll a 1 on an Elemental Surge die, you may reroll it once." }],
-          15: [{ name: "Supreme Control", description: "Whenever you Demand Control, you may choose to trigger the selected option twice. You may Demand Control as a Reaction." }]
+          11: [{ name: "Steel Will", description: "Whenever you roll a 1 on an Elemental Surge die, you may reroll it once. (1/Safe Rest) If you would fail a save, you succeed instead." }],
+          15: [{ name: "Supreme Control", description: "Whenever you Demand Control, you may choose to trigger the selected option twice. You may now use Force of Will as a Reaction." }]
         }
       },
       {
         name: "Invoker of Chaos",
         className: "Mage",
+        description: "Give in to the wild forces of magic, let randomness and CHAOS reign!",
         features: {
-          3:  [{ name: "Force of Chaos", description: "Whenever you cast a spell, you can choose to spend 1 less mana. Whenever you do this and whenever you crit, Invoke Chaos: Roll on the Chaos Table. (The Chaos Table is kept secret by the GM — rolling a 1 is really bad, rolling a 20 is AWESOME.)" }],
+          3:  [{ name: "Force of Chaos", description: "Whenever you cast a spell, you can choose to spend 1 less mana by Invoking Chaos: Roll on the Chaos Table. Whenever you crit you may also Invoke Chaos." }],
           7:  [
             { name: "Tempest Mage", description: "Learn 1 cantrip and 1 tiered spell from the Wind school." },
             { name: "Chaos Lash", description: "(1/encounter) Reaction (when an enemy moves adjacent to you): They are pushed back 2 spaces, and on a failed WIL save, knocked Prone as well. Invoke Chaos." }
           ],
           11: [{ name: "Thrive in Chaos", description: "Whenever you Invoke Chaos, you may roll twice and cause both effects. (1/Safe Rest) You may choose which roll to use instead." }],
           15: [{ name: "Master of Chaos", description: "Whenever you Invoke Chaos, roll with advantage." }]
+        }
+      },
+      {
+        name: "Invoker of Wards",
+        className: "Mage",
+        description: "Use your magic to defend yourself and your allies.",
+        features: {
+          3:  [
+            { name: "Abjurer", description: "Defensive spells you cast on yourself (Flame Barrier, Frost Shield, and Alacrity) are always cast as if you spent +1 mana on them (ignoring your usual upcasting limit)." },
+            { name: "Elemental Wards", description: "Reaction (when an ally within Reach 6 Defends): You may spend 1 mana to cast an Elemental Ward on them. Flame Ward: First deal KEY damage and Smoldering to all creatures adjacent to your ally. Frost Ward: Grant 2×KEY Temp HP (lasts until the beginning of their next turn). Lightning Ward: Attacks miss them on 2 or less. They can move KEY spaces for free on their next turn." }
+          ],
+          7:  [{ name: "Elemental Wards (2)", description: "Your Elemental Wards gain +WIL effectiveness and +INT Reach." }],
+          11: [{ name: "Abjurer (3)", description: "The 1st defensive spell you cast on yourself each encounter while Dying is free and does not require a save. The 1st Ward you cast on a Dying ally each encounter also grants them +1 action." }],
+          15: [{ name: "Elemental Aegis", description: "(1/Safe Rest) Reaction (when a friendly creature is attacked): Up to KEY creatures within Reach 8 gain ALL the effects of your Elemental Wards until their next turn." }]
+        }
+      },
+      {
+        name: "Invoker of Flame",
+        className: "Mage",
+        description: "You dedicate yourself to the art of Pyromancy; choosing to relinquish control over the other elements so that your flames may burn brighter and hotter than any who has come before you.",
+        // Fiery Dedication: only Fire spells from now on
+        restrictsBaseSchoolsTo: ['fire'],
+        features: {
+          3:  [
+            { name: "Fiery Dedication", description: "You can only cast fire spells from now on. You unlock fire spells 1 level earlier." },
+            { name: "Embercaster", description: "When casting Flame Dart, you can spend 1 mana to roll 3d4 instead and ignore all disadvantage." }
+          ],
+          7:  [
+            { name: "Thy Embers' Keeper", description: "When Initiative is rolled, cast Heart's Fire on an ally for free." },
+            { name: "Fireshaper", description: "Choose 1 Ice or Lightning spell and treat it as a fire spell." }
+          ],
+          11: [
+            { name: "Flash Fire", description: "+WIL Initiative. When Initiative is rolled, cast Enchant Weapon for free." },
+            { name: "Fireshaper (2)", description: "Choose 1 Ice or Lightning spell and treat it as a fire spell." }
+          ],
+          15: [
+            { name: "Phoenixform", description: "(1/Safe Rest) Reaction (when you would drop to 0 HP): Instead, gain the effects of the Dragonform spell (except you are a Medium Phoenix), when it ends gain 1 Wound." },
+            { name: "Fireshaper (3)", description: "Choose 1 Lightning or Ice spell and treat it as a fire spell." }
+          ]
+        }
+      },
+      {
+        name: "Invoker of Frost",
+        className: "Mage",
+        description: "Ice runs through your veins. A dedicated cryomancer, you relinquish control over the other elements so that your ice can freeze more deeply.",
+        // Crown of Ice: only Ice spells from now on
+        restrictsBaseSchoolsTo: ['ice'],
+        features: {
+          3:  [
+            { name: "Crown of Ice", description: "You can only cast Ice spells from now on. You unlock ice spells 1 level earlier." },
+            { name: "Aura of Cold", description: "Adjacent enemies are Slowed. Your unused Frost Shield Temp HP last until the end of the encounter. Your Shatter spell has Reach instead of Range." }
+          ],
+          7:  [
+            { name: "Crystalline Aegis", description: "When your Frost Shield Temp HP is lost, cast Shatter for free on an adjacent enemy." },
+            { name: "Frostshaper", description: "Choose 1 Fire or Lightning spell and treat it as an ice spell." }
+          ],
+          11: [
+            { name: "Bitter Cold", description: "Your spells ignore the Armor of creatures Hampered by you." },
+            { name: "Frostshaper (2)", description: "Choose 1 Fire or Lightning spell and treat it as an ice spell." }
+          ],
+          15: [
+            { name: "Deep Freeze", description: "Reduce the mana cost of all spells by 2 while you have any Temp HP from Frost Shield." },
+            { name: "Frostshaper (3)", description: "Choose 1 Fire or Lightning spell and treat it as an ice spell." }
+          ]
+        }
+      },
+      {
+        name: "Invoker of Surges",
+        className: "Mage",
+        description: "DANGEROUS. FAST.",
+        // Electrical Dedication: only Lightning spells from now on
+        restrictsBaseSchoolsTo: ['lightning'],
+        features: {
+          3:  [
+            { name: "Electrical Dedication", description: "You can only cast lightning spells from now on. Choose 1 Fire spell and treat it as a Lightning spell." },
+            { name: "Power Surge", description: "You can store up to WIL uses of Charged at a time. After you cast a damaging spell, you may take 4 lightning damage to add 1d8 to the damage." },
+            { name: "Blur", description: "While Charged, reduce ALL non-lightning damage you take by KEY." }
+          ],
+          7:  [
+            { name: "Jumpstart", description: "When you roll Initiative, become Charged; and gain 1 additional action on the first round of combat." },
+            { name: "Power Surge (2)", description: "Your Power Surge die becomes a d10. You may expend Charged to maximize it. Pick 1 wind spell, treat it as a Lightning spell." }
+          ],
+          11: [
+            { name: "Power Surge (3)", description: "Your Power Surge die becomes a d12. (1/encounter) You may spend Charged to change any die on a spell you cast to the max." },
+            { name: "Blur (2)", description: "While Charged, reduce ALL non-lightning damage you take by 2×KEY." }
+          ],
+          15: [
+            { name: "Power Surge (4)", description: "Your Power Surge die becomes a d20." },
+            { name: "Haywire", description: "Whenever you are Dying, you gain the effects of Electrocharge." }
+          ]
         }
       }
     ],

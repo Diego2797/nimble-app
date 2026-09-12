@@ -932,26 +932,27 @@ Gained at Level 2. Recharges on a Safe Rest.
 - **Level 6:** Utility Spells from a 2nd spell school (Elemental Mastery 2).
 - **Level 14:** Utility Spells from a 3rd spell school (Elemental Mastery 3).
 
-Subclass may grant additional schools (Invoker of Chaos gains Wind at level 7; Invoker of Control gains Necrotic at level 7).
+Subclass may grant additional schools (Invoker of Chaos → Wind at L7; Invoker of Control → Necrotic at L7) or restrict access to a single school (Invoker of Flame → Fire only; Invoker of Frost → Ice only; Invoker of Surges → Lightning only).
 
 ## Level Features (1-20)
 
 ### Level 1
-- **Elemental Spellcasting.** You know Fire, Ice, and Lightning cantrips.
+- **Elemental Spellcasting.** You know the Fire, Ice, and Lightning spell schools and can cast cantrips from them.
 
 ### Level 2
-- **Mana and Unlock Tier 1 Spells.** You unlock tier 1 Fire, Ice, and Lightning spells and gain a mana pool to cast these spells. This mana pool's maximum is always equal to (INT x 3)+LVL and recharges on a Safe Rest.
+- **Mana and Unlock Tier 1 Spells.** You may now cast tier 1 spells and gain a mana pool to cast them. This mana pool's max is always equal to (INT×3)+LVL and recharges on a Safe Rest.
 - **Talented Researcher.** Gain advantage on Arcana or Lore checks when you have access to a large amount of books and time to study them.
 
 ### Level 3
-- **Subclass.** Choose a Mage subclass.
+- **Subclass.** Choose a Mage subclass: Invoker of Control, Invoker of Chaos, Invoker of Wards, Invoker of Flame, Invoker of Frost, or Invoker of Surges.
 - **Elemental Mastery.** Learn the Utility Spells from 1 spell school you know.
 
 ### Level 4
 - **Spellshaper.** You gain the ability to enhance your spells with powerful effects by spending additional mana. Choose 2 Spellshaper abilities.
-- **Tier 2 Spells.** You may now cast tier 2 spells and upcast spells at tier 2.
+- **Tier 2 Spells.** You may now cast spells up to tier 2.
 - **Key Stat Increase.** +1 INT or WIL.
-- **Study!** Whenever you study arcane books or are tutored by a higher level Mage during a Safe Rest, you may choose different Mage options available to you.
+
+> **Study!** Whenever you study arcane books or are tutored by a higher level Mage during a Safe Rest, you may choose different Mage options available to you.
 
 ### Level 5
 - **Elemental Surge.** A surge of adrenaline and your attunement with the elements grants you additional power as combat begins. When you roll Initiative, regain WIL mana (this expires at the end of combat if unused).
@@ -1042,27 +1043,33 @@ Gain Spellshaper abilities as you level up. You may use 1/turn.
 ## Subclasses
 
 ### Invoker of Control
+**Subclass Complexity: 4/4**
+
+> Failure is NOT an option. Your will shall not be subsumed by chance.
 
 **Level 3:**
-- **Force of Will.** (1/round) On your turn, you may Demand Control: Choose 1 option from the Control Table which you haven't chosen yet; resets when you roll Initiative, or when you have chosen all options once.
-- **Deny Fate.** Whenever you miss with a spell or an effect you cause is saved against, you MUST Demand Control.
+- **Force of Will.** (1/round) On your turn, you may Demand Control for free: Choose 1 option from the Control Table which you haven't chosen yet; resets when you roll Initiative, or when you have chosen all options once.
+- **Deny Fate.** Whenever you miss with a spell (or if one or more creatures save vs a spell you cast), you MUST Demand Control.
 
 **Level 7:**
 - **At Any Cost.** Learn 1 cantrip and 1 tiered spell from the Necrotic school.
 - **Nullify.** (1/encounter) Ignore all disadvantage and other negative effects on your next action this turn, then Demand Control.
 
 **Level 11:**
-- **Steel Will.** (1/Safe Rest) Whenever you would fail a save, you may succeed instead. Whenever you roll a 1 on an Elemental Surge die, you may reroll it once.
+- **Steel Will.** Whenever you roll a 1 on an Elemental Surge die, you may reroll it once. (1/Safe Rest) If you would fail a save, you succeed instead.
 
 **Level 15:**
-- **Supreme Control.** Whenever you Demand Control, you may choose to trigger the selected option twice. You may Demand Control as a Reaction.
+- **Supreme Control.** Whenever you Demand Control, you may choose to trigger the selected option twice. You may now use Force of Will as a Reaction.
 
 ### Invoker of Chaos
+**Subclass Complexity: 4/4**
+
+> Give in to the wild forces of magic, let randomness and CHAOS reign!
 
 **Level 3:**
-- **Force of Chaos.** Whenever you cast a spell, you can choose to spend 1 less mana. Whenever you do this and whenever you crit, Invoke Chaos: Roll on the Chaos Table.
+- **Force of Chaos.** Whenever you cast a spell, you can choose to spend 1 less mana by Invoking Chaos: Roll on the Chaos Table. Whenever you crit you may also Invoke Chaos.
 
-*Where's the Chaos Table? It's a secret for the GM only! Suffice it to say, rolling a 1 is really bad, but rolling a 20 is AWESOME.*
+> *Where's the Chaos Table? It's a secret for the GM only! Suffice it to say, rolling a 1 is really bad, but rolling a 20 is AWESOME — but if you're sure you want to spoil it, you can find it on the back inside cover of the GM's Guide. Let chaos reign!*
 
 **Level 7:**
 - **Tempest Mage.** Learn 1 cantrip and 1 tiered spell from the Wind school.
@@ -1073,6 +1080,91 @@ Gain Spellshaper abilities as you level up. You may use 1/turn.
 
 **Level 15:**
 - **Master of Chaos.** Whenever you Invoke Chaos, roll with advantage.
+
+### Invoker of Wards
+**Subclass Complexity: 4/4**
+
+> Use your magic to defend yourself and your allies.
+
+**Level 3:**
+- **Abjurer.** Defensive spells you cast on yourself (Flame Barrier, Frost Shield, and Alacrity) are always cast as if you spent +1 mana on them (ignoring your usual upcasting limit).
+- **Elemental Wards.** Reaction (when an ally within Reach 6 Defends): You may spend 1 mana to cast an Elemental Ward on them:
+  - **Flame Ward.** First deal KEY damage and Smoldering to all creatures adjacent to your ally.
+  - **Frost Ward.** Grant 2×KEY Temp HP (lasts until the beginning of their next turn).
+  - **Lightning Ward.** Attacks miss them on 2 or less. They can move KEY spaces for free on their next turn.
+
+**Level 7:**
+- **Elemental Wards (2).** Your Elemental Wards gain +WIL effectiveness and +INT Reach.
+
+**Level 11:**
+- **Abjurer (3).** The 1st defensive spell you cast on yourself each encounter while Dying is free and does not require a save. The 1st Ward you cast on a Dying ally each encounter also grants them +1 action.
+
+**Level 15:**
+- **Elemental Aegis.** (1/Safe Rest) Reaction (when a friendly creature is attacked): Up to KEY creatures within Reach 8 gain ALL the effects of your Elemental Wards until their next turn.
+
+### Invoker of Flame
+**Subclass Complexity: 2/4**
+
+> You dedicate yourself to the art of Pyromancy; choosing to relinquish control over the other elements so that your flames may burn brighter and hotter than any who has come before you.
+
+**Level 3:**
+- **Fiery Dedication.** You can only cast fire spells from now on. You unlock fire spells 1 level earlier.
+- **Embercaster.** When casting Flame Dart, you can spend 1 mana to roll 3d4 instead and ignore all disadvantage.
+
+**Level 7:**
+- **Thy Embers' Keeper.** When Initiative is rolled, cast Heart's Fire on an ally for free.
+- **Fireshaper.** Choose 1 Ice or Lightning spell and treat it as a fire spell.
+
+**Level 11:**
+- **Flash Fire.** +WIL Initiative. When Initiative is rolled, cast Enchant Weapon for free.
+- **Fireshaper (2).** Choose 1 Ice or Lightning spell and treat it as a fire spell.
+
+**Level 15:**
+- **Phoenixform.** (1/Safe Rest) Reaction (when you would drop to 0 HP): Instead, gain the effects of the Dragonform spell (except you are a Medium Phoenix), when it ends gain 1 Wound.
+- **Fireshaper (3).** Choose 1 Lightning or Ice spell and treat it as a fire spell.
+
+### Invoker of Frost
+**Subclass Complexity: 3/4**
+
+> Ice runs through your veins. A dedicated cryomancer, you relinquish control over the other elements so that your ice can freeze more deeply.
+
+**Level 3:**
+- **Crown of Ice.** You can only cast Ice spells from now on. You unlock ice spells 1 level earlier.
+- **Aura of Cold.** Adjacent enemies are Slowed. Your unused Frost Shield Temp HP last until the end of the encounter. Your Shatter spell has Reach instead of Range.
+
+**Level 7:**
+- **Crystalline Aegis.** When your Frost Shield Temp HP is lost, cast Shatter for free on an adjacent enemy.
+- **Frostshaper.** Choose 1 Fire or Lightning spell and treat it as an ice spell.
+
+**Level 11:**
+- **Bitter Cold.** Your spells ignore the Armor of creatures Hampered by you.
+- **Frostshaper (2).** Choose 1 Fire or Lightning spell and treat it as an ice spell.
+
+**Level 15:**
+- **Deep Freeze.** Reduce the mana cost of all spells by 2 while you have any Temp HP from Frost Shield.
+- **Frostshaper (3).** Choose 1 Fire or Lightning spell and treat it as an ice spell.
+
+### Invoker of Surges
+**Subclass Complexity: 2/4**
+
+> DANGEROUS. FAST.
+
+**Level 3:**
+- **Electrical Dedication.** You can only cast lightning spells from now on. Choose 1 Fire spell and treat it as a Lightning spell.
+- **Power Surge.** You can store up to WIL uses of Charged at a time. After you cast a damaging spell, you may take 4 lightning damage to add 1d8 to the damage.
+- **Blur.** While Charged, reduce ALL non-lightning damage you take by KEY.
+
+**Level 7:**
+- **Jumpstart.** When you roll Initiative, become Charged; and gain 1 additional action on the first round of combat.
+- **Power Surge (2).** Your Power Surge die becomes a d10. You may expend Charged to maximize it. Pick 1 wind spell, treat it as a Lightning spell.
+
+**Level 11:**
+- **Power Surge (3).** Your Power Surge die becomes a d12. (1/encounter) You may spend Charged to change any die on a spell you cast to the max.
+- **Blur (2).** While Charged, reduce ALL non-lightning damage you take by 2×KEY.
+
+**Level 15:**
+- **Power Surge (4).** Your Power Surge die becomes a d20.
+- **Haywire.** Whenever you are Dying, you gain the effects of Electrocharge.
 
 ---
 
