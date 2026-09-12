@@ -1490,8 +1490,7 @@ window.GAME_DATA = {
         4: [
           { name: "Unyielding Resolve", description: "Ignore the first Wound you would suffer each encounter (when-Wounded abilities, such as Kinetic Momentum, still trigger)." },
           { name: "Key Stat Increase", description: "+1 DEX or STR." },
-          { name: "Martial Master", description: "Choose a Martial Arts ability." },
-          { name: "Focus", description: "Whenever you spend time meditating alone in a windy place during a Safe Rest, you may choose different Zephyr options available to you." }
+          { name: "Martial Master", description: "Choose a Martial Arts ability." }
         ],
         5: [
           { name: "Reverberating Strikes", description: "Add LVL bludgeoning damage to all of your melee attacks." },
@@ -2234,6 +2233,7 @@ window.GAME_DATA = {
       {
         name: "Way of Pain",
         className: "Zephyr",
+        description: "The disciplined artist. Turn incoming pain into weapons, punishing enemies for every hit they land.",
         features: {
           3:  [{ name: "Bring the Pain", description: "(1/round) You may turn any melee attack against you into a crit. Whenever you are crit, reduce the damage by half. The attacker takes the same amount of damage you took (ignoring armor). You may suffer 1 Wound to double the damage the enemy takes." }],
           7:  [{ name: "Share My Pain", description: "Your Swiftstrike can also target a 2nd creature within Reach 2." }],
@@ -2244,6 +2244,7 @@ window.GAME_DATA = {
       {
         name: "Way of Flame",
         className: "Zephyr",
+        description: "The explosive artist. Turn Wounds into fiery detonations that chain through your enemies.",
         features: {
           3:  [{ name: "Exploding Soul", description: "(1/round) On your turn, you may suffer a Wound. Whenever you gain a Wound, deal STR+Wounds damage to any creatures you choose within 2 spaces (ignoring armor) and give them the Smoldering condition." }],
           7:  [{ name: "Blazing Speed", description: "Gain +2 speed while using Windstep. After you cease movement with Windstep, enemies you passed through take STR+DEX fire damage. You may have Smoldering enemies take double, ending the condition." }],

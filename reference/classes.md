@@ -1988,7 +1988,8 @@ Additional Bursts of Speed are gained from:
 - **Unyielding Resolve.** Ignore the first Wound you would suffer each encounter (when-Wounded abilities, such as Kinetic Momentum, still trigger).
 - **Key Stat Increase.** +1 DEX or STR.
 - **Martial Master.** Choose a Martial Arts ability.
-- **Focus.** Whenever you spend time meditating alone in a windy place during a Safe Rest, you may choose different Zephyr options available to you.
+
+> **Focus.** Whenever you spend time meditating alone in a windy place during a Safe Rest, you may choose different Zephyr options available to you.
 
 ### Level 5
 - **Reverberating Strikes.** You learn to focus your energy and transfer it as an additional concussive force into your foes. Add LVL bludgeoning damage to all of your melee attacks.
@@ -2065,6 +2066,9 @@ Additional Bursts of Speed are gained from:
 ## Subclasses
 
 ### Way of Pain
+**Subclass Complexity: 2/4**
+
+> The disciplined artist. Turn incoming pain into weapons, punishing enemies for every hit they land.
 
 **Level 3:**
 - **Bring the Pain.** (1/round) You may turn any melee attack against you into a crit. Whenever you are crit, reduce the damage by half. The attacker takes the same amount of damage you took (ignoring armor). You may suffer 1 Wound to double the damage the enemy takes.
@@ -2079,6 +2083,9 @@ Additional Bursts of Speed are gained from:
 - **Echoed Agony.** Your Swiftstrike can also target a 3rd creature within Reach 4.
 
 ### Way of Flame
+**Subclass Complexity: 3/4**
+
+> The explosive artist. Turn Wounds into fiery detonations that chain through your enemies.
 
 **Level 3:**
 - **Exploding Soul.** (1/round) On your turn, you may suffer a Wound. Whenever you gain a Wound, deal STR+Wounds damage to any creatures you choose within 2 spaces (ignoring armor) and give them the Smoldering condition.
